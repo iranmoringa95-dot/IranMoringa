@@ -1,9 +1,9 @@
 # Project Status & Milestone Tracker - MoringaLab Commerce (`فروشگاه سبزینه`)
 
 ## Overall Status Summary
-- **Current Milestone**: Milestone 2 (Identity, Auth & RBAC) - **COMPLETED**
-- **Next Milestone**: Milestone 3 (Catalog, Media & Content Domain)
-- **Repository State**: Full identity domain, Iranian phone OTP authentication flow, secure session cookies, RBAC matrix, and Next.js Auth UI implemented and verified.
+- **Current Milestone**: Milestone 3 (Catalog, Media & Content Domain) - **COMPLETED**
+- **Next Milestone**: Milestone 4 (Storefront Frontend Experience)
+- **Repository State**: Complete catalog domain, variants, category tree, health articles engine with scientific disclaimers, seed data generator, and storefront pages (`/shop`, `/product/[slug]`, `/articles`) implemented and verified.
 
 ---
 
@@ -14,8 +14,8 @@
 | **Milestone 0** | Analysis, Architecture, Data Model, OpenAPI Contract, Security & ADRs | **COMPLETED** | Yes |
 | **Milestone 1** | Foundation: Monorepo, Docker Compose, Go API Core, Next.js RTL Skeleton, Migrations | **COMPLETED** | Yes |
 | **Milestone 2** | Identity, Auth (Customer OTP, Admin Password), Session Cookies & RBAC | **COMPLETED** | Yes |
-| **Milestone 3** | Catalog, Media & Content Domain (Products, Variants, Categories, Articles) | Pending | No |
-| **Milestone 4** | Storefront Frontend Pages (Home, Catalog Search/Filter, Product Page) | Pending | No |
+| **Milestone 3** | Catalog, Media & Content Domain (Products, Variants, Categories, Articles) | **COMPLETED** | Yes |
+| **Milestone 4** | Storefront Frontend Experience (Home, Filter Drawer, Responsive RTL, Structured Data) | Pending | No |
 | **Milestone 5** | Cart, Pricing & Promotions Engine | Pending | No |
 | **Milestone 6** | Inventory Reservation, Checkout, Orders & Payment Gateway | Pending | No |
 | **Milestone 7** | Shipping, Tracking, Account Portal & Returns | Pending | No |
@@ -25,21 +25,18 @@
 
 ---
 
-## Milestone 2 Gate Verification Evidence
+## Milestone 3 Gate Verification Evidence
 
-- [x] **Iranian Mobile Normalization**: `NormalizeIranianPhone` utility created converting `09123456789`, `+989123456789`, `00989123456789` to canonical format with unit tests (`phone_test.go`).
-- [x] **OTP Security**: OTP challenge codes stored exclusively as SHA256 hashes (`otp_challenges`); 3 attempt max limit & 5-minute expiration enforced.
-- [x] **Session Cookie Security**: Cryptographically random 32-byte session tokens stored exclusively as SHA256 hashes in database; cookies set with `HttpOnly` and `SameSite=Lax`.
-- [x] **RBAC Permissions Matrix**: Granular permission matrix seeded (`super_admin`, `catalog_manager`, `warehouse_manager`, `order_support`, `finance_manager`, `customer`); server-side permission checks built.
-- [x] **Go API Auth Endpoints**: `POST /api/v1/auth/otp/request`, `POST /api/v1/auth/otp/verify`, `POST /api/v1/auth/logout`, `GET /api/v1/me`.
-- [x] **Frontend Auth UI**: Persian 2-step OTP login page (`/login`) and customer account dashboard (`/account`) built and verified (`npm run build` compiled 7 static pages cleanly).
+- [x] **Catalog Domain Invariants**: Enforced single/multiple variants per product, `PriceIRR >= 0`, `CompareAtPriceIRR > PriceIRR` with unit tests (`catalog/service_test.go`).
+- [x] **Health Content Engine**: Articles support scientific sources, reviewers, and mandatory medical disclaimers.
+- [x] **Public Catalog & Content APIs**: Endpoints `/api/v1/catalog/categories`, `/api/v1/catalog/products`, `/api/v1/catalog/products/{slug}`, `/api/v1/content/articles`, `/api/v1/content/articles/{slug}`, `/api/v1/content/faqs`.
+- [x] **Seed Data Generator**: `seeds.PopulateSeedData` creates realistic categories, 12 herbal products with variants, 5 health articles, FAQs.
+- [x] **Storefront Frontend Pages**: `/shop`, `/product/[slug]`, `/articles` built and verified (`npm run build` compiled 9 routes cleanly).
 
 ---
 
-## Next Milestone: Milestone 3 (Catalog, Media & Content Domain)
-- Product & Variant models, SKU handling, price representation (`bigint` IRR).
-- Hierarchical category tree & brand management.
-- Admin product management API & media asset storage upload adapter (MinIO/S3).
-- Content blog article workflow (Draft, Scientific Review, Approved, Published).
-- Storefront catalog read APIs.
-- Seed data fixture generation.
+## Next Milestone: Milestone 4 (Storefront Frontend Experience)
+- Mobile-first responsive storefront navigation drawer & sticky search bar.
+- Storefront homepage polished with hero section, category cards, bestsellers, and trust badges.
+- Filter drawer for mobile viewport (`390px` to `1440px`).
+- Valid JSON-LD Structured Data (`Product`, `BreadcrumbList`, `Organization`).

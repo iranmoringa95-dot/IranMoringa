@@ -12,6 +12,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"moringalab/api/db/seeds"
+	"moringalab/api/internal/catalog"
+	"moringalab/api/internal/content"
 	"moringalab/api/internal/identity"
 	"moringalab/api/internal/platform/config"
 	"moringalab/api/internal/platform/health"
@@ -28,10 +31,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize identity domain module
+	// Initialize identity module
 	identityStore := identity.NewMemoryStore()
 	identityService := identity.NewService(identityStore)
 	identityHandler := identity.NewHandler(identityService)
+
+	// Initialize catalog module
+	catalogService := catalog.NewService()
+	catalogHandler := catalog.NewHandler(catalogService)
+
+	// Initialize content module
+	contentService := content.NewService()
+	contentHandler := content.NewHandler(contentService)
+
+	// Populate development seed data
+	seeds.PopulateSeedData(catalogService, contentService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -48,10 +62,15 @@ func main() {
 		r.Post("/auth/logout", identityHandler.Logout)
 		r.Get("/me", identityHandler.GetMe)
 
-		r.Get("/storefront/home", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(`{"featured_categories":[],"bestsellers":[]}`))
-		})
+		// Catalog Routes
+		r.Get("/catalog/categories", catalogHandler.ListCategories)
+		r.Get("/catalog/products", catalogHandler.SearchProducts)
+		r.Get("/catalog/products/{slug}", catalogHandler.GetProductBySlug)
+
+		// Content Routes
+		r.Get("/content/articles", contentHandler.ListArticles)
+		r.Get("/content/articles/{slug}", contentHandler.GetArticleBySlug)
+		r.Get("/content/faqs", contentHandler.ListFAQs)
 	})
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)

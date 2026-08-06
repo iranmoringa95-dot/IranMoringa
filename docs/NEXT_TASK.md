@@ -1,15 +1,16 @@
 # Next Task Status & Checkpoint
 
 ## Current Milestone
-**Milestone 3: Catalog, Media & Content Domain**
+**Milestone 4: Storefront Frontend Experience**
 
 ## Current Status
 - **Milestone 0**: COMPLETED
 - **Milestone 1**: COMPLETED
 - **Milestone 2**: COMPLETED
-- **Active Task**: TASK-022: Catalog Domain Model, Category Tree, Product & Variant Management
+- **Milestone 3**: COMPLETED
+- **Active Task**: TASK-028: Storefront UI Polish, Filter Drawer, Responsive Mobile Layout & Structured Data (JSON-LD)
 - **Blockers**: None
-- **Recent Verification**: Next.js App Router static build (`npm run build`) compiled cleanly (7 routes).
+- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 9 static/dynamic routes cleanly with 0 errors.
 
 ## Next Immediate Action
-Begin Milestone 3 implementation: Catalog domain service, Product & Variant models, Media storage adapter, Blog article review workflow, and Storefront read APIs.
+Begin Milestone 4 implementation: Storefront UI polish, mobile navigation & filter drawer, responsive grid testing (`390px`, `768px`, `1440px`), and JSON-LD structured data injection.
