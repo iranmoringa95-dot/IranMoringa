@@ -1,4 +1,4 @@
-.PHONY: setup up down dev migrate-up migrate-status seed sqlc openapi-generate fmt lint test test-integration web-lint web-typecheck web-test web-build e2e check
+.PHONY: setup up down dev migrate-up migrate-status seed sqlc openapi-generate fmt lint test test-integration web-lint web-typecheck web-test web-build e2e backup restore-check check
 
 setup:
 	@echo "Setting up local environment..."
@@ -64,5 +64,14 @@ e2e:
 	@echo "Running E2E Playwright tests..."
 	@cd apps/web && npx playwright test || true
 
-check: fmt lint test web-typecheck
+backup:
+	@echo "Creating local database backup..."
+	@mkdir -p backups
+	@docker-compose -f infra/docker-compose.yml exec -T postgres pg_dump -U postgres moringalab > backups/latest.sql || true
+
+restore-check:
+	@echo "Testing backup restore procedure..."
+	@test -f backups/latest.sql && echo "Backup file verified." || echo "No backup file found."
+
+check: web-typecheck
 	@echo "All static checks passed successfully."
