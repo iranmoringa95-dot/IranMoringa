@@ -1,7 +1,7 @@
 # Next Task Status & Checkpoint
 
 ## Current Milestone
-**Milestone 9: Reviews, Wishlist, Back-in-Stock & Outbox Notifications**
+**Milestone 10: Hardening, Performance, Accessibility & Release Candidate**
 
 ## Current Status
 - **Milestone 0**: COMPLETED
@@ -13,9 +13,10 @@
 - **Milestone 6**: COMPLETED
 - **Milestone 7**: COMPLETED
 - **Milestone 8**: COMPLETED
-- **Active Task**: TASK-057: Verified Reviews Engine, Customer Wishlist, Back-in-Stock Subscriptions & Outbox Worker
+- **Milestone 9**: COMPLETED
+- **Active Task**: TASK-061: Monorepo Final Verification (`make check`), Web Build & Release Candidate Audit
 - **Blockers**: None
-- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 18 routes cleanly with 0 errors.
+- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 19 routes cleanly with 0 errors.
 
 ## Next Immediate Action
-Begin Milestone 9 implementation: Product reviews & rating engine (`internal/reviews`), customer wishlist service (`internal/wishlist`), Outbox pattern background worker (`internal/outbox`), and back-in-stock notification engine (`internal/notifications`).
+Begin Milestone 10 final hardening: Run monorepo test suite, execute `npm run typecheck` and `npm run build`, verify 100% compliance with master specification, and create final release report.

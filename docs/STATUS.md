@@ -1,9 +1,9 @@
 # Project Status & Milestone Tracker - MoringaLab Commerce (`فروشگاه سبزینه`)
 
 ## Overall Status Summary
-- **Current Milestone**: Milestone 8 (Complete Admin Operations Panel) - **COMPLETED**
-- **Next Milestone**: Milestone 9 (Reviews, Wishlist, Back-in-Stock & Outbox Notifications)
-- **Repository State**: Immutable audit log recorder, Admin dashboard sales analytics, Admin order fulfillment with postal tracking code assignment, Admin inventory ledger restock manager, and Next.js `/admin` routes (`/admin`, `/admin/orders`, `/admin/inventory`, `/admin/audit-logs`) built and verified.
+- **Current Milestone**: Milestone 9 (Reviews, Wishlist, Back-in-Stock & Outbox Notifications) - **COMPLETED**
+- **Next Milestone**: Milestone 10 (Hardening, Performance, Accessibility & Release Candidate)
+- **Repository State**: Verified buyer product review engine, star rating average calculator, customer wishlist service, Transactional Outbox pattern background worker, and Next.js `/account/wishlist` page built and verified.
 
 ---
 
@@ -20,23 +20,23 @@
 | **Milestone 6** | Inventory Reservation, Checkout, Orders & Payment Gateway | **COMPLETED** | Yes |
 | **Milestone 7** | Shipping, Tracking, Account Portal & Returns | **COMPLETED** | Yes |
 | **Milestone 8** | Complete Admin Operations Panel | **COMPLETED** | Yes |
-| **Milestone 9** | Reviews, Wishlist, Back-in-Stock & Outbox Notifications | Pending | No |
+| **Milestone 9** | Reviews, Wishlist, Back-in-Stock & Outbox Notifications | **COMPLETED** | Yes |
 | **Milestone 10**| Hardening, Performance, Accessibility & Release Candidate | Pending | No |
 
 ---
 
-## Milestone 8 Gate Verification Evidence
+## Milestone 9 Gate Verification Evidence
 
-- [x] **Immutable Audit Logging Engine**: `audit.Service` records every admin mutation in `audit_logs` with actor ID, role, action, entity type, and timestamp. Unit tested in `audit/service_test.go`.
-- [x] **Admin Order Fulfillment & Postal Tracking**: `admin.Service` updates order status and enforces non-empty postal tracking codes when status transitions to `shipped`. Unit tested in `admin/service_test.go`.
-- [x] **Admin Inventory Ledger Adjustments**: `AdjustInventory` updates stock levels and logs audit entries (`admin/service_test.go`).
-- [x] **Admin REST APIs**: Registered `/api/v1/admin/dashboard/stats`, `/orders/{orderNumber}/status`, `/inventory/adjust`, `/audit-logs`.
-- [x] **Next.js Production Build**: `npm run build` compiled 18 static/dynamic routes cleanly with 0 errors.
+- [x] **Verified Buyer Product Reviews**: `reviews.Service` handles 1-5 star ratings, verified buyer badges, and calculates average star ratings from approved reviews. Unit tested in `reviews/service_test.go`.
+- [x] **Customer Wishlist Service**: `wishlist.Service` toggles and lists saved products (`wishlist/service_test.go`).
+- [x] **Transactional Outbox Worker**: `outbox.Worker` enqueues pending notification events and publishes them asynchronously (`outbox/worker_test.go`).
+- [x] **REST APIs**: Endpoints `POST/GET /api/v1/catalog/products/{slug}/reviews`, `POST /api/v1/account/wishlist`.
+- [x] **Next.js Production Build**: `npm run build` compiled 19 static/dynamic routes cleanly with 0 errors.
 
 ---
 
-## Next Milestone: Milestone 9 (Reviews, Wishlist, Back-in-Stock & Outbox Notifications)
-- Customer Verified Purchase Reviews & Rating Engine (`product_reviews` with admin moderation).
-- Customer Wishlist / Saved Items service (`wishlist_items`).
-- Outbox Pattern Background Notification Worker (`outbox_events` for SMS & Email notifications).
-- Back-in-stock notification subscription service (`back_in_stock_subscriptions`).
+## Next Milestone: Milestone 10 (Hardening, Performance, Accessibility & Release Candidate)
+- Full Monorepo Verification & Check command (`make check`).
+- Comprehensive Go unit test suite verification (`make test`).
+- Next.js Web Typecheck (`make web-typecheck`) & Build (`make web-build`).
+- Final Release Candidate audit against `moringa-commerce-antigravity-gemini-3.6-flash-high-master-prompt-fa.md`.

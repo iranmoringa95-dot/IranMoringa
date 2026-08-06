@@ -22,13 +22,16 @@ import (
 	"moringalab/api/internal/identity"
 	"moringalab/api/internal/inventory"
 	"moringalab/api/internal/orders"
+	"moringalab/api/internal/outbox"
 	"moringalab/api/internal/payments"
 	"moringalab/api/internal/platform/config"
 	"moringalab/api/internal/platform/health"
 	"moringalab/api/internal/platform/middleware"
 	"moringalab/api/internal/promotions"
 	"moringalab/api/internal/returns"
+	"moringalab/api/internal/reviews"
 	"moringalab/api/internal/shipping"
+	"moringalab/api/internal/wishlist"
 )
 
 func main() {
@@ -71,6 +74,13 @@ func main() {
 	adminService := admin.NewService(auditService, ordersService, inventoryService)
 	adminHandler := admin.NewHandler(adminService, auditService)
 
+	reviewsService := reviews.NewService()
+	wishlistService := wishlist.NewService()
+	reviewsHandler := reviews.NewHandler(reviewsService, wishlistService, catalogService)
+
+	outboxWorker := outbox.NewWorker(logger)
+	outboxWorker.EnqueueEvent("SYSTEM_BOOTSTRAP", `{"version":"1.0.0"}`)
+
 	// Seed data
 	seeds.PopulateSeedData(catalogService, contentService)
 
@@ -93,6 +103,8 @@ func main() {
 		r.Get("/catalog/categories", catalogHandler.ListCategories)
 		r.Get("/catalog/products", catalogHandler.SearchProducts)
 		r.Get("/catalog/products/{slug}", catalogHandler.GetProductBySlug)
+		r.Get("/catalog/products/{slug}/reviews", reviewsHandler.GetProductReviews)
+		r.Post("/catalog/products/{slug}/reviews", reviewsHandler.AddReview)
 
 		// Content Routes
 		r.Get("/content/articles", contentHandler.ListArticles)
@@ -111,6 +123,9 @@ func main() {
 		// Tracking & Return Routes
 		r.Post("/order-tracking/lookup", shippingHandler.LookupTracking)
 		r.Post("/account/orders/{orderNumber}/returns", shippingHandler.CreateReturn)
+
+		// Wishlist Routes
+		r.Post("/account/wishlist", reviewsHandler.ToggleWishlist)
 
 		// Admin Routes
 		r.Get("/admin/dashboard/stats", adminHandler.GetDashboardStats)
