@@ -1,9 +1,9 @@
 # Project Status & Milestone Tracker - MoringaLab Commerce (`فروشگاه سبزینه`)
 
 ## Overall Status Summary
-- **Current Milestone**: Milestone 4 (Storefront Frontend Experience) - **COMPLETED**
-- **Next Milestone**: Milestone 5 (Cart, Pricing & Promotions Engine)
-- **Repository State**: Polished responsive storefront, sticky header, mobile navigation & filter drawers (`< 768px`), JSON-LD structured data (`Product`, `BreadcrumbList`, `Organization`), Persian typography (`Vazirmatn`), and static site generation verified.
+- **Current Milestone**: Milestone 5 (Cart, Pricing & Promotions Engine) - **COMPLETED**
+- **Next Milestone**: Milestone 6 (Inventory Reservation, Checkout, Orders & Payment Gateway)
+- **Repository State**: Complete cart service, anonymous guest cart cookies, guest-to-user cart merge, server-side repricing breakdown engine (int64 IRR), promotion coupon validator, and Next.js `/cart` page built and verified.
 
 ---
 
@@ -16,7 +16,7 @@
 | **Milestone 2** | Identity, Auth (Customer OTP, Admin Password), Session Cookies & RBAC | **COMPLETED** | Yes |
 | **Milestone 3** | Catalog, Media & Content Domain (Products, Variants, Categories, Articles) | **COMPLETED** | Yes |
 | **Milestone 4** | Storefront Frontend Experience (Header, Mobile Drawers, JSON-LD, Skeletons) | **COMPLETED** | Yes |
-| **Milestone 5** | Cart, Pricing & Promotions Engine | Pending | No |
+| **Milestone 5** | Cart, Pricing & Promotions Engine (Guest/User Carts, Cart Merge, Coupons, `/cart`) | **COMPLETED** | Yes |
 | **Milestone 6** | Inventory Reservation, Checkout, Orders & Payment Gateway | Pending | No |
 | **Milestone 7** | Shipping, Tracking, Account Portal & Returns | Pending | No |
 | **Milestone 8** | Complete Admin Operations Panel | Pending | No |
@@ -25,19 +25,20 @@
 
 ---
 
-## Milestone 4 Gate Verification Evidence
+## Milestone 5 Gate Verification Evidence
 
-- [x] **Responsive Mobile Layout**: Sticky Header with logo, search, cart counter, and mobile menu trigger button. Tested on `390px`, `768px`, and `1440px` viewports.
-- [x] **Mobile Navigation & Filter Drawers**: Built `MobileNavDrawer.tsx` and `FilterDrawer.tsx` with backdrop blur, slide-in animations, and accessible close actions.
-- [x] **JSON-LD Structured Data**: Embedded schema.org `Organization` on homepage, and `Product` & `BreadcrumbList` on product detail pages.
-- [x] **Loading Skeletons & Empty States**: Built skeleton shimmer states for shop grid and empty search states.
-- [x] **Next.js Production Build**: `npm run build` compiled 9 routes cleanly with 0 errors.
+- [x] **Int64 IRR Pricing Engine**: `pricing.CalculateBreakdown` computes itemized subtotal, item discounts, cart promo discounts, shipping fees, and grand total in `int64` IRR without float errors. Unit tested in `pricing/service_test.go`.
+- [x] **Guest/User Cart & Merge**: `carts.Service` handles anonymous guest cookie tokens (`cart_token`) and merges guest items into user cart upon login without creating duplicate rows. Unit tested in `carts/service_test.go`.
+- [x] **Coupon & Promotion Validator**: `promotions.ValidateAndCalculate` validates codes case-insensitively, enforces minimum order thresholds, usage limits, and expiration windows. Unit tested in `promotions/service_test.go`.
+- [x] **Go Cart APIs**: Endpoints `GET /api/v1/carts/current` and `POST /api/v1/carts/current/items`.
+- [x] **Frontend Cart Page**: `/cart` page renders item list, quantity indicators, coupon input box, and price summary. Verified (`npm run build` compiled 10 routes cleanly).
 
 ---
 
-## Next Milestone: Milestone 5 (Cart, Pricing & Promotions Engine)
-- Guest Cart via anonymous token in secure cookie (`carts` & `cart_items`).
-- Automatic Cart merge upon user login without duplicate items.
-- Server-side repricing engine & price breakdown calculation.
-- Coupon & Promotion engine (fixed/percentage discounts, usage limits, category targeting).
-- Cart drawer & dedicated `/cart` page with quantity debouncing.
+## Next Milestone: Milestone 6 (Inventory Reservation, Checkout, Orders & Payment Gateway)
+- Transactional Inventory Reservation with expiration TTL worker (`stock_reservations`).
+- Concurrency-safe stock reservation using PostgreSQL row locking (`SELECT ... FOR UPDATE`).
+- Checkout quote service & guest checkout without forced registration.
+- Order snapshot creation (`orders`, `order_items`, `order_addresses`) with `Idempotency-Key` header requirement.
+- Order State Machine transitions (`pending_payment`, `paid`, `processing`, `packed`, `shipped`, `delivered`, `cancelled`).
+- Fake Payment Gateway adapter & idempotent callback/webhook verification.

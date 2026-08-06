@@ -1,7 +1,7 @@
 # Next Task Status & Checkpoint
 
 ## Current Milestone
-**Milestone 5: Cart, Pricing & Promotions Engine**
+**Milestone 6: Inventory Reservation, Checkout, Orders & Payment Gateway**
 
 ## Current Status
 - **Milestone 0**: COMPLETED
@@ -9,9 +9,10 @@
 - **Milestone 2**: COMPLETED
 - **Milestone 3**: COMPLETED
 - **Milestone 4**: COMPLETED
-- **Active Task**: TASK-033: Guest & User Cart Service, Merge Logic, Repricing Engine & Coupon Validation
+- **Milestone 5**: COMPLETED
+- **Active Task**: TASK-039: Concurrency-Safe Stock Reservation, Checkout Orchestrator & Order Snapshots
 - **Blockers**: None
-- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 9 routes cleanly with 0 errors.
+- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 10 routes cleanly with 0 errors.
 
 ## Next Immediate Action
-Begin Milestone 5 implementation: Go cart service (`internal/carts`), pricing breakdown engine (`internal/pricing`), promotion coupon validator (`internal/promotions`), guest-to-user cart merge logic, and Next.js `/cart` page with cart drawer.
+Begin Milestone 6 implementation: Stock reservation ledger in Go (`internal/inventory`), Checkout orchestrator (`internal/checkout`), Order state machine & snapshots (`internal/orders`), Fake Payment Gateway adapter (`internal/payments`), and `/checkout` page.

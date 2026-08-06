@@ -13,12 +13,14 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"moringalab/api/db/seeds"
+	"moringalab/api/internal/carts"
 	"moringalab/api/internal/catalog"
 	"moringalab/api/internal/content"
 	"moringalab/api/internal/identity"
 	"moringalab/api/internal/platform/config"
 	"moringalab/api/internal/platform/health"
 	"moringalab/api/internal/platform/middleware"
+	"moringalab/api/internal/promotions"
 )
 
 func main() {
@@ -43,6 +45,11 @@ func main() {
 	// Initialize content module
 	contentService := content.NewService()
 	contentHandler := content.NewHandler(contentService)
+
+	// Initialize promotions & cart module
+	promotionsService := promotions.NewService()
+	cartService := carts.NewService(catalogService, promotionsService)
+	cartHandler := carts.NewHandler(cartService)
 
 	// Populate development seed data
 	seeds.PopulateSeedData(catalogService, contentService)
@@ -71,6 +78,10 @@ func main() {
 		r.Get("/content/articles", contentHandler.ListArticles)
 		r.Get("/content/articles/{slug}", contentHandler.GetArticleBySlug)
 		r.Get("/content/faqs", contentHandler.ListFAQs)
+
+		// Cart Routes
+		r.Get("/carts/current", cartHandler.GetCurrentCart)
+		r.Post("/carts/current/items", cartHandler.AddItem)
 	})
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)
