@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -15,6 +16,7 @@ type AuditLog struct {
 	EntityType string    `json:"entity_type"`
 	EntityID   string    `json:"entity_id"`
 	Details    string    `json:"details"`
+	RequestID  string    `json:"request_id"`
 	IPAddress  string    `json:"ip_address"`
 	CreatedAt  time.Time `json:"created_at"`
 }
@@ -34,6 +36,12 @@ func (s *Service) LogAction(actorID, role, action, entityType, entityID, details
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Redact any potential secret tokens or password strings in details
+	sanitizedDetails := details
+	if strings.Contains(strings.ToLower(details), "password") || strings.Contains(strings.ToLower(details), "token") {
+		sanitizedDetails = "[REDACTED_MUTATION_DETAILS]"
+	}
+
 	entry := AuditLog{
 		ID:         uuid.New(),
 		ActorID:    actorID,
@@ -41,7 +49,8 @@ func (s *Service) LogAction(actorID, role, action, entityType, entityID, details
 		Action:     action,
 		EntityType: entityType,
 		EntityID:   entityID,
-		Details:    details,
+		Details:    sanitizedDetails,
+		RequestID:  uuid.New().String(),
 		IPAddress:  "127.0.0.1",
 		CreatedAt:  time.Now(),
 	}
