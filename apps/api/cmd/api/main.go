@@ -25,6 +25,8 @@ import (
 	"moringalab/api/internal/platform/health"
 	"moringalab/api/internal/platform/middleware"
 	"moringalab/api/internal/promotions"
+	"moringalab/api/internal/returns"
+	"moringalab/api/internal/shipping"
 )
 
 func main() {
@@ -58,6 +60,10 @@ func main() {
 
 	checkoutService := checkout.NewService(cartService, inventoryService, ordersService, paymentsService)
 	checkoutHandler := checkout.NewHandler(checkoutService, paymentsService)
+
+	shippingService := shipping.NewService(ordersService, paymentsService)
+	returnsService := returns.NewService(ordersService)
+	shippingHandler := shipping.NewHandler(shippingService, returnsService)
 
 	// Seed data
 	seeds.PopulateSeedData(catalogService, contentService)
@@ -95,6 +101,10 @@ func main() {
 		r.Post("/orders", checkoutHandler.SubmitOrder)
 		r.Get("/payments/{paymentId}", checkoutHandler.GetPayment)
 		r.Post("/payments/{paymentId}/verify", checkoutHandler.VerifyPayment)
+
+		// Tracking & Return Routes
+		r.Post("/order-tracking/lookup", shippingHandler.LookupTracking)
+		r.Post("/account/orders/{orderNumber}/returns", shippingHandler.CreateReturn)
 	})
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)

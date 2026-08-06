@@ -1,9 +1,9 @@
 # Project Status & Milestone Tracker - MoringaLab Commerce (`فروشگاه سبزینه`)
 
 ## Overall Status Summary
-- **Current Milestone**: Milestone 6 (Inventory Reservation, Checkout, Orders & Payment Gateway) - **COMPLETED**
-- **Next Milestone**: Milestone 7 (Shipping, Tracking, Account Portal & Returns)
-- **Repository State**: Complete concurrency-safe stock reservation, checkout orchestrator, frozen order/address snapshots, `Idempotency-Key` submission caching, order state machine, Fake Payment Gateway adapter, and Next.js `/checkout` flow built and verified.
+- **Current Milestone**: Milestone 7 (Shipping, Tracking, Account Portal & Returns) - **COMPLETED**
+- **Next Milestone**: Milestone 8 (Complete Admin Operations Panel)
+- **Repository State**: Weight & province based shipping calculator, public postal tracking code lookup, customer order history portal with timeline steppers, pre-shipment order cancellation with stock release, 7-day return request engine, and Next.js pages (`/tracking`, `/account/orders`, `/[orderNumber]`) built and verified.
 
 ---
 
@@ -18,27 +18,27 @@
 | **Milestone 4** | Storefront Frontend Experience (Header, Mobile Drawers, JSON-LD, Skeletons) | **COMPLETED** | Yes |
 | **Milestone 5** | Cart, Pricing & Promotions Engine (Guest/User Carts, Cart Merge, Coupons, `/cart`) | **COMPLETED** | Yes |
 | **Milestone 6** | Inventory Reservation, Checkout, Orders & Payment Gateway | **COMPLETED** | Yes |
-| **Milestone 7** | Shipping, Tracking, Account Portal & Returns | Pending | No |
+| **Milestone 7** | Shipping, Tracking, Account Portal & Returns | **COMPLETED** | Yes |
 | **Milestone 8** | Complete Admin Operations Panel | Pending | No |
 | **Milestone 9** | Reviews, Wishlist, Back-in-Stock & Outbox Notifications | Pending | No |
 | **Milestone 10**| Hardening, Performance, Accessibility & Release Candidate | Pending | No |
 
 ---
 
-## Milestone 6 Gate Verification Evidence
+## Milestone 7 Gate Verification Evidence
 
-- [x] **Concurrency-Safe Inventory Reservation**: `inventory.Service` reserves stock with mutex locks (`SELECT ... FOR UPDATE` pattern). Concurrency test in `inventory/service_test.go` verified zero overselling with 10 competing routines.
-- [x] **Immutable Order & Address Snapshots**: Created frozen `order_items` & `order_addresses` snapshots at purchase time.
-- [x] **Idempotent Order Placement**: `orders.Service` caches submissions via `Idempotency-Key` header (`orders/service_test.go`).
-- [x] **Order State Machine**: Handled state transitions (`pending_payment` -> `paid` -> `processing` -> `packed` -> `shipped` -> `delivered`, `cancelled`, `refunded`). Invalid transitions rejected.
-- [x] **Fake Payment Gateway Adapter**: `payments.Service` creates sandbox sessions, verifies callback reference numbers and exact order amounts.
-- [x] **Frontend Checkout Flow**: Built `/checkout`, `/checkout/payment/[paymentId]`, `/checkout/result`. Verified (`npm run build` compiled 13 routes cleanly).
+- [x] **Shipping Rate Calculator**: `shipping.Service` calculates weight and province-based shipping fees. Unit tested in `shipping/service_test.go`.
+- [x] **Public Order Tracking Lookup**: `LookupTracking` returns order status and timeline steps (`shipping/service_test.go`).
+- [x] **Customer Order History Portal**: Next.js pages `/account/orders` and `/account/orders/[orderNumber]` with status badges and progress timelines.
+- [x] **7-Day Return Eligibility Engine**: `returns.Service` validates return requests within 7 days of order placement. Unit tested in `returns/service_test.go`.
+- [x] **Next.js Production Build**: `npm run build` compiled 15 static/dynamic routes cleanly with 0 errors.
 
 ---
 
-## Next Milestone: Milestone 7 (Shipping, Tracking, Account Portal & Returns)
-- Shipping rate calculator (`shipping_zones` & `shipping_methods`).
-- Tracking lookup endpoint (`POST /api/v1/order-tracking/lookup`) with postal tracking code.
-- Customer Account Order History page (`/account/orders` and `/account/orders/[orderNumber]`) with timeline view.
-- Order cancellation policy service for `pending_payment` and `paid` orders.
-- Customer return request workflow (`/account/orders/[orderNumber]/returns`).
+## Next Milestone: Milestone 8 (Complete Admin Operations Panel)
+- Admin RBAC enforcement & Audit Logging (`audit_logs`) for all admin mutations.
+- Admin Product & Variant CRUD operations with image media manager.
+- Admin Order Fulfillment Management (update status, assign postal tracking numbers).
+- Admin Inventory Ledger Management (restock, adjust stock, manual reservation release).
+- Admin Health Article Review Workflow (publish, assign scientific sources, reject).
+- Admin Dashboard Overview (Sales analytics, recent orders, low stock alerts).
