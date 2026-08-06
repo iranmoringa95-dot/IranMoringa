@@ -21,6 +21,7 @@ import (
 	"moringalab/api/internal/content"
 	"moringalab/api/internal/identity"
 	"moringalab/api/internal/inventory"
+	"moringalab/api/internal/localization"
 	"moringalab/api/internal/orders"
 	"moringalab/api/internal/outbox"
 	"moringalab/api/internal/payments"
@@ -78,6 +79,8 @@ func main() {
 	wishlistService := wishlist.NewService()
 	reviewsHandler := reviews.NewHandler(reviewsService, wishlistService, catalogService)
 
+	localizationHandler := localization.NewHandler()
+
 	outboxWorker := outbox.NewWorker(logger)
 	outboxWorker.EnqueueEvent("SYSTEM_BOOTSTRAP", `{"version":"1.0.0"}`)
 
@@ -98,6 +101,9 @@ func main() {
 		r.Post("/auth/otp/verify", identityHandler.VerifyOTP)
 		r.Post("/auth/logout", identityHandler.Logout)
 		r.Get("/me", identityHandler.GetMe)
+
+		// Localization Routes
+		r.Get("/localization/provinces", localizationHandler.GetProvinces)
 
 		// Catalog Routes
 		r.Get("/catalog/categories", catalogHandler.ListCategories)
