@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"moringalab/api/db/seeds"
+	"moringalab/api/internal/account"
 	"moringalab/api/internal/admin"
 	"moringalab/api/internal/audit"
 	"moringalab/api/internal/carts"
@@ -50,6 +51,9 @@ func main() {
 	identityStore := identity.NewMemoryStore()
 	identityService := identity.NewService(identityStore)
 	identityHandler := identity.NewHandler(identityService)
+
+	accountService := account.NewService()
+	accountHandler := account.NewHandler(accountService)
 
 	catalogService := catalog.NewService()
 	catalogHandler := catalog.NewHandler(catalogService)
@@ -107,6 +111,13 @@ func main() {
 		r.Post("/auth/logout", identityHandler.Logout)
 		r.Post("/auth/logout-all", identityHandler.LogoutAll)
 		r.Get("/me", identityHandler.GetMe)
+
+		// Account & Address Routes
+		r.Get("/account/profile", accountHandler.GetProfile)
+		r.Get("/account/addresses", accountHandler.ListAddresses)
+		r.Post("/account/addresses", accountHandler.CreateAddress)
+		r.Post("/account/addresses/{id}/set-default", accountHandler.SetDefaultAddress)
+		r.Delete("/account/addresses/{id}", accountHandler.DeleteAddress)
 
 		// Localization Routes
 		r.Get("/localization/provinces", localizationHandler.GetProvinces)
