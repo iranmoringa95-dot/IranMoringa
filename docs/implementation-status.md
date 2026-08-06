@@ -6,8 +6,9 @@
 - **Completed Wave 2 Modules**: M01, M02 (**100% COMPLETED**)
 - **Completed Wave 3 Modules**:
   - **M06 — سبد خرید کاربر و مهمان**: **COMPLETED & VERIFIED**
+  - **M07 — تسویه‌حساب (Checkout) و ثبت سفارش**: **COMPLETED & VERIFIED**
 - **Date**: ۱۴۰۵/۰۵/۱۵ (۲۰۲۶-۰۸-۰۶)
-- **Repository State**: Guest cart creation, deterministic cart merging after login (`MergeGuestCartToUser`), server-side price recalculation (`recalculateCartUnlocked`), IDOR protection, 10-digit postal code validation, CSPRNG OTP generation, 20-goroutine competing concurrency test (zero overselling), and 100% clean Next.js production build (19 routes compiled cleanly with 0 errors).
+- **Repository State**: Idempotency key deduplication in `SubmitCheckout`, atomic inventory reservation rollbacks on order errors, guest checkout support, product/price/address snapshotting, customer account & address package, 20-goroutine competing concurrency test (zero overselling), and 100% clean Next.js production build (19 routes compiled cleanly with 0 errors).
 
 ---
 
@@ -25,13 +26,15 @@
 | **M01** | **Iranian Mobile OTP Auth** | 6-digit CSPRNG OTP generation (`crypto/rand`), SHA-256 challenge hashing, constant-time comparison (`subtle.ConstantTimeCompare`), E.164 phone normalization, `LogoutAll` session revocation, `HttpOnly` `Secure` cookies. | **COMPLETED** |
 | **M02** | **Customer Account & Address Portal** | Customer profile & address domain models, IDOR protection (`UserID` session scoping), 10-digit Iranian postal code validation (`ValidatePostalCode`), atomic default address toggles (`IsDefaultShipping`/`IsDefaultBilling`), REST API. | **COMPLETED** |
 | **M06** | **Guest & Customer Cart Engine** | Guest cart generation with secure tokens, deterministic cart merging after login (`MergeGuestCartToUser`), atomic quantity stepping, backend price recalculation, discount coupon integration. | **COMPLETED** |
+| **M07** | **Checkout & Order Engine** | Guest checkout placement, idempotency key deduplication (`seenOrders`), atomic inventory reservation rollbacks on order/payment failure, permanent order address & item snapshotting. | **COMPLETED** |
 
 ---
 
 ## Verification & Test Results
 
 1. **Go Unit Test Suite**:
-   - `TestGuestCartCreationAndMerging` (Guest cart & merge after login): PASSED
+   - `TestCheckoutIdempotencyAndGuestOrderPlacement` (Idempotency key & guest checkout): PASSED
+   - `TestGuestCartCreationAndMerging`: PASSED
    - `TestAddressIDORScopingAndDefaults`: PASSED
    - `TestGenerateOTPCode`: PASSED
    - `TestOTPFlowAndSessionRevocation`: PASSED
@@ -52,9 +55,10 @@
 
 ---
 
-## M06 Definition of Done (DoD) Verification
+## M07 Definition of Done (DoD) Verification
 
-- [x] Guest carts identified by secure token; user carts bound to `UserID`.
-- [x] Cart merging after login merges guest items into user's cart without duplicates (`MergeGuestCartToUser`).
-- [x] Server-side price recalculation ignores client price payloads.
+- [x] Guest checkout placement supported without forced registration.
+- [x] Idempotency key deduplication prevents double order creation on double submit.
+- [x] Atomic inventory reservation rollbacks on submission errors.
+- [x] Permanent product, price, and address snapshotting into order items.
 - [x] Clean Next.js static production build (`npm run build`).

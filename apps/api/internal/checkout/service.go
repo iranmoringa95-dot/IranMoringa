@@ -2,6 +2,7 @@ package checkout
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,10 +30,12 @@ type SubmitCheckoutResponse struct {
 }
 
 type Service struct {
+	mu               sync.RWMutex
 	cartService      *carts.Service
 	inventoryService *inventory.Service
 	orderService     *orders.Service
 	paymentService   *payments.Service
+	seenOrders       map[string]*SubmitCheckoutResponse
 }
 
 func NewService(
@@ -46,10 +49,20 @@ func NewService(
 		inventoryService: invSvc,
 		orderService:     orderSvc,
 		paymentService:   paySvc,
+		seenOrders:       make(map[string]*SubmitCheckoutResponse),
 	}
 }
 
 func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResponse, error) {
+	s.mu.Lock()
+	if req.IdempotencyKey != "" {
+		if prev, exists := s.seenOrders[req.IdempotencyKey]; exists {
+			s.mu.Unlock()
+			return prev, nil
+		}
+	}
+	s.mu.Unlock()
+
 	// 1. Get cart
 	cart := s.cartService.GetOrCreateCart(nil, nil)
 	if len(cart.Items) == 0 {
@@ -57,11 +70,17 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 	}
 
 	// 2. Reserve inventory for items
+	reservations := make([]*inventory.StockReservation, 0, len(cart.Items))
 	for _, item := range cart.Items {
-		_, err := s.inventoryService.ReserveStock(item.VariantID, item.Quantity, nil, 15*time.Minute)
+		res, err := s.inventoryService.ReserveStock(item.VariantID, item.Quantity, nil, 15*time.Minute)
 		if err != nil {
+			// Rollback previous reservations atomically
+			for _, r := range reservations {
+				_ = s.inventoryService.ReleaseReservation(r.ID)
+			}
 			return nil, err
 		}
+		reservations = append(reservations, res)
 	}
 
 	// 3. Freeze item snapshots
@@ -102,17 +121,33 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 		Items:          orderItems,
 	})
 	if err != nil {
+		// Rollback reservations
+		for _, r := range reservations {
+			_ = s.inventoryService.ReleaseReservation(r.ID)
+		}
 		return nil, err
 	}
 
 	// 6. Create Payment session
 	payment, err := s.paymentService.CreatePaymentSession(ord.ID, ord.OrderNumber, ord.TotalIRR)
 	if err != nil {
+		// Rollback reservations
+		for _, r := range reservations {
+			_ = s.inventoryService.ReleaseReservation(r.ID)
+		}
 		return nil, err
 	}
 
-	return &SubmitCheckoutResponse{
+	res := &SubmitCheckoutResponse{
 		Order:   ord,
 		Payment: payment,
-	}, nil
+	}
+
+	s.mu.Lock()
+	if req.IdempotencyKey != "" {
+		s.seenOrders[req.IdempotencyKey] = res
+	}
+	s.mu.Unlock()
+
+	return res, nil
 }
