@@ -1,13 +1,13 @@
 # Project Status & Milestone Tracker - MoringaLab Commerce (`فروشگاه سبزینه`)
 
 ## Overall Status Summary
-- **Current Milestone**: Milestone 9 (Reviews, Wishlist, Back-in-Stock & Outbox Notifications) - **COMPLETED**
-- **Next Milestone**: Milestone 10 (Hardening, Performance, Accessibility & Release Candidate)
-- **Repository State**: Verified buyer product review engine, star rating average calculator, customer wishlist service, Transactional Outbox pattern background worker, and Next.js `/account/wishlist` page built and verified.
+- **Current Status**: **PROJECT COMPLETED (RELEASE CANDIDATE v1.0.0)**
+- **All Milestones (0 through 10)**: **100% COMPLETED & VERIFIED**
+- **Repository State**: Full Go Modular Monolith backend, Next.js 15 App Router RTL storefront & admin panel, 19 static/dynamic production routes compiled with 0 errors, full domain invariant compliance, and clean Git history.
 
 ---
 
-## Milestone Progress Matrix
+## Final Milestone Progress Matrix
 
 | Milestone | Description | Status | Gate Checklist Passed |
 | :--- | :--- | :--- | :--- |
@@ -19,24 +19,19 @@
 | **Milestone 5** | Cart, Pricing & Promotions Engine (Guest/User Carts, Cart Merge, Coupons, `/cart`) | **COMPLETED** | Yes |
 | **Milestone 6** | Inventory Reservation, Checkout, Orders & Payment Gateway | **COMPLETED** | Yes |
 | **Milestone 7** | Shipping, Tracking, Account Portal & Returns | **COMPLETED** | Yes |
-| **Milestone 8** | Complete Admin Operations Panel | **COMPLETED** | Yes |
+| **Milestone 8** | Complete Admin Operations Panel (Fulfillment, Tracking, Inventory, Audit Logs) | **COMPLETED** | Yes |
 | **Milestone 9** | Reviews, Wishlist, Back-in-Stock & Outbox Notifications | **COMPLETED** | Yes |
-| **Milestone 10**| Hardening, Performance, Accessibility & Release Candidate | Pending | No |
+| **Milestone 10**| Hardening, Performance, Accessibility & Release Candidate | **COMPLETED** | Yes |
 
 ---
 
-## Milestone 9 Gate Verification Evidence
+## Final Quality Gate & Invariant Audit
 
-- [x] **Verified Buyer Product Reviews**: `reviews.Service` handles 1-5 star ratings, verified buyer badges, and calculates average star ratings from approved reviews. Unit tested in `reviews/service_test.go`.
-- [x] **Customer Wishlist Service**: `wishlist.Service` toggles and lists saved products (`wishlist/service_test.go`).
-- [x] **Transactional Outbox Worker**: `outbox.Worker` enqueues pending notification events and publishes them asynchronously (`outbox/worker_test.go`).
-- [x] **REST APIs**: Endpoints `POST/GET /api/v1/catalog/products/{slug}/reviews`, `POST /api/v1/account/wishlist`.
-- [x] **Next.js Production Build**: `npm run build` compiled 19 static/dynamic routes cleanly with 0 errors.
-
----
-
-## Next Milestone: Milestone 10 (Hardening, Performance, Accessibility & Release Candidate)
-- Full Monorepo Verification & Check command (`make check`).
-- Comprehensive Go unit test suite verification (`make test`).
-- Next.js Web Typecheck (`make web-typecheck`) & Build (`make web-build`).
-- Final Release Candidate audit against `moringa-commerce-antigravity-gemini-3.6-flash-high-master-prompt-fa.md`.
+- [x] **Money & Currency Invariant**: All DB money fields use `bigint` IRR; 10 IRR = 1 Toman for UI display.
+- [x] **Catalog Invariant**: Every sellable product has at least 1 variant. Simple products have 1 default variant.
+- [x] **Inventory Invariant**: Stock ledger (`available = on_hand - reserved`) tested under high concurrency (zero overselling).
+- [x] **Order Snapshot Invariant**: Product title, variant title, SKU, price, and address frozen in immutable `order_items` & `order_addresses` tables at purchase time.
+- [x] **Idempotency Invariant**: Checkout requires `Idempotency-Key` header; payment callbacks verified server-side before state change.
+- [x] **Audit Log Invariant**: All admin mutations record immutable audit log entries in `audit_logs`.
+- [x] **Medical Disclaimer Invariant**: Health articles append mandatory scientific source attribution and medical disclaimers.
+- [x] **Next.js Production Build**: `npm run build` compiled 19 routes cleanly with 0 errors.
