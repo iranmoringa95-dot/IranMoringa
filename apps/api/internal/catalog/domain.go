@@ -8,6 +8,7 @@ import (
 
 type ProductStatus string
 type ProductType string
+type AttributeDisplayType string
 
 const (
 	StatusDraft       ProductStatus = "draft"
@@ -18,12 +19,46 @@ const (
 
 	TypeSimple   ProductType = "simple"
 	TypeVariable ProductType = "variable"
+
+	DisplaySelect AttributeDisplayType = "select"
+	DisplayButton AttributeDisplayType = "button"
+	DisplayColor  AttributeDisplayType = "color"
+	DisplayImage  AttributeDisplayType = "image"
 )
 
 type Brand struct {
+	ID          uuid.UUID `json:"id"`
+	NameFA      string    `json:"name_fa"`
+	Slug        string    `json:"slug"`
+	Description string    `json:"description,omitempty"`
+	LogoMediaID string    `json:"logo_media_id,omitempty"`
+}
+
+type Tag struct {
 	ID     uuid.UUID `json:"id"`
 	NameFA string    `json:"name_fa"`
 	Slug   string    `json:"slug"`
+}
+
+type AttributeValue struct {
+	ID          uuid.UUID `json:"id"`
+	AttributeID uuid.UUID `json:"attribute_id"`
+	Code        string    `json:"code"`
+	LabelFA     string    `json:"label_fa"`
+	ColorHex    string    `json:"color_hex,omitempty"`
+	MediaID     string    `json:"media_id,omitempty"`
+	Position    int       `json:"position"`
+}
+
+type Attribute struct {
+	ID              uuid.UUID            `json:"id"`
+	Code            string               `json:"code"`
+	NameFA          string               `json:"name_fa"`
+	DisplayType     AttributeDisplayType `json:"display_type"`
+	Filterable      bool                 `json:"filterable"`
+	VariantDefining bool                 `json:"variant_defining"`
+	Position        int                  `json:"position"`
+	Values          []AttributeValue     `json:"values,omitempty"`
 }
 
 type Category struct {
@@ -62,9 +97,9 @@ type ProductMedia struct {
 }
 
 type ProductSpecification struct {
-	ID       uuid.UUID `json:"id"`
-	KeyFA    string    `json:"key_fa"`
-	ValueFA  string    `json:"value_fa"`
+	ID        uuid.UUID `json:"id"`
+	KeyFA     string    `json:"key_fa"`
+	ValueFA   string    `json:"value_fa"`
 	SortOrder int       `json:"sort_order"`
 }
 

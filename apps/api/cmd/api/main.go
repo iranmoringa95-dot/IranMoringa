@@ -117,6 +117,8 @@ func main() {
 
 		// Catalog Routes
 		r.Get("/catalog/categories", catalogHandler.ListCategories)
+		r.Get("/catalog/brands", catalogHandler.ListBrands)
+		r.Get("/catalog/attributes", catalogHandler.ListAttributes)
 		r.Get("/catalog/products", catalogHandler.SearchProducts)
 		r.Get("/catalog/products/{slug}", catalogHandler.GetProductBySlug)
 		r.Get("/catalog/products/{slug}/reviews", reviewsHandler.GetProductReviews)

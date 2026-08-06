@@ -7,6 +7,30 @@ import (
 	"github.com/google/uuid"
 )
 
+func TestCategoryCyclePrevention(t *testing.T) {
+	svc := NewService()
+
+	catA := &Category{ID: uuid.New(), NameFA: "دسته الف", Slug: "cat-a"}
+	catB := &Category{ID: uuid.New(), ParentID: &catA.ID, NameFA: "دسته ب", Slug: "cat-b"}
+	catC := &Category{ID: uuid.New(), ParentID: &catB.ID, NameFA: "دسته ج", Slug: "cat-c"}
+
+	_ = svc.AddCategory(catA)
+	_ = svc.AddCategory(catB)
+	_ = svc.AddCategory(catC)
+
+	// Attempting to make A a child of C -> Creates Cycle (C -> B -> A -> C)
+	errCycle := svc.DetectCategoryCycle(catA.ID, catC.ID)
+	if errCycle != ErrCategoryCycle {
+		t.Fatalf("expected ErrCategoryCycle, got %v", errCycle)
+	}
+
+	// Self-parenting check
+	errSelf := svc.DetectCategoryCycle(catA.ID, catA.ID)
+	if errSelf != ErrCategoryCycle {
+		t.Fatalf("expected ErrCategoryCycle for self-parenting, got %v", errSelf)
+	}
+}
+
 func TestProductDomainInvariants(t *testing.T) {
 	svc := NewService()
 

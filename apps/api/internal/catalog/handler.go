@@ -23,6 +23,20 @@ func (h *Handler) ListCategories(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(categories)
 }
 
+func (h *Handler) ListBrands(w http.ResponseWriter, r *http.Request) {
+	brands := h.service.ListBrands()
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(brands)
+}
+
+func (h *Handler) ListAttributes(w http.ResponseWriter, r *http.Request) {
+	attributes := h.service.ListAttributes()
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(attributes)
+}
+
 func (h *Handler) SearchProducts(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
 	categorySlug := r.URL.Query().Get("category_slug")
