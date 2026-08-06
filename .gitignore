@@ -1,0 +1,37 @@
+# Binaries and build outputs
+/apps/api/bin/
+/apps/api/dist/
+/apps/web/.next/
+/apps/web/out/
+/apps/web/build/
+/apps/web/node_modules/
+node_modules/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test and coverage
+coverage/
+*.out
+*.test
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDEs and OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Storage and temporary data
+/infra/minio-data/
+/infra/postgres-data/
+/tmp/

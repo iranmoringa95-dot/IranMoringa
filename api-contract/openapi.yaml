@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: MoringaLab Commerce API (`فروشگاه سبزینه`)
+  description: Official OpenAPI 3.1 REST API contract between Go Backend Monolith and Next.js Storefront/Admin.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development Local API Server
+
+paths:
+  /health/live:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Service is live
+
+  /health/ready:
+    get:
+      summary: Readiness probe checking PostgreSQL and storage status
+      responses:
+        '200':
+          description: Service is ready
+        '503':
+          description: Dependencies not ready
+
+  /storefront/home:
+    get:
+      summary: Get Storefront homepage layout data
+      responses:
+        '200':
+          description: Homepage hero, featured categories, bestseller products, articles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomepageDataResponse'
+
+  /catalog/categories:
+    get:
+      summary: List category hierarchy
+      responses:
+        '200':
+          description: Category tree
+
+  /catalog/products:
+    get:
+      summary: Search and filter catalog products
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: category_slug
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [relevance, newest, price_asc, price_desc, bestseller]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 12
+      responses:
+        '200':
+          description: Paginated product list
+
+  /catalog/products/{slug}:
+    get:
+      summary: Get single product details by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed product response
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /auth/otp/request:
+    post:
+      summary: Request OTP challenge for Iranian mobile number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: "09123456789"
+      responses:
+        '200':
+          description: OTP challenge created
+
+  /auth/otp/verify:
+    post:
+      summary: Verify OTP challenge code and issue session cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Session issued
+
+  /carts/current:
+    get:
+      summary: Get active guest/customer cart
+      responses:
+        '200':
+          description: Cart breakdown
+
+  /checkout/quote:
+    post:
+      summary: Generate checkout pricing quote and shipping cost calculation
+      responses:
+        '200':
+          description: Itemized pricing quote
+
+  /orders:
+    post:
+      summary: Place order and reserve stock transactionally
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Order created successfully
+
+components:
+  schemas:
+    HomepageDataResponse:
+      type: object
+      properties:
+        featured_categories:
+          type: array
+          items:
+            type: object
+        bestsellers:
+          type: array
+          items:
+            type: object
+    ProblemDetails:
+      type: object
+      required: [type, title, status, code, detail]
+      properties:
+        type:
+          type: string
+          example: "https://example.local/problems/validation-error"
+        title:
+          type: string
+          example: "اطلاعات واردشده معتبر نیست"
+        status:
+          type: integer
+          example: 422
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        detail:
+          type: string
+          example: "یک یا چند فیلد را اصلاح کنید."
+        field_errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        request_id:
+          type: string
