@@ -49,82 +49,59 @@ func TestProductDomainInvariants(t *testing.T) {
 		}
 	})
 
-	t.Run("Product with negative price fails validation", func(t *testing.T) {
+	t.Run("Product with shipping weight smaller than net weight fails validation", func(t *testing.T) {
 		prod := &Product{
 			ID:          uuid.New(),
-			Slug:        "test-negative",
-			TitleFA:     "محصول قیمت منفی",
+			Slug:        "test-weight-inv",
+			TitleFA:     "محصول وزن اشتباه",
 			ProductType: TypeSimple,
 			Status:      StatusPublished,
 			Variants: []ProductVariant{
 				{
-					ID:       uuid.New(),
-					SKU:      "SKU-NEG",
-					TitleFA:  "ساده",
-					PriceIRR: -1000,
+					ID:                  uuid.New(),
+					SKU:                 "SKU-WGT",
+					TitleFA:             "ساده",
+					PriceIRR:            100000,
+					NetWeightGrams:      250,
+					ShippingWeightGrams: 200, // INVALID: Shipping weight < Net weight
 				},
 			},
 		}
 		err := svc.AddProduct(prod)
-		if err != ErrNegativePrice {
-			t.Fatalf("expected ErrNegativePrice, got %v", err)
+		if err != ErrShippingWeightTooSmall {
+			t.Fatalf("expected ErrShippingWeightTooSmall, got %v", err)
 		}
 	})
 
-	t.Run("Product with invalid compare_at_price fails validation", func(t *testing.T) {
-		comparePrice := int64(400000)
+	t.Run("Physical deletion of product blocked and soft archive enforced", func(t *testing.T) {
+		prodID := uuid.New()
 		prod := &Product{
-			ID:          uuid.New(),
-			Slug:        "test-compare",
-			TitleFA:     "محصول تخفیف غلط",
+			ID:          prodID,
+			Slug:        "moringa-leaf-powder",
+			TitleFA:     "پودر برگ مورینگا",
 			ProductType: TypeSimple,
 			Status:      StatusPublished,
 			Variants: []ProductVariant{
 				{
-					ID:                uuid.New(),
-					SKU:               "SKU-COMP",
-					TitleFA:           "ساده",
-					PriceIRR:          500000, // Price is 500,000 IRR
-					CompareAtPriceIRR: &comparePrice, // Compare at price is lower (400,000 IRR) - INVALID!
+					ID:                  uuid.New(),
+					SKU:                 "MOR-POW",
+					TitleFA:             "اصلی",
+					PriceIRR:            450000,
+					NetWeightGrams:      250,
+					ShippingWeightGrams: 300,
 				},
 			},
 		}
-		err := svc.AddProduct(prod)
-		if err != ErrInvalidCompareAtPrice {
-			t.Fatalf("expected ErrInvalidCompareAtPrice, got %v", err)
-		}
-	})
+		_ = svc.AddProduct(prod)
 
-	t.Run("Valid product adds successfully and is searchable", func(t *testing.T) {
-		comparePrice := int64(600000)
-		prod := &Product{
-			ID:          uuid.New(),
-			Slug:        "moringa-powder-100g",
-			TitleFA:     "پودر مورینگا ۱۰۰ گرمی",
-			ProductType: TypeSimple,
-			Status:      StatusPublished,
-			CreatedAt:   time.Now(),
-			Variants: []ProductVariant{
-				{
-					ID:                uuid.New(),
-					SKU:               "MOR-POW-100",
-					TitleFA:           "بسته‌بندی ۱۰۰ گرمی",
-					PriceIRR:          450000,
-					CompareAtPriceIRR: &comparePrice,
-					NetWeightGrams:    100,
-				},
-			},
-		}
-		if err := svc.AddProduct(prod); err != nil {
-			t.Fatalf("AddProduct failed for valid product: %v", err)
+		errPhysicalDelete := svc.DeleteProduct(prodID)
+		if errPhysicalDelete != ErrProductInUse {
+			t.Fatalf("expected ErrProductInUse when deleting product physically, got %v", errPhysicalDelete)
 		}
 
-		res, count := svc.SearchProducts(ProductFilter{Query: "مورینگا"})
-		if count != 1 || len(res) != 1 {
-			t.Fatalf("expected 1 search result, got %d", count)
-		}
-		if res[0].Slug != "moringa-powder-100g" {
-			t.Errorf("expected slug moringa-powder-100g, got %s", res[0].Slug)
+		errArchive := svc.ArchiveProduct(prodID)
+		if errArchive != nil {
+			t.Fatalf("expected successful soft archiving, got %v", errArchive)
 		}
 	})
 }

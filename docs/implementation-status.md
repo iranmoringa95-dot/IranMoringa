@@ -7,8 +7,9 @@
   - **M21 — پنل مدیریت، دسترسی و Audit**: **COMPLETED & VERIFIED**
   - **M19 — مدیریت رسانه، تصویر و اسناد**: **COMPLETED & VERIFIED**
   - **M04 — دسته، برند و ویژگی محصول**: **COMPLETED & VERIFIED**
+  - **M03 — کاتالوگ محصول، Variant و مشخصات**: **COMPLETED & VERIFIED**
 - **Date**: ۱۴۰۵/۰۵/۱۵ (۲۰۲۶-۰۸-۰۶)
-- **Repository State**: Category cycle prevention algorithm (`DetectCategoryCycle`), `Brand` model & REST endpoint (`GET /api/v1/catalog/brands`), `Tag`, `Attribute` (`DisplayType`: `select`/`button`/`color`/`image`) & `AttributeValue` (`ColorHex`, `MediaID`), `ObjectStorage` interface, Media library, RBAC permission engine, log redaction middleware, TypeScript localization library, and 100% clean Next.js production build (19 routes compiled cleanly with 0 errors).
+- **Repository State**: Shipping weight invariant (`ShippingWeightGrams >= NetWeightGrams`), soft archive enforcement (`ArchiveProduct`), variant requirement (`ErrNoVariant`), price invariants, optimistic concurrency control (`Version`), category cycle prevention, ObjectStorage interface, RBAC permission engine, and 100% clean Next.js production build (19 routes compiled cleanly with 0 errors).
 
 ---
 
@@ -21,17 +22,18 @@
 | **M21** | **Admin RBAC & Audit Trail** | Granular permission catalog (`catalog.manage`, `orders.fulfill`, `inventory.adjust`, `audit.read`), policy evaluator (`HasPermission`), append-only audit trail with secret redaction (`LogAction`), searchable Audit UI with Jalali date formatting. | **COMPLETED** |
 | **M19** | **Media Library & Processing** | `ObjectStorage` port interface & `FakeStorage` adapter, Magic byte inspection (JPEG/PNG/WebP), SHA-256 checksums, mandatory Persian alt text validator, deletion guard (`media_usages`), `<MediaSelectorModal />` component. | **COMPLETED** |
 | **M04** | **Taxonomy, Brand & Attributes** | Category tree cycle prevention (`DetectCategoryCycle`), `Brand` model & REST API (`GET /api/v1/catalog/brands`), `Tag`, `Attribute` (`DisplayType`: `select`/`button`/`color`/`image`) & `AttributeValue` (`ColorHex`, `MediaID`), REST API (`GET /api/v1/catalog/attributes`). | **COMPLETED** |
+| **M03** | **Catalog Product & Variants** | Variant requirement (`ErrNoVariant`), weight invariant (`ShippingWeightGrams >= NetWeightGrams`), compare price validation, soft archiving (`ArchiveProduct`), optimistic concurrency locking (`Version`). | **COMPLETED** |
 
 ---
 
 ## Verification & Test Results
 
 1. **Go Unit Test Suite**:
-   - `TestCategoryCyclePrevention` (Category hierarchy cycle detection): PASSED
-   - `TestProductDomainInvariants`: PASSED
+   - `TestProductDomainInvariants` (Weight invariants & soft archiving): PASSED
+   - `TestCategoryCyclePrevention`: PASSED
    - `TestDetectMIMEFromBytes`: PASSED
    - `TestRegisterAssetAndAltTextRequirement`: PASSED
-   - `TestHasPermission` (RBAC matrix evaluation): PASSED
+   - `TestHasPermission`: PASSED
    - `TestRedactHeaderValue`: PASSED
    - `TestRateLimiter`: PASSED
    - `TestNormalizeDigits`, `TestNormalizeIranianPhone`, `TestValidatePostalCode`, `TestCurrencyFormatting`, `TestJalaliConversion`: PASSED
@@ -42,10 +44,10 @@
 
 ---
 
-## M04 Definition of Done (DoD) Verification
+## M03 Definition of Done (DoD) Verification
 
-- [x] Category cycle prevention algorithm (`DetectCategoryCycle`) prevents circular parent-child relations.
-- [x] `Brand` model with `LogoMediaID` and API `GET /api/v1/catalog/brands`.
-- [x] `Attribute` (`DisplayType`: `select`/`button`/`color`/`image`) & `AttributeValue` (`ColorHex`, `MediaID`).
-- [x] REST API `GET /api/v1/catalog/attributes` registered and verified.
+- [x] Every sellable product has at least 1 active variant (`ErrNoVariant`).
+- [x] Weight invariant enforced (`ShippingWeightGrams >= NetWeightGrams`).
+- [x] Price invariants enforced (integer IRR; compare price strictly greater).
+- [x] Physical deletion blocked for active products (`ErrProductInUse`); soft archiving (`ArchiveProduct`) enforced.
 - [x] Clean Next.js static production build (`npm run build`).

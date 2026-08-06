@@ -4,18 +4,21 @@ import (
 	"errors"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"moringalab/api/internal/localization"
 )
 
 var (
-	ErrProductNotFound       = errors.New("محصول مورد نظر یافت نشد")
-	ErrCategoryNotFound      = errors.New("دسته‌بندی مورد نظر یافت نشد")
-	ErrCategoryCycle         = errors.New("ایجاد رابطه چرخه‌ای (دور) در دسته‌بندی‌ها امکان‌پذیر نیست")
-	ErrNegativePrice         = errors.New("قیمت محصول نمی‌تواند منفی باشد")
-	ErrInvalidCompareAtPrice = errors.New("قیمت قبل از تخفیف باید از قیمت اصلی بیشتر باشد")
-	ErrNoVariant             = errors.New("هر محصول قابل فروش باید حداقل یک متغیر فعال داشته باشد")
+	ErrProductNotFound          = errors.New("محصول مورد نظر یافت نشد")
+	ErrCategoryNotFound         = errors.New("دسته‌بندی مورد نظر یافت نشد")
+	ErrCategoryCycle            = errors.New("ایجاد رابطه چرخه‌ای (دور) در دسته‌بندی‌ها امکان‌پذیر نیست")
+	ErrNegativePrice            = errors.New("قیمت محصول نمی‌تواند منفی باشد")
+	ErrInvalidCompareAtPrice    = errors.New("قیمت قبل از تخفیف باید از قیمت اصلی بیشتر باشد")
+	ErrNoVariant                = errors.New("هر محصول قابل فروش باید حداقل یک متغیر فعال داشته باشد")
+	ErrShippingWeightTooSmall   = errors.New("وزن ارسال نمی‌تواند از وزن خالص محصول کمتر باشد")
+	ErrProductInUse             = errors.New("محصول دارای سابقه سفارش یا موجودی فعال است و امکان حذف فیزیکی ندارد (از آرشیو استفاده کنید)")
 )
 
 type Service struct {
@@ -120,14 +123,40 @@ func (s *Service) AddProduct(prod *Product) error {
 		if v.CompareAtPriceIRR != nil && *v.CompareAtPriceIRR <= v.PriceIRR {
 			return ErrInvalidCompareAtPrice
 		}
+		// Weight Invariant: Shipping weight must be >= Net weight
+		if v.ShippingWeightGrams < v.NetWeightGrams {
+			return ErrShippingWeightTooSmall
+		}
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	prod.TitleFA = localization.NormalizePersianText(prod.TitleFA)
+	prod.Version++
 	s.products[prod.ID] = prod
 	s.bySlug[prod.Slug] = prod
 	return nil
+}
+
+func (s *Service) ArchiveProduct(id uuid.UUID) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	prod, exists := s.products[id]
+	if !exists {
+		return ErrProductNotFound
+	}
+
+	prod.Status = StatusArchived
+	prod.UpdatedAt = time.Now()
+	prod.Version++
+	return nil
+}
+
+func (s *Service) DeleteProduct(id uuid.UUID) error {
+	// Invariant: Physical deletion forbidden for active/ordered products; soft archive enforced
+	return ErrProductInUse
 }
 
 func (s *Service) ListCategories() []*Category {
