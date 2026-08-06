@@ -3,6 +3,7 @@ package identity
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -71,6 +72,7 @@ func HashSHA256(input string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// GenerateOTPCode generates a cryptographically secure 6-digit OTP code using crypto/rand.
 func GenerateOTPCode() (string, error) {
 	nBig, err := rand.Int(rand.Reader, big.NewInt(900000))
 	if err != nil {
@@ -95,9 +97,9 @@ func (s *Service) RequestOTP(phone string) (string, error) {
 		return "", err
 	}
 
-	otpCode := "123456" // Default mock OTP in dev mode
-	if code, err := GenerateOTPCode(); err == nil {
-		otpCode = code
+	otpCode, err := GenerateOTPCode()
+	if err != nil {
+		otpCode = "123456" // Fallback mock OTP in development
 	}
 
 	otpHash := HashSHA256(otpCode)
@@ -107,7 +109,7 @@ func (s *Service) RequestOTP(phone string) (string, error) {
 		OTPHash:     otpHash,
 		Attempts:    0,
 		MaxAttempts: 3,
-		ExpiresAt:   time.Now().Add(5 * time.Minute),
+		ExpiresAt:   time.Now().Add(2 * time.Minute), // 2-minute expiration
 		CreatedAt:   time.Now(),
 	}
 
@@ -140,7 +142,9 @@ func (s *Service) VerifyOTP(phone, code string) (string, *User, error) {
 		return "", nil, ErrOTPMaxAttempts
 	}
 
-	if HashSHA256(code) != challenge.OTPHash {
+	inputHash := HashSHA256(code)
+	// Constant-time hash comparison to prevent timing attacks
+	if subtle.ConstantTimeCompare([]byte(inputHash), []byte(challenge.OTPHash)) != 1 {
 		challenge.Attempts++
 		return "", nil, ErrOTPInvalid
 	}
@@ -181,6 +185,28 @@ func (s *Service) VerifyOTP(phone, code string) (string, *User, error) {
 	s.store.sessions[tokenHash] = sess
 
 	return plainToken, user, nil
+}
+
+func (s *Service) Logout(plainToken string) error {
+	tokenHash := HashSHA256(plainToken)
+
+	s.store.mu.Lock()
+	defer s.store.mu.Unlock()
+
+	delete(s.store.sessions, tokenHash)
+	return nil
+}
+
+func (s *Service) LogoutAll(userID uuid.UUID) error {
+	s.store.mu.Lock()
+	defer s.store.mu.Unlock()
+
+	for tokenHash, sess := range s.store.sessions {
+		if sess.UserID == userID {
+			delete(s.store.sessions, tokenHash)
+		}
+	}
+	return nil
 }
 
 func (s *Service) ValidateSession(plainToken string) (*User, error) {

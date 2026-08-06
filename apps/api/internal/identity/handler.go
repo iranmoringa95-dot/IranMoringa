@@ -106,6 +106,11 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie, _ := r.Cookie("session_token")
+	if cookie != nil && cookie.Value != "" {
+		_ = h.service.Logout(cookie.Value)
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
@@ -116,4 +121,24 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "logged_out"})
+}
+
+func (h *Handler) LogoutAll(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_token")
+	if err == nil && cookie.Value != "" {
+		if user, errVal := h.service.ValidateSession(cookie.Value); errVal == nil && user != nil {
+			_ = h.service.LogoutAll(user.ID)
+		}
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "all_sessions_revoked"})
 }

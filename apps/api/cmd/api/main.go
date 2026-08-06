@@ -105,6 +105,7 @@ func main() {
 		r.Post("/auth/otp/request", identityHandler.RequestOTP)
 		r.Post("/auth/otp/verify", identityHandler.VerifyOTP)
 		r.Post("/auth/logout", identityHandler.Logout)
+		r.Post("/auth/logout-all", identityHandler.LogoutAll)
 		r.Get("/me", identityHandler.GetMe)
 
 		// Localization Routes
