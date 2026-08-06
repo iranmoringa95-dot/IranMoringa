@@ -22,6 +22,7 @@ import (
 	"moringalab/api/internal/identity"
 	"moringalab/api/internal/inventory"
 	"moringalab/api/internal/localization"
+	"moringalab/api/internal/media"
 	"moringalab/api/internal/orders"
 	"moringalab/api/internal/outbox"
 	"moringalab/api/internal/payments"
@@ -81,6 +82,10 @@ func main() {
 
 	localizationHandler := localization.NewHandler()
 
+	mediaStorage := media.NewFakeStorage()
+	mediaService := media.NewService(mediaStorage)
+	mediaHandler := media.NewHandler(mediaService)
+
 	outboxWorker := outbox.NewWorker(logger)
 	outboxWorker.EnqueueEvent("SYSTEM_BOOTSTRAP", `{"version":"1.0.0"}`)
 
@@ -104,6 +109,11 @@ func main() {
 
 		// Localization Routes
 		r.Get("/localization/provinces", localizationHandler.GetProvinces)
+
+		// Media Routes
+		r.Post("/media/upload-session", mediaHandler.CreateUploadSession)
+		r.Get("/media/assets", mediaHandler.ListAssets)
+		r.Delete("/media/assets/{id}", mediaHandler.DeleteAsset)
 
 		// Catalog Routes
 		r.Get("/catalog/categories", catalogHandler.ListCategories)
