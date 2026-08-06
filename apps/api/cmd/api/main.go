@@ -15,8 +15,12 @@ import (
 	"moringalab/api/db/seeds"
 	"moringalab/api/internal/carts"
 	"moringalab/api/internal/catalog"
+	"moringalab/api/internal/checkout"
 	"moringalab/api/internal/content"
 	"moringalab/api/internal/identity"
+	"moringalab/api/internal/inventory"
+	"moringalab/api/internal/orders"
+	"moringalab/api/internal/payments"
 	"moringalab/api/internal/platform/config"
 	"moringalab/api/internal/platform/health"
 	"moringalab/api/internal/platform/middleware"
@@ -33,25 +37,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize identity module
+	// Initialize modules
 	identityStore := identity.NewMemoryStore()
 	identityService := identity.NewService(identityStore)
 	identityHandler := identity.NewHandler(identityService)
 
-	// Initialize catalog module
 	catalogService := catalog.NewService()
 	catalogHandler := catalog.NewHandler(catalogService)
 
-	// Initialize content module
 	contentService := content.NewService()
 	contentHandler := content.NewHandler(contentService)
 
-	// Initialize promotions & cart module
 	promotionsService := promotions.NewService()
 	cartService := carts.NewService(catalogService, promotionsService)
 	cartHandler := carts.NewHandler(cartService)
 
-	// Populate development seed data
+	inventoryService := inventory.NewService()
+	ordersService := orders.NewService()
+	paymentsService := payments.NewService(ordersService)
+
+	checkoutService := checkout.NewService(cartService, inventoryService, ordersService, paymentsService)
+	checkoutHandler := checkout.NewHandler(checkoutService, paymentsService)
+
+	// Seed data
 	seeds.PopulateSeedData(catalogService, contentService)
 
 	r := chi.NewRouter()
@@ -82,6 +90,11 @@ func main() {
 		// Cart Routes
 		r.Get("/carts/current", cartHandler.GetCurrentCart)
 		r.Post("/carts/current/items", cartHandler.AddItem)
+
+		// Checkout & Order Routes
+		r.Post("/orders", checkoutHandler.SubmitOrder)
+		r.Get("/payments/{paymentId}", checkoutHandler.GetPayment)
+		r.Post("/payments/{paymentId}/verify", checkoutHandler.VerifyPayment)
 	})
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)

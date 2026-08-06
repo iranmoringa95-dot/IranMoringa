@@ -1,7 +1,7 @@
 # Next Task Status & Checkpoint
 
 ## Current Milestone
-**Milestone 6: Inventory Reservation, Checkout, Orders & Payment Gateway**
+**Milestone 7: Shipping, Tracking, Account Portal & Returns**
 
 ## Current Status
 - **Milestone 0**: COMPLETED
@@ -10,9 +10,10 @@
 - **Milestone 3**: COMPLETED
 - **Milestone 4**: COMPLETED
 - **Milestone 5**: COMPLETED
-- **Active Task**: TASK-039: Concurrency-Safe Stock Reservation, Checkout Orchestrator & Order Snapshots
+- **Milestone 6**: COMPLETED
+- **Active Task**: TASK-046: Shipping Rate Engine, Order Tracking Lookup, Customer Order History & Return Requests
 - **Blockers**: None
-- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 10 routes cleanly with 0 errors.
+- **Recent Verification**: Next.js App Router build (`npm run build`) compiled 13 routes cleanly with 0 errors.
 
 ## Next Immediate Action
-Begin Milestone 6 implementation: Stock reservation ledger in Go (`internal/inventory`), Checkout orchestrator (`internal/checkout`), Order state machine & snapshots (`internal/orders`), Fake Payment Gateway adapter (`internal/payments`), and `/checkout` page.
+Begin Milestone 7 implementation: Shipping calculation service (`internal/shipping`), order tracking lookup API, customer order history & timeline UI (`/account/orders`), cancellation policy, and return request service (`internal/returns`).
