@@ -1,14 +1,15 @@
 # Next Task Status & Checkpoint
 
 ## Current Milestone
-**Milestone 2: Identity, Authentication & RBAC**
+**Milestone 3: Catalog, Media & Content Domain**
 
 ## Current Status
 - **Milestone 0**: COMPLETED
 - **Milestone 1**: COMPLETED
-- **Active Task**: TASK-016: Identity & Auth Module Specification for Customer OTP & Admin Auth
+- **Milestone 2**: COMPLETED
+- **Active Task**: TASK-022: Catalog Domain Model, Category Tree, Product & Variant Management
 - **Blockers**: None
-- **Recent Verification**: Go API compiled; Next.js 15 production build (`npm run build`) passed with 0 errors.
+- **Recent Verification**: Next.js App Router static build (`npm run build`) compiled cleanly (7 routes).
 
 ## Next Immediate Action
-Begin Milestone 2 implementation starting with Customer OTP Request & Verify endpoints, Admin Login handler, Session Cookie middleware, and RBAC matrix.
+Begin Milestone 3 implementation: Catalog domain service, Product & Variant models, Media storage adapter, Blog article review workflow, and Storefront read APIs.

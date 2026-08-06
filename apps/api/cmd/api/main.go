@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"moringalab/api/internal/identity"
 	"moringalab/api/internal/platform/config"
 	"moringalab/api/internal/platform/health"
 	"moringalab/api/internal/platform/middleware"
@@ -27,6 +28,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize identity domain module
+	identityStore := identity.NewMemoryStore()
+	identityService := identity.NewService(identityStore)
+	identityHandler := identity.NewHandler(identityService)
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.CORS)
@@ -37,6 +43,11 @@ func main() {
 	r.Get("/health/ready", healthHandler.Readiness)
 
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Post("/auth/otp/request", identityHandler.RequestOTP)
+		r.Post("/auth/otp/verify", identityHandler.VerifyOTP)
+		r.Post("/auth/logout", identityHandler.Logout)
+		r.Get("/me", identityHandler.GetMe)
+
 		r.Get("/storefront/home", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(`{"featured_categories":[],"bestsellers":[]}`))
