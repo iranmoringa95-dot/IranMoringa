@@ -8,20 +8,20 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestStockReservationConcurrency(t *testing.T) {
+func TestStockReservationConcurrency20Routines(t *testing.T) {
 	svc := NewService()
 	variantID := uuid.New()
 
-	// Set stock on hand to exactly 1 unit
-	svc.SetStock(variantID, 1)
+	// Set stock on hand to exactly 5 units
+	svc.SetStock(variantID, 5)
 
 	var wg sync.WaitGroup
 	successCount := 0
 	failureCount := 0
 	var mu sync.Mutex
 
-	// 10 concurrent routines competing for the last unit
-	for i := 0; i < 10; i++ {
+	// 20 concurrent routines competing for 5 available units
+	for i := 0; i < 20; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -38,10 +38,35 @@ func TestStockReservationConcurrency(t *testing.T) {
 
 	wg.Wait()
 
-	if successCount != 1 {
-		t.Fatalf("expected exactly 1 successful reservation, got %d", successCount)
+	if successCount != 5 {
+		t.Fatalf("expected exactly 5 successful reservations, got %d", successCount)
 	}
-	if failureCount != 9 {
-		t.Fatalf("expected exactly 9 failed reservations, got %d", failureCount)
+	if failureCount != 15 {
+		t.Fatalf("expected exactly 15 failed reservations, got %d", failureCount)
+	}
+}
+
+func TestAdjustStockIdempotency(t *testing.T) {
+	svc := NewService()
+	variantID := uuid.New()
+	idempotencyKey := "idempotent-key-101"
+
+	mov1, err1 := svc.AdjustStockWithKey(variantID, 10, "Initial restock", "admin-1", idempotencyKey)
+	if err1 != nil || mov1 == nil {
+		t.Fatalf("unexpected error on first adjustment: %v", err1)
+	}
+
+	// Duplicate call with same idempotency key -> Must return same movement without double increment
+	mov2, err2 := svc.AdjustStockWithKey(variantID, 10, "Initial restock", "admin-1", idempotencyKey)
+	if err2 != nil || mov2 == nil {
+		t.Fatalf("unexpected error on second adjustment: %v", err2)
+	}
+
+	if mov1.ID != mov2.ID {
+		t.Errorf("expected duplicate idempotency key to return identical movement ID")
+	}
+
+	if mov2.AfterOnHand != 10 {
+		t.Errorf("expected stock on hand to remain 10 after duplicate adjustment, got %d", mov2.AfterOnHand)
 	}
 }
