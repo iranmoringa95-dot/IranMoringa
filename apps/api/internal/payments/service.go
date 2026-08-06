@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	ErrPaymentNotFound = errors.New("تراکنش پرداخت یافت نشد")
+	ErrPaymentNotFound         = errors.New("تراکنش پرداخت یافت نشد")
 	ErrPaymentAlreadyCompleted = errors.New("این تراکنش قبلاً تعیین تکلیف شده است")
 )
 
@@ -20,12 +20,14 @@ type Service struct {
 	mu           sync.RWMutex
 	payments     map[uuid.UUID]*Payment
 	orderService *orders.Service
+	gateway      PaymentGateway
 }
 
 func NewService(orderSvc *orders.Service) *Service {
 	return &Service{
 		payments:     make(map[uuid.UUID]*Payment),
 		orderService: orderSvc,
+		gateway:      NewFakeGateway(),
 	}
 }
 
@@ -69,6 +71,7 @@ func (s *Service) VerifyPayment(paymentID uuid.UUID, simulateSuccess bool) (*Pay
 		return nil, ErrPaymentNotFound
 	}
 
+	// Callback Replay Protection: If already succeeded, return cleanly
 	if p.Status == PaymentStatusSucceeded {
 		return p, nil
 	}
@@ -82,7 +85,44 @@ func (s *Service) VerifyPayment(paymentID uuid.UUID, simulateSuccess bool) (*Pay
 		p.TrackingCode = &trackCode
 		p.UpdatedAt = now
 
-		// Transition order to paid
+		// Transition order status to paid
+		_ = s.orderService.UpdateStatus(p.OrderID, orders.StatusPaid)
+	} else {
+		p.Status = PaymentStatusFailed
+		p.UpdatedAt = now
+	}
+
+	return p, nil
+}
+
+func (s *Service) VerifyPaymentWithAmount(paymentID uuid.UUID, expectedAmountIRR int64, simulateSuccess bool) (*Payment, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	p, exists := s.payments[paymentID]
+	if !exists {
+		return nil, ErrPaymentNotFound
+	}
+
+	// Strict Amount Mismatch Verification
+	if p.AmountIRR != expectedAmountIRR {
+		return nil, ErrAmountMismatch
+	}
+
+	// Callback Replay Protection
+	if p.Status == PaymentStatusSucceeded {
+		return p, nil
+	}
+
+	now := time.Now()
+	if simulateSuccess {
+		refID := fmt.Sprintf("REF-%d", now.UnixNano())
+		trackCode := fmt.Sprintf("TRK-%d", now.Unix()%1000000)
+		p.Status = PaymentStatusSucceeded
+		p.ReferenceID = &refID
+		p.TrackingCode = &trackCode
+		p.UpdatedAt = now
+
 		_ = s.orderService.UpdateStatus(p.OrderID, orders.StatusPaid)
 	} else {
 		p.Status = PaymentStatusFailed

@@ -7,8 +7,9 @@
 - **Completed Wave 3 Modules**:
   - **M06 — سبد خرید کاربر و مهمان**: **COMPLETED & VERIFIED**
   - **M07 — تسویه‌حساب (Checkout) و ثبت سفارش**: **COMPLETED & VERIFIED**
+  - **M08 — درگاه پرداخت، IPN و سوابق مالی**: **COMPLETED & VERIFIED**
 - **Date**: ۱۴۰۵/۰۵/۱۵ (۲۰۲۶-۰۸-۰۶)
-- **Repository State**: Idempotency key deduplication in `SubmitCheckout`, atomic inventory reservation rollbacks on order errors, guest checkout support, product/price/address snapshotting, customer account & address package, 20-goroutine competing concurrency test (zero overselling), and 100% clean Next.js production build (19 routes compiled cleanly with 0 errors).
+- **Repository State**: Provider-agnostic `PaymentGateway` port interface, `FakeGateway` adapter, strict amount mismatch rejection (`ErrAmountMismatch`), callback replay protection, idempotency key deduplication, atomic inventory reservation rollbacks, guest checkout support, product/price/address snapshotting, customer account & address package, 20-goroutine competing concurrency test (zero overselling), and 100% clean Next.js production build (19 routes compiled cleanly with 0 errors).
 
 ---
 
@@ -27,13 +28,15 @@
 | **M02** | **Customer Account & Address Portal** | Customer profile & address domain models, IDOR protection (`UserID` session scoping), 10-digit Iranian postal code validation (`ValidatePostalCode`), atomic default address toggles (`IsDefaultShipping`/`IsDefaultBilling`), REST API. | **COMPLETED** |
 | **M06** | **Guest & Customer Cart Engine** | Guest cart generation with secure tokens, deterministic cart merging after login (`MergeGuestCartToUser`), atomic quantity stepping, backend price recalculation, discount coupon integration. | **COMPLETED** |
 | **M07** | **Checkout & Order Engine** | Guest checkout placement, idempotency key deduplication (`seenOrders`), atomic inventory reservation rollbacks on order/payment failure, permanent order address & item snapshotting. | **COMPLETED** |
+| **M08** | **Payment Gateways & Verification** | Provider-agnostic `PaymentGateway` port interface (`Initiate`, `Verify`), `FakeGateway` adapter, strict amount mismatch verification (`ErrAmountMismatch`), IPN callback replay protection. | **COMPLETED** |
 
 ---
 
 ## Verification & Test Results
 
 1. **Go Unit Test Suite**:
-   - `TestCheckoutIdempotencyAndGuestOrderPlacement` (Idempotency key & guest checkout): PASSED
+   - `TestFakeGatewayAndPaymentVerification` (Fake gateway, amount mismatch rejection, callback replay protection): PASSED
+   - `TestCheckoutIdempotencyAndGuestOrderPlacement`: PASSED
    - `TestGuestCartCreationAndMerging`: PASSED
    - `TestAddressIDORScopingAndDefaults`: PASSED
    - `TestGenerateOTPCode`: PASSED
@@ -55,10 +58,10 @@
 
 ---
 
-## M07 Definition of Done (DoD) Verification
+## M08 Definition of Done (DoD) Verification
 
-- [x] Guest checkout placement supported without forced registration.
-- [x] Idempotency key deduplication prevents double order creation on double submit.
-- [x] Atomic inventory reservation rollbacks on submission errors.
-- [x] Permanent product, price, and address snapshotting into order items.
+- [x] Provider-agnostic `PaymentGateway` port interface (`Initiate`, `Verify`).
+- [x] `FakeGateway` adapter implementation for dev/test environments.
+- [x] Server-side verification strictly enforcing amount mismatch rejection (`ErrAmountMismatch`).
+- [x] Duplicate IPN callback replay protection.
 - [x] Clean Next.js static production build (`npm run build`).
