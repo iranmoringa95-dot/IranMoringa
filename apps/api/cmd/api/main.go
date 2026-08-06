@@ -13,6 +13,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"moringalab/api/db/seeds"
+	"moringalab/api/internal/admin"
+	"moringalab/api/internal/audit"
 	"moringalab/api/internal/carts"
 	"moringalab/api/internal/catalog"
 	"moringalab/api/internal/checkout"
@@ -65,6 +67,10 @@ func main() {
 	returnsService := returns.NewService(ordersService)
 	shippingHandler := shipping.NewHandler(shippingService, returnsService)
 
+	auditService := audit.NewService()
+	adminService := admin.NewService(auditService, ordersService, inventoryService)
+	adminHandler := admin.NewHandler(adminService, auditService)
+
 	// Seed data
 	seeds.PopulateSeedData(catalogService, contentService)
 
@@ -105,6 +111,12 @@ func main() {
 		// Tracking & Return Routes
 		r.Post("/order-tracking/lookup", shippingHandler.LookupTracking)
 		r.Post("/account/orders/{orderNumber}/returns", shippingHandler.CreateReturn)
+
+		// Admin Routes
+		r.Get("/admin/dashboard/stats", adminHandler.GetDashboardStats)
+		r.Patch("/admin/orders/{orderNumber}/status", adminHandler.FulfillOrder)
+		r.Post("/admin/inventory/adjust", adminHandler.AdjustInventory)
+		r.Get("/admin/audit-logs", adminHandler.ListAuditLogs)
 	})
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)
