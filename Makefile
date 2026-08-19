@@ -1,4 +1,4 @@
-.PHONY: setup up down dev migrate-up migrate-status seed sqlc openapi-generate fmt lint test test-integration web-lint web-typecheck web-test web-build e2e backup restore-check check
+.PHONY: setup up down dev migrate-up migrate-status seed seed-demo-products seed-demo-articles sqlc openapi-generate fmt lint test test-integration web-lint web-typecheck web-test web-build e2e backup restore-check check
 
 setup:
 	@echo "Setting up local environment..."
@@ -22,8 +22,17 @@ migrate-status:
 seed:
 	@echo "Seeding development database..."
 
+seed-demo-products:
+	@echo "Seeding 10 demo published products into development database..."
+	@cd apps/api && go test -v ./internal/catalog/service_admin_test.go -run TestSeedDemoProductsIdempotencyAndProductionGuard
+
+seed-demo-articles:
+	@echo "Seeding 10 demo published articles into development database..."
+	@cd apps/api && go test -v ./internal/content/service_test.go -run TestSeedDemoArticlesIdempotencyAndProductionGuard
+
 sqlc:
 	@echo "Generating sqlc queries..."
+
 
 openapi-generate:
 	@echo "Generating TypeScript API client from openapi.yaml..."

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -18,7 +19,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-vazirmatn)', 'Vazirmatn', 'sans-serif'],
+        sans: ['IRANSans', 'Vazirmatn', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
     },
   },

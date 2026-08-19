@@ -15,13 +15,13 @@
 | **Milestone 1** | Foundation: Monorepo, Docker Compose, Go API Core, Next.js RTL Skeleton, Migrations | **COMPLETED** | Yes |
 | **Milestone 2** | Identity, Auth (Customer OTP, Admin Password), Session Cookies & RBAC | **COMPLETED** | Yes |
 | **Milestone 3** | Catalog, Media & Content Domain (Products, Variants, Categories, Articles) | **COMPLETED** | Yes |
-| **Milestone 4** | Storefront Frontend Experience (Header, Mobile Drawers, JSON-LD, Skeletons) | **COMPLETED** | Yes |
-| **Milestone 5** | Cart, Pricing & Promotions Engine (Guest/User Carts, Cart Merge, Coupons, `/cart`) | **COMPLETED** | Yes |
+| **Milestone 4** | Storefront Frontend Experience (Header, Search Spotlight, Cart, Mobile Drawers, JSON-LD) | **COMPLETED** | Yes |
+| **Milestone 5** | Cart, Pricing & Promotions Engine (Interactive Cart, merge, Coupons `MORINGA15`, `/cart`) | **COMPLETED** | Yes |
 | **Milestone 6** | Inventory Reservation, Checkout, Orders & Payment Gateway | **COMPLETED** | Yes |
 | **Milestone 7** | Shipping, Tracking, Account Portal & Returns | **COMPLETED** | Yes |
 | **Milestone 8** | Complete Admin Operations Panel (Fulfillment, Tracking, Inventory, Audit Logs) | **COMPLETED** | Yes |
 | **Milestone 9** | Reviews, Wishlist, Back-in-Stock & Outbox Notifications | **COMPLETED** | Yes |
-| **Milestone 10**| Hardening, Performance, Accessibility & Release Candidate | **COMPLETED** | Yes |
+| **Milestone 10**| Hardening, Unified Smart Search, Performance & Release Candidate | **COMPLETED** | Yes |
 
 ---
 

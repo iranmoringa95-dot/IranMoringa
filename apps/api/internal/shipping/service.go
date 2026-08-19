@@ -12,6 +12,17 @@ var (
 	ErrTrackingNotFound = errors.New("کد رهگیری یا شماره سفارش واردشده در سیستم یافت نشد")
 )
 
+type ShippingQuoteOption struct {
+	Code        string `json:"code"`
+	NameFA      string `json:"name_fa"`
+	Carrier     string `json:"carrier"`
+	FeeIRR      int64  `json:"fee_irr"`
+	ETAMinDays  int    `json:"eta_min_days"`
+	ETAMaxDays  int    `json:"eta_max_days"`
+	IsFree      bool   `json:"is_free"`
+	Description string `json:"description"`
+}
+
 type TrackingResult struct {
 	OrderNumber  string             `json:"order_number"`
 	Status       orders.OrderStatus `json:"status"`
@@ -41,15 +52,76 @@ func NewService(orderSvc *orders.Service, paySvc *payments.Service) *Service {
 	}
 }
 
+const FreeShippingThresholdIRR = int64(15000000) // 1,500,000 Toman (15 Million IRR)
+
+func (s *Service) CalculateQuotes(province, city string, subtotalIRR int64, totalWeightGrams int) []ShippingQuoteOption {
+	options := make([]ShippingQuoteOption, 0)
+
+	// 1. Post Pishtaz (Always Available)
+	pishtazFee := int64(350000)
+	if totalWeightGrams > 1000 {
+		pishtazFee += int64((totalWeightGrams-1000)/500) * 50000
+	}
+	isPishtazFree := false
+	if subtotalIRR >= FreeShippingThresholdIRR {
+		pishtazFee = 0
+		isPishtazFree = true
+	}
+
+	options = append(options, ShippingQuoteOption{
+		Code:        "post_pishtaz",
+		NameFA:      "پست پیشتاز",
+		Carrier:     "post",
+		FeeIRR:      pishtazFee,
+		ETAMinDays:  2,
+		ETAMaxDays:  4,
+		IsFree:      isPishtazFree,
+		Description: "تحویل درب منزل توسط شرکت پست جمهوری اسلامی ایران",
+	})
+
+	// 2. Tipax (Always Available)
+	tipaxFee := int64(500000)
+	if totalWeightGrams > 1000 {
+		tipaxFee += int64((totalWeightGrams-1000)/500) * 80000
+	}
+
+	options = append(options, ShippingQuoteOption{
+		Code:        "tipax",
+		NameFA:      "سریع تیپاکس (پس‌کرایه / پیش‌کرایه)",
+		Carrier:     "tipax",
+		FeeIRR:      tipaxFee,
+		ETAMinDays:  1,
+		ETAMaxDays:  3,
+		IsFree:      false,
+		Description: "ارسال سریع با نمایندگی‌های اختصاصی تیپاکس",
+	})
+
+	// 3. Tehran Express Courier (Restricted exclusively to Tehran City)
+	if strings.Contains(city, "تهران") || strings.Contains(province, "تهران") {
+		options = append(options, ShippingQuoteOption{
+			Code:        "courier_tehran",
+			NameFA:      "پیک اکسپرس درون‌شهری (ویژه تهران)",
+			Carrier:     "courier",
+			FeeIRR:      450000,
+			ETAMinDays:  1,
+			ETAMaxDays:  1,
+			IsFree:      false,
+			Description: "تحویل فوری ظرف ۲۴ ساعت در مناطق ۲۲‌گانه تهران",
+		})
+	}
+
+	return options
+}
+
 func (s *Service) CalculateShippingFee(province string, weightGrams int) int64 {
-	baseFee := int64(300000) // 30,000 Toman base fee
+	baseFee := int64(350000)
 	if strings.Contains(province, "تهران") {
 		return baseFee
 	}
 	if weightGrams > 1000 {
 		return baseFee + int64((weightGrams-1000)/500)*50000
 	}
-	return baseFee + int64(100000) // 40,000 Toman for other provinces
+	return baseFee + int64(50000)
 }
 
 func (s *Service) LookupTracking(query string) (*TrackingResult, error) {

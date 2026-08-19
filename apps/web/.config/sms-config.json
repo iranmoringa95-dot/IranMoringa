@@ -1,0 +1,18 @@
+{
+  "provider": "webonesms",
+  "authMethod": "api_key",
+  "apiKey": "c4dad5d4-49c5-4e55-9d86-8638a7600f8e.d4819f7c-5fdb-4662-8da7-c7c40f4725fb",
+  "username": "09132391843",
+  "password": "0000",
+  "senderNumber": "10002147",
+  "baseURL": "http://api.payamak-panel.com/post/send.asmx",
+  "otpTemplateId": "",
+  "useSmartOtp": true,
+  "isActive": true,
+  "lastStatus": "connected",
+  "lastBalance": "۴٬۰۶۱٬۲۴۴ ریال",
+  "lastBalanceRials": "۴٬۰۶۱٬۲۴۴ ریال",
+  "lastBalanceSms": "۳۶,۹۲۰ پیامک",
+  "lastTestedAt": "2026-08-17T22:05:59.677Z",
+  "lastErrorMessage": null
+}

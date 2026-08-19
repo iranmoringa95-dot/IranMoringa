@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"errors"
-
 	"github.com/google/uuid"
 
 	"moringalab/api/internal/audit"
@@ -52,11 +50,14 @@ func (s *Service) FulfillOrder(orderNumber string, newStatus orders.OrderStatus,
 		return nil, err
 	}
 
-	if newStatus == orders.StatusShipped && trackingCode == "" {
-		return nil, errors.New("ثبت کد رهگیری پستی برای تغییر وضعیت به 'ارسال شده' الزامی است")
-	}
-
-	err = s.ordersService.UpdateStatus(ord.ID, newStatus)
+	err = s.ordersService.TransitionStatus(orders.TransitionRequest{
+		OrderID:      ord.ID,
+		NewStatus:    newStatus,
+		ActorType:    orders.ActorAdmin,
+		ActorID:      "admin-super",
+		TrackingCode: trackingCode,
+		Note:         "تغییر وضعیت سفارش به " + string(newStatus),
+	})
 	if err != nil {
 		return nil, err
 	}

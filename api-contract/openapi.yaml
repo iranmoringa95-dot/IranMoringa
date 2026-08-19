@@ -42,6 +42,24 @@ paths:
         '200':
           description: Category tree
 
+  /search:
+    get:
+      summary: Unified search across products, articles, and categories
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Unified search results
+
   /catalog/products:
     get:
       summary: Search and filter catalog products
@@ -144,6 +162,78 @@ paths:
         '200':
           description: Itemized pricing quote
 
+  /content/articles:
+    get:
+      summary: List published articles
+      parameters:
+        - name: category_slug
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of published articles
+
+  /content/articles/{slug}:
+    get:
+      summary: Get single published article details by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed article response
+        '404':
+          description: Article not found
+
+  /admin/articles:
+    get:
+      summary: List all articles for admin management
+      responses:
+        '200':
+          description: All articles including drafts and archived
+    post:
+      summary: Create new article
+      responses:
+        '201':
+          description: Article created
+
+  /admin/articles/{id}:
+    get:
+      summary: Get article by ID for editing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Article details
+    patch:
+      summary: Update article details
+      responses:
+        '200':
+          description: Article updated
+
+  /admin/articles/{id}/publish:
+    post:
+      summary: Publish article
+      responses:
+        '200':
+          description: Article published
+
   /orders:
     post:
       summary: Place order and reserve stock transactionally
@@ -156,6 +246,7 @@ paths:
       responses:
         '201':
           description: Order created successfully
+
 
 components:
   schemas:

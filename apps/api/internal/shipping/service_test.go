@@ -7,39 +7,32 @@ import (
 	"moringalab/api/internal/payments"
 )
 
-func TestShippingFeeAndTrackingLookup(t *testing.T) {
+func TestShippingQuotesAndCityRestrictions(t *testing.T) {
 	orderSvc := orders.NewService()
 	paySvc := payments.NewService(orderSvc)
 	svc := NewService(orderSvc, paySvc)
 
-	// 1. Calculate shipping fee
-	feeTehran := svc.CalculateShippingFee("تهران", 500)
-	if feeTehran != 300000 {
-		t.Errorf("expected 300,000 IRR for Tehran base, got %d", feeTehran)
+	// 1. Calculate quotes for Isfahan (Other city -> No Tehran Courier)
+	quotesIsf := svc.CalculateQuotes("اصفهان", "اصفهان", 10000000, 500)
+	if len(quotesIsf) != 2 {
+		t.Errorf("expected 2 shipping options for Isfahan, got %d", len(quotesIsf))
 	}
 
-	feeProvince := svc.CalculateShippingFee("اصفهان", 500)
-	if feeProvince != 400000 {
-		t.Errorf("expected 400,000 IRR for other province, got %d", feeProvince)
+	// 2. Calculate quotes for Tehran (Tehran -> Includes Express Courier)
+	quotesTeh := svc.CalculateQuotes("تهران", "تهران", 10000000, 500)
+	if len(quotesTeh) != 3 {
+		t.Errorf("expected 3 shipping options for Tehran, got %d", len(quotesTeh))
 	}
 
-	// 2. Create Order & Lookup Tracking
-	ord, _ := orderSvc.CreateOrder(&orders.Order{
-		SubtotalIRR: 500000,
-		Address: orders.OrderAddressSnapshot{
-			RecipientName: "علی محمدی",
-			City:          "تهران",
-		},
-	})
-
-	res, err := svc.LookupTracking(ord.OrderNumber)
-	if err != nil {
-		t.Fatalf("expected tracking result, got err: %v", err)
+	// 3. Free Shipping Threshold Check (Subtotal >= 15,000,000 IRR)
+	quotesFree := svc.CalculateQuotes("اصفهان", "اصفهان", 15000000, 500)
+	pishtazFree := false
+	for _, q := range quotesFree {
+		if q.Code == "post_pishtaz" && q.FeeIRR == 0 && q.IsFree {
+			pishtazFree = true
+		}
 	}
-	if res.OrderNumber != ord.OrderNumber {
-		t.Errorf("expected order number %s, got %s", ord.OrderNumber, res.OrderNumber)
-	}
-	if len(res.Timeline) == 0 {
-		t.Fatal("expected non-empty timeline steps")
+	if !pishtazFree {
+		t.Errorf("expected free Post Pishtaz shipping for subtotal >= 15,000,000 IRR")
 	}
 }

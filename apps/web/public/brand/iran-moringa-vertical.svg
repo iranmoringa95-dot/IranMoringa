@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 320" fill="none" className="w-full h-auto">
+  <defs>
+    <linearGradient id="vIconBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#026251" />
+      <stop offset="100%" stop-color="#01382e" />
+    </linearGradient>
+
+    <linearGradient id="vLimeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e3f24a" />
+      <stop offset="100%" stop-color="#b4c925" />
+    </linearGradient>
+
+    <linearGradient id="vEmeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+
+    <linearGradient id="vTerminalGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#d0de41" />
+    </linearGradient>
+
+    <filter id="vLogoShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Top Center: Moringa Leaf Icon Badge -->
+  <g transform="translate(85, 20)">
+    <rect x="0" y="0" width="130" height="130" rx="36" fill="url(#vIconBgGrad)" stroke="#d0de41" stroke-width="3" stroke-opacity="0.5" filter="url(#vLogoShadow)" />
+    <circle cx="65" cy="65" r="42" fill="#d0de41" fill-opacity="0.08" />
+
+    <!-- Leaf Arch -->
+    <path d="M 65 18 C 35 34 27 66 40 95 C 47 108 65 114 65 114 C 65 114 83 108 90 95 C 103 66 95 34 65 18 Z" 
+          fill="none" stroke="url(#vLimeGrad)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Stem -->
+    <path d="M 65 108 C 65 90 65 47 65 26" stroke="url(#vLimeGrad)" stroke-width="2.8" stroke-linecap="round" />
+
+    <!-- Leaflet Pair 1 -->
+    <path d="M 65 92 C 53 96 44 88 47 82 C 50 75 61 82 65 86" fill="url(#vLimeGrad)" />
+    <path d="M 65 92 C 77 96 86 88 83 82 C 80 75 69 82 65 86" fill="url(#vEmeraldGrad)" />
+
+    <!-- Leaflet Pair 2 -->
+    <path d="M 65 76 C 50 79 42 70 46 62 C 50 56 61 64 65 69" fill="url(#vEmeraldGrad)" />
+    <path d="M 65 76 C 80 79 88 70 84 62 C 80 56 69 64 65 69" fill="url(#vLimeGrad)" />
+
+    <!-- Leaflet Pair 3 -->
+    <path d="M 65 61 C 52 61 45 52 50 45 C 55 40 63 48 65 53" fill="url(#vLimeGrad)" />
+    <path d="M 65 61 C 78 61 85 52 80 45 C 75 40 67 48 65 53" fill="url(#vEmeraldGrad)" />
+
+    <!-- Leaflet Pair 4 -->
+    <path d="M 65 47 C 56 44 52 36 57 32 C 61 28 65 35 65 39" fill="url(#vEmeraldGrad)" />
+    <path d="M 65 47 C 74 44 78 36 73 32 C 69 28 65 35 65 39" fill="url(#vLimeGrad)" />
+
+    <!-- Terminal Leaf -->
+    <path d="M 65 22 C 61 27 62 35 65 37 C 68 35 69 27 65 22 Z" fill="url(#vTerminalGlow)" />
+    <circle cx="65" cy="108" r="3" fill="url(#vTerminalGlow)" />
+  </g>
+
+  <!-- Middle: Persian Typography Wordmark -->
+  <g transform="translate(150, 205)">
+    <text x="0" y="0" text-anchor="middle" font-family="Vazirmatn, system-ui, -apple-system, sans-serif" font-weight="900" font-size="38" fill="#024a3d" letter-spacing="-1">
+      ایران <tspan fill="#026251">مورینگا</tspan>
+    </text>
+  </g>
+
+  <!-- Tagline / Superfood Subtitle -->
+  <g transform="translate(150, 240)">
+    <text x="0" y="0" text-anchor="middle" font-family="Vazirmatn, system-ui, -apple-system, sans-serif" font-weight="700" font-size="14" fill="#059669" letter-spacing="0">
+      سوپرفود خالص و ارگانیک
+    </text>
+  </g>
+
+  <!-- English Brand Line -->
+  <g transform="translate(150, 268)">
+    <rect x="-100" y="-12" width="200" height="24" rx="12" fill="#d0de41" fill-opacity="0.2" />
+    <text x="0" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="800" font-size="11" fill="#024a3d" letter-spacing="2.5">
+      MORINGA SUPERFOODS
+    </text>
+  </g>
+</svg>
