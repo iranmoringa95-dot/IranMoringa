@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "build": "next build && node -e \"const fs=require('fs'); fs.rmSync('.next/cache', {recursive: true, force: true});\"",
     "start": "next start -p 3000",
     "lint": "next lint",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit"
@@ -22,6 +22,7 @@
     "vazirmatn": "^33.0.3"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@types/node": "^20.17.10",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
