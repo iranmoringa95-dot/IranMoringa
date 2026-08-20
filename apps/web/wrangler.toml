@@ -3,6 +3,5 @@ compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
-directory = "out"
-binding = "ASSETS"
+directory = ".next"
 not_found_handling = "single-page-application"
