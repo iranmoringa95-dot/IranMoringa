@@ -36,10 +36,12 @@ import {
   CustomerOrder,
   CustomerProfile,
 } from '@/lib/customer-store';
+import { isUserSuperAdmin, getActiveAdminSession } from '@/lib/admin-auth-store';
 
 export default function CustomerAccountDashboard() {
   const router = useRouter();
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'addresses' | 'coupons' | 'wishlist' | 'settings'>('overview');
 
@@ -71,6 +73,9 @@ export default function CustomerAccountDashboard() {
     const prof = getCustomerProfile();
     setProfile(prof);
     setOrders(getCustomerOrders());
+    const admin = getActiveAdminSession();
+    setIsAdmin(isUserSuperAdmin(prof.phone || '') || Boolean(admin));
+
     setSettingsForm({
       fullName: prof.fullName || 'احسان پویا',
       email: prof.email || 'ehsan.pouya@moringalab.ir',
@@ -205,6 +210,35 @@ export default function CustomerAccountDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── Admin Direct Access Notice ── */}
+      {isAdmin && (
+        <div className="bg-gradient-to-r from-amber-500/15 via-emerald-500/15 to-[#026251]/20 border border-amber-300 dark:border-amber-700/60 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-150">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-sm shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                <span>شما به عنوان مدیر ارشد (Super Admin) در سیستم شناخته شده‌اید</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 rounded-full font-black">
+                  دسترسی کامل
+                </span>
+              </h3>
+              <p className="text-xs text-stone-600 dark:text-stone-300">
+                جهت مدیریت کاتالوگ محصولات، سفارش‌ها، مرسولات پستچی، مقالات و سوابق امنیتی وارد پنل مدیریت شوید.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/admin"
+            className="px-5 py-2.5 bg-[#026251] hover:bg-[#014d3f] text-[#d0de41] rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md shrink-0 transition-all hover:scale-105"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>ورود به پیشخوان مدیریت 🛡️</span>
+          </Link>
+        </div>
+      )}
 
       {/* ── Main Dashboard Layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

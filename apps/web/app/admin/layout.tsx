@@ -1,48 +1,292 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  ShieldCheck,
+  Package,
+  Layers,
+  ShoppingBag,
+  Truck,
+  Percent,
+  MessageSquare,
+  Bell,
+  FileText,
+  Globe2,
+  Headphones,
+  Bot,
+  BarChart3,
+  Users,
+  LogOut,
+  ArrowLeft,
+  KeyRound,
+  AlertTriangle,
+  Lock,
+} from 'lucide-react';
+import {
+  getActiveAdminSession,
+  clearAdminSession,
+  changeAdminPassword,
+  AdminUser,
+} from '@/lib/admin-auth-store';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [session, setSession] = useState<AdminUser | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Forced Password Change State
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passError, setPassError] = useState('');
+
+  useEffect(() => {
+    const admin = getActiveAdminSession();
+    setSession(admin);
+    setIsLoaded(true);
+
+    const handleSessionUpdate = () => {
+      setSession(getActiveAdminSession());
+    };
+    window.addEventListener('moringa_admin_session_updated', handleSessionUpdate);
+    return () => window.removeEventListener('moringa_admin_session_updated', handleSessionUpdate);
+  }, []);
+
+  const handleLogout = () => {
+    clearAdminSession();
+    router.push('/login');
+  };
+
+  const handleForceChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassError('');
+
+    if (!session) return;
+    if (newPass.length < 6) {
+      setPassError('رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
+      return;
+    }
+    if (newPass === '@KamalGeraei990') {
+      setPassError('رمز عبور جدید نمی‌تواند همان رمز اولیه باشد.');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      setPassError('تکرار کلمه عبور با رمز جدید همخوانی ندارد.');
+      return;
+    }
+
+    changeAdminPassword(session.id, newPass);
+    setSession(getActiveAdminSession());
+    setNewPass('');
+    setConfirmPass('');
+  };
+
+  const navItems = [
+    { href: '/admin', label: 'داشبورد جامع', icon: BarChart3, exact: true },
+    { href: '/admin/products', label: 'محصولات سوپرفود', icon: Package },
+    { href: '/admin/inventory', label: 'موجودی و انبار', icon: Layers },
+    { href: '/admin/orders', label: 'سفارش‌ها و فاکتورها', icon: ShoppingBag },
+    { href: '/admin/postchi', label: 'پستچی و مرسولات', icon: Truck, badge: 'جدید' },
+    { href: '/admin/promotions', label: 'تخفیف و پروموشن‌ها', icon: Percent },
+    { href: '/admin/reviews', label: 'دیدگاه‌ها و نظرات', icon: MessageSquare },
+    { href: '/admin/notifications', label: 'سامانه پیامکی WebOne', icon: Bell },
+    { href: '/admin/audit-logs', label: 'سوابق امنیتی (Audit)', icon: ShieldCheck },
+    { href: '/admin/articles', label: 'دانشنامه و مقالات', icon: FileText },
+    { href: '/admin/seo', label: 'سئو و متاتگ‌ها', icon: Globe2 },
+    { href: '/admin/support', label: 'مرکز تیکت و پشتیبانی', icon: Headphones },
+    { href: '/admin/chatbot', label: 'چت‌بات هوش مصنوعی', icon: Bot },
+    { href: '/admin/reports', label: 'گزارش‌های مالی و سود', icon: BarChart3 },
+    { href: '/admin/access', label: 'سطوح دسترسی و مدیران', icon: Users, badge: 'امنیت' },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row dir-rtl">
+    <div className="min-h-screen bg-slate-100 dark:bg-[#040f0c] flex flex-col md:flex-row dir-rtl transition-colors duration-200">
       {/* Admin Sidebar */}
-      <aside className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col gap-6 shrink-0">
-        <div className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-          <span>⚙️</span> پنل مدیریت سبزینه
+      <aside className="w-full md:w-72 bg-slate-900 text-white p-5 flex flex-col justify-between shrink-0 shadow-xl border-l border-slate-800">
+        <div className="space-y-6">
+          {/* Brand & Panel Title */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">
+                🌿
+              </span>
+              <div>
+                <h2 className="text-sm font-black text-white">پنل مدیریت ایران مورینگا</h2>
+                <p className="text-[10px] text-emerald-400 font-bold">نسخه جامع تجاری ۲.۰</p>
+              </div>
+            </div>
+            <Link
+              href="/"
+              title="مشاهده وب‌سایت"
+              className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 text-xs flex items-center gap-1"
+            >
+              <span>فروشگاه</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-1 text-xs">
+            {navItems.map((item) => {
+              const isActive = item.exact
+                ? pathname === item.href
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-between transition-all ${
+                    isActive
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <span className="text-[9px] bg-[#d0de41] text-[#026251] px-1.5 py-0.5 rounded-full font-black">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        <nav className="flex flex-col gap-1.5 text-xs sm:text-sm">
-          <Link href="/admin" className="px-3 py-2 bg-slate-800 text-emerald-400 font-medium rounded-lg">داشبورد</Link>
-          <Link href="/admin/products" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">محصولات</Link>
-          <Link href="/admin/inventory" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">موجودی و انبار</Link>
-          <Link href="/admin/orders" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">سفارش‌ها</Link>
-          <Link href="/admin/postchi" className="px-3 py-2 bg-[#026251] text-[#d0de41] font-bold rounded-lg transition-colors flex items-center justify-between">
-            <span>📮 پستچی و مرسولات</span>
-            <span className="text-[10px] bg-[#d0de41] text-[#026251] px-1.5 py-0.2 rounded-full font-black">جدید</span>
-          </Link>
-          <Link href="/admin/promotions" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">پروموشن و کوپن‌ها</Link>
-          <Link href="/admin/reviews" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">دیدگاه‌ها و پرسش‌ها</Link>
-          <Link href="/admin/notifications" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">پیامک و اعلان‌ها</Link>
-          <Link href="/admin/audit-logs" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">سوابق امنیتی (Audit)</Link>
-          <Link href="/admin/articles" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">مقالات و محتوا</Link>
-          <Link href="/admin/seo" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">سئو و ریدایرکت‌ها</Link>
-          <Link href="/admin/support" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">مرکز پشتیبانی</Link>
-          <Link href="/admin/chatbot" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">چت‌بات دانش‌محور</Link>
-          <Link href="/admin/reports" className="px-3 py-2 hover:bg-slate-800 text-slate-300 rounded-lg transition-colors">گزارش‌ها و تحلیل مالی</Link>
-        </nav>
+
+        {/* User Info & Logout Footer */}
+        <div className="pt-6 border-t border-slate-800 space-y-3">
+          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/80">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-xs">
+              {session?.fullName ? session.fullName.slice(0, 1) : 'م'}
+            </div>
+            <div className="overflow-hidden flex-1">
+              <span className="text-xs font-bold text-white block truncate">
+                {session?.fullName || 'احسان پویا (مدیر ارشد)'}
+              </span>
+              <span className="text-[10px] text-amber-400 block truncate">
+                {session?.isSuperAdmin ? 'دسترسی کامل Super Admin' : 'مدیر سیستم'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              href="/admin/access"
+              className="flex-1 text-center py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all"
+            >
+              تنظیمات دسترسی
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-rose-400 hover:text-white hover:bg-rose-950/80 rounded-xl transition-all"
+              title="خروج از پنل مدیریت"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </aside>
 
-      {/* Main Panel Content */}
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b border-slate-200 h-16 px-6 flex items-center justify-between shadow-sm">
-          <h2 className="text-lg font-bold text-slate-800">پیشخوان مدیریت فروشگاه</h2>
-          <div className="text-xs sm:text-sm text-slate-600">مدیر سیستم (Super Admin)</div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-x-hidden">
+        <header className="bg-white dark:bg-[#08201a] border-b border-slate-200 dark:border-emerald-900/40 h-16 px-6 flex items-center justify-between shadow-xs transition-colors duration-200">
+          <div className="flex items-center gap-3">
+            <h1 className="text-sm sm:text-base font-black text-slate-800 dark:text-white">
+              پیشخوان مدیریت فروشگاه ایران مورینگا
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 rounded-full text-xs font-black flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <span>دسترسی مدیر ارشد</span>
+            </span>
+
+            <Link
+              href="/"
+              className="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all"
+            >
+              نمایش سایت
+            </Link>
+          </div>
         </header>
-        <main className="p-6 flex-1">
-          {children}
-        </main>
+
+        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
       </div>
+
+      {/* Mandatory Password Change Modal for First Login */}
+      {session && session.mustChangePassword && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#091f18] rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-amber-300 dark:border-amber-800">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center mx-auto">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                الزام تغییر رمز عبور اولیه
+              </h3>
+              <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
+                مدیر گرامی ({session.fullName})؛ شما با رمز عبور موقت وارد شده‌اید. جهت حفظ امنیت سامانه، لطفاً رمز عبور اختصاصی خود را تعیین فرمایید.
+              </p>
+            </div>
+
+            {passError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{passError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleForceChangePassword} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
+                  رمز عبور اختصاصی جدید *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="حداقل ۶ کاراکتر"
+                  value={newPass}
+                  onChange={(e) => setNewPass(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-stone-50 dark:bg-[#061410] border border-stone-200 dark:border-emerald-900/60 rounded-xl text-xs dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
+                  تکرار رمز عبور جدید *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="تکرار رمز عبور"
+                  value={confirmPass}
+                  onChange={(e) => setConfirmPass(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-stone-50 dark:bg-[#061410] border border-stone-200 dark:border-emerald-900/60 rounded-xl text-xs dark:text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#026251] hover:bg-[#014d3f] text-white rounded-xl font-black text-xs shadow-md transition-all"
+              >
+                تایید و ورود به پنل
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

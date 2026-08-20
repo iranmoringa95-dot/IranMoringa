@@ -3,6 +3,7 @@
 /apps/api/dist/
 /apps/web/.next/
 /apps/web/out/
+/apps/web/cf-dist/
 /apps/web/build/
 /apps/web/node_modules/
 node_modules/

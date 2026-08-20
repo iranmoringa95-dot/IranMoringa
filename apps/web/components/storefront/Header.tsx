@@ -13,6 +13,7 @@ import {
   Heart,
   LogOut,
   ChevronDown,
+  ShieldCheck,
 } from 'lucide-react';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { SearchModal } from './SearchModal';
@@ -21,6 +22,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { getStoredCart, getCartItemsCount } from '@/lib/cart';
 import { isCustomerLoggedIn, customerLogout, getCustomerProfile } from '@/lib/customer-store';
+import { isUserSuperAdmin, getActiveAdminSession } from '@/lib/admin-auth-store';
 
 export function Header() {
   const router = useRouter();
@@ -31,6 +33,7 @@ export function Header() {
 
   // User Auth State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState('احسان پویا');
   const [userPhone, setUserPhone] = useState('09132391843');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -41,10 +44,14 @@ export function Header() {
     const checkAuth = () => {
       const logged = isCustomerLoggedIn();
       setIsLoggedIn(logged);
+      const admin = getActiveAdminSession();
       if (logged) {
         const profile = getCustomerProfile();
         setUserName(profile.fullName || 'احسان پویا');
         setUserPhone(profile.phone || '09132391843');
+        setIsAdmin(isUserSuperAdmin(profile.phone || '') || Boolean(admin));
+      } else {
+        setIsAdmin(Boolean(admin));
       }
     };
 
@@ -187,6 +194,18 @@ export function Header() {
               </span>
             </Link>
 
+            {/* Admin Direct Access Button */}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="hidden lg:flex px-3.5 py-2 bg-[#d0de41] text-[#026251] hover:bg-[#b8c634] rounded-full text-xs font-black items-center justify-center gap-1.5 shadow-md hover:scale-105 transition-all"
+                title="ورود مستقیم به پنل مدیریت"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>پنل مدیریت 🛡️</span>
+              </Link>
+            )}
+
             {/* Desktop-only User Button (Mobile is in Bottom Nav) */}
             <div className="hidden sm:block">
               {isLoggedIn ? (
@@ -211,6 +230,17 @@ export function Header() {
                       </div>
 
                       <div className="py-1 space-y-0.5 font-bold">
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 font-black hover:bg-amber-100 transition-colors mb-1"
+                          >
+                            <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                            <span>ورود به پنل مدیریت 🛡️</span>
+                          </Link>
+                        )}
+
                         <Link
                           href="/account"
                           onClick={() => setIsUserMenuOpen(false)}
