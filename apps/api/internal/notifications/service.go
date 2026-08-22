@@ -41,6 +41,7 @@ type Service struct {
 	emailProvider    EmailProvider
 	prefStore        *PreferencesStore
 	stockAlertsStore *StockAlertsStore
+	gatewayManager   *SMSGatewayManager
 }
 
 func NewService(sms SMSProvider, email EmailProvider) *Service {
@@ -52,7 +53,9 @@ func NewService(sms SMSProvider, email EmailProvider) *Service {
 		emailProvider:    email,
 		prefStore:        NewPreferencesStore(),
 		stockAlertsStore: NewStockAlertsStore(),
+		gatewayManager:   NewSMSGatewayManager(),
 	}
+
 
 	// Register Seed Templates
 	for _, tmpl := range GetSeedTemplates() {
@@ -399,7 +402,71 @@ func (s *Service) GetTemplate(code string) (*NotificationTemplate, error) {
 	return tmpl, nil
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Iranian SMS Gateways & Bulk Dispatcher ─────────────────────────────────
+
+func (s *Service) GetGatewayManager() *SMSGatewayManager {
+	return s.gatewayManager
+}
+
+func (s *Service) SendManualSMS(recipient string, message string, orderID *uuid.UUID) (*NotificationDelivery, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	driver := s.gatewayManager.GetActiveDriver()
+	result, err := driver.SendSMS(recipient, message, "", nil)
+
+	deliveryID := uuid.New()
+	now := time.Now()
+	del := &NotificationDelivery{
+		ID:              deliveryID,
+		EventID:         orderID,
+		EventCode:       "manual_sms",
+		RecipientMasked: MaskPhone(recipient),
+		RecipientRaw:    recipient,
+		Channel:         ChannelSMS,
+		Provider:        driver.GetID(),
+		Status:          SendStatusSent,
+		Subject:         "پیامک دستی سفارش",
+		Body:            message,
+		AttemptCount:    1,
+		MaxAttempts:     1,
+		CreatedAt:       now,
+		SentAt:          &now,
+	}
+
+	if err != nil || (result != nil && result.Status == SendStatusFailed) {
+		del.Status = SendStatusFailed
+		if err != nil {
+			del.LastError = err.Error()
+		} else if result != nil {
+			del.LastError = result.ErrorMessage
+		}
+	} else if result != nil {
+		del.ProviderMessageID = result.ProviderMessageID
+	}
+
+	s.deliveries[deliveryID] = del
+	s.deliveryOrder = append(s.deliveryOrder, deliveryID)
+
+	return del, err
+}
+
+func (s *Service) SendBulkSMS(mobiles []string, message string) (int, int, error) {
+	driver := s.gatewayManager.GetActiveDriver()
+	successCount := 0
+	failCount := 0
+
+	for _, mob := range mobiles {
+		_, err := driver.SendSMS(mob, message, "", nil)
+		if err == nil {
+			successCount++
+		} else {
+			failCount++
+		}
+	}
+
+	return successCount, failCount, nil
+}
 
 func (s *Service) maskRecipient(recipient string, channel Channel) string {
 	if channel == ChannelSMS {
@@ -410,7 +477,16 @@ func (s *Service) maskRecipient(recipient string, channel Channel) string {
 
 func (s *Service) providerName(channel Channel) string {
 	if channel == ChannelSMS {
-		return "fake_sms_kavenegar"
+		return s.gatewayManager.ActiveGateway
 	}
 	return "fake_email_mailpit"
 }
+
+func (s *Service) GetUserPreferences(userID uuid.UUID) []NotificationPreference {
+	return s.prefStore.GetUserPreferences(userID)
+}
+
+func (s *Service) SetUserPreference(userID uuid.UUID, channel Channel, category EventCategory, enabled bool) {
+	s.prefStore.SetPreference(userID, channel, category, enabled)
+}
+

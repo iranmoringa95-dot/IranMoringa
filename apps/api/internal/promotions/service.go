@@ -18,7 +18,7 @@ var (
 	ErrUserLimit      = errors.New("سقف مجاز استفاده از این کد تخفیف برای حساب شما به پایان رسیده است")
 	ErrFirstOrderOnly = errors.New("این کد تخفیف فقط برای اولین خرید مشتریان جدید قابل استفاده است")
 	ErrMinAmount      = errors.New("مبلغ سفارش کمتر از حداقل مبلغ لازم برای اعمال این کد تخفیف است")
-	ErrIneligibleCart = errors.Ne0
+	ErrIneligibleCart = errors.New("اقلام سبد خرید واجد شرایط این کد تخفیف نیستند")
 )
 
 var (

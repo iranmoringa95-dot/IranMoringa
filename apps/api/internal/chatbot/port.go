@@ -2,7 +2,6 @@ package chatbot
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 )

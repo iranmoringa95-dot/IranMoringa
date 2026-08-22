@@ -18,6 +18,7 @@ import (
 	"moringalab/api/internal/audit"
 	"moringalab/api/internal/carts"
 	"moringalab/api/internal/catalog"
+	"moringalab/api/internal/chatbot"
 	"moringalab/api/internal/checkout"
 	"moringalab/api/internal/content"
 	"moringalab/api/internal/identity"
@@ -34,9 +35,12 @@ import (
 	"moringalab/api/internal/platform/health"
 	"moringalab/api/internal/platform/middleware"
 	"moringalab/api/internal/promotions"
+	"moringalab/api/internal/reports"
 	"moringalab/api/internal/returns"
 	"moringalab/api/internal/reviews"
+	"moringalab/api/internal/seo"
 	"moringalab/api/internal/shipping"
+	"moringalab/api/internal/support"
 	"moringalab/api/internal/wishlist"
 )
 
@@ -86,13 +90,12 @@ func main() {
 	inventoryService := inventory.NewService()
 	ordersService := orders.NewService()
 	paymentsService := payments.NewService(ordersService)
-
-	checkoutService := checkout.NewService(cartService, inventoryService, ordersService, paymentsService)
-	checkoutHandler := checkout.NewHandler(checkoutService, paymentsService)
-
 	shippingService := shipping.NewService(ordersService, paymentsService)
 	returnsService := returns.NewService(ordersService)
 	shippingHandler := shipping.NewHandler(shippingService, returnsService)
+
+	checkoutService := checkout.NewService(cartService, inventoryService, ordersService, paymentsService, shippingService)
+	checkoutHandler := checkout.NewHandler(checkoutService, paymentsService)
 
 	promotionsHandler := promotions.NewHandler(promotionsService)
 
@@ -243,9 +246,15 @@ func main() {
 		r.Post("/orders/{orderNumber}/cancel", ordersHandler.CustomerCancelOrder)
 		r.Get("/orders/{orderNumber}/invoice", invoicesHandler.CustomerGetInvoice)
 
-		// Public Tracking (M10)
+		// Public Tracking & Shipping Quotes (M10)
 		r.Get("/tracking/{query}", ordersHandler.PublicTrackOrder)
 		r.Post("/order-tracking/lookup", shippingHandler.LookupTracking)
+		r.Post("/shipping/quotes", shippingHandler.GetShippingQuotes)
+
+		// Admin Shipping Tariffs (Post & Courier)
+		r.Get("/admin/shipping/tariffs", shippingHandler.AdminGetTariffs)
+		r.Put("/admin/shipping/tariffs", shippingHandler.AdminUpdateTariffs)
+		r.Post("/admin/shipping/tariffs/sync", shippingHandler.AdminSyncTariffs)
 
 		// Return Routes
 		r.Post("/account/orders/{orderNumber}/returns", shippingHandler.CreateReturn)
@@ -268,8 +277,12 @@ func main() {
 		r.Post("/admin/products/{id}/unpublish", catalogHandler.AdminUnpublishProduct)
 		r.Post("/admin/products/{id}/archive", catalogHandler.AdminArchiveProduct)
 
+		// Admin Customer Management
+		r.Get("/admin/customers", adminHandler.AdminListCustomers)
+
 		// Admin Order Management (M10)
 		r.Get("/admin/orders", ordersHandler.AdminListOrders)
+		r.Post("/admin/orders", ordersHandler.AdminCreateOrder)
 		r.Get("/admin/orders/{id}", ordersHandler.AdminGetOrder)
 		r.Patch("/admin/orders/{id}/status", ordersHandler.AdminTransitionStatus)
 		r.Get("/admin/orders/{id}/timeline", ordersHandler.AdminGetTimeline)
@@ -338,13 +351,20 @@ func main() {
 		r.Post("/admin/reports/exports", reportsHandler.CreateExportJob)
 		r.Get("/admin/reports/exports/{id}/download", reportsHandler.DownloadExportJob)
 
-		// Admin Notification Center (M11)
+		// Admin Notification Center & Iranian SMS Gateway Management (Persian WooCommerce SMS Pro)
 		r.Get("/admin/notifications/deliveries", notificationsHandler.AdminListDeliveries)
 		r.Post("/admin/notifications/deliveries/{id}/retry", notificationsHandler.AdminRetryDelivery)
 		r.Get("/admin/notifications/queue-status", notificationsHandler.AdminGetQueueStatus)
 		r.Get("/admin/notifications/templates", notificationsHandler.AdminListTemplates)
 		r.Post("/admin/notifications/templates/{code}/test", notificationsHandler.AdminTestTemplate)
+		r.Get("/admin/sms/settings", notificationsHandler.AdminGetSMSSettings)
+		r.Put("/admin/sms/settings", notificationsHandler.AdminUpdateSMSSettings)
+		r.Get("/admin/sms/gateways/balance", notificationsHandler.AdminGetSMSGatewayBalance)
+		r.Post("/admin/sms/test", notificationsHandler.AdminSendTestSMS)
+		r.Post("/admin/sms/bulk", notificationsHandler.AdminSendBulkSMS)
+		r.Post("/admin/orders/{orderNumber}/sms", notificationsHandler.AdminSendOrderManualSMS)
 	})
+
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)
 	server := &http.Server{

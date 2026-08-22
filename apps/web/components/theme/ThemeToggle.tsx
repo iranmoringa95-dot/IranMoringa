@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Sun, Moon, Sparkles } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 interface ThemeToggleProps {
@@ -25,7 +25,7 @@ export function ThemeToggle({
   if (!mounted) {
     return (
       <div
-        className={`w-9 h-9 rounded-full bg-white/10 border border-white/10 animate-pulse ${className}`}
+        className={`w-9 h-9 rounded-full bg-slate-200 dark:bg-emerald-950/60 border border-slate-300 dark:border-emerald-800/40 animate-pulse ${className}`}
       />
     );
   }
@@ -37,22 +37,22 @@ export function ThemeToggle({
       <button
         type="button"
         onClick={toggleTheme}
-        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 border shadow-xs cursor-pointer ${
+        className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 border shadow-xs cursor-pointer select-none active:scale-95 ${
           isDark
-            ? 'bg-[#0e2a22] text-[#d0de41] border-[#026251] hover:bg-[#13372c]'
-            : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+            ? 'bg-[#0b241d] text-[#d0de41] border-emerald-700/60 hover:bg-[#113329] hover:border-[#d0de41]/60'
+            : 'bg-white text-[#026251] border-emerald-900/25 hover:bg-emerald-50 hover:border-emerald-600'
         } ${className}`}
         aria-label={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
         title={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
       >
         {isDark ? (
           <>
-            <Sun className="w-3.5 h-3.5 text-[#d0de41] animate-spin-slow" />
+            <Sun className="w-4 h-4 text-[#d0de41]" />
             <span>حالت روز</span>
           </>
         ) : (
           <>
-            <Moon className="w-3.5 h-3.5 text-[#d0de41]" />
+            <Moon className="w-4 h-4 text-[#026251]" />
             <span>حالت شب</span>
           </>
         )}
@@ -64,10 +64,10 @@ export function ThemeToggle({
     <button
       type="button"
       onClick={toggleTheme}
-      className={`p-2 rounded-full transition-all flex items-center justify-center border cursor-pointer group relative overflow-hidden ${
+      className={`p-2 rounded-full transition-all flex items-center justify-center border cursor-pointer group relative overflow-hidden select-none active:scale-95 ${
         isDark
-          ? 'bg-[#0b241d] text-[#d0de41] border-[#026251] hover:bg-[#113329] hover:scale-105 shadow-inner'
-          : 'bg-white/10 text-white hover:text-[#d0de41] border-white/15 hover:bg-white/20 hover:scale-105 shadow-xs'
+          ? 'bg-[#0b241d] text-[#d0de41] border-emerald-700/60 hover:bg-[#113329] hover:border-[#d0de41]/60 hover:scale-105 shadow-sm'
+          : 'bg-white text-[#026251] hover:text-[#014639] border-emerald-900/25 hover:bg-emerald-50 hover:border-emerald-600 hover:scale-105 shadow-sm'
       } ${size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-11 h-11' : 'w-9 h-9 sm:w-10 sm:h-10'} ${className}`}
       aria-label={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
       title={isDark ? 'تغییر به حالت روز (روشن)' : 'تغییر به حالت شب (دارک‌مود)'}
@@ -79,7 +79,7 @@ export function ThemeToggle({
           }`}
         />
         <Moon
-          className={`w-full h-full absolute inset-0 text-white group-hover:text-[#d0de41] transition-all duration-300 transform ${
+          className={`w-full h-full absolute inset-0 text-[#026251] transition-all duration-300 transform ${
             isDark ? '-rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'
           }`}
         />
@@ -87,3 +87,4 @@ export function ThemeToggle({
     </button>
   );
 }
+

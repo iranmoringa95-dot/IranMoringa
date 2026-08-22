@@ -164,7 +164,7 @@ func (s *Service) CreateInquiry(req SubmitInquiryRequest) (*SupportInquiry, erro
 	if req.OrderNumber != "" && s.ordersSvc != nil {
 		ord, err := s.ordersSvc.GetOrderByNumber(req.OrderNumber)
 		if err == nil && ord != nil {
-			if req.UserID != nil && ord.UserID != nil && *req.UserID == *ord.UserID {
+			if req.UserID != nil && ord.CustomerID != nil && *req.UserID == *ord.CustomerID {
 				isOrderVerified = true
 			}
 		}

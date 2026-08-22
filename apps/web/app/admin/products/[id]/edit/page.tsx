@@ -448,24 +448,24 @@ export default function AdminEditProductWooPage() {
   }
 
   return (
-    <div className="space-y-6 dir-rtl text-slate-800 pb-16">
+    <div className="space-y-6 dir-rtl text-slate-800 dark:text-slate-100 pb-16 transition-colors duration-200">
       {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#08201a] p-6 rounded-3xl border border-slate-200 dark:border-emerald-900/40 shadow-xs">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <Link href="/admin/products" className="hover:text-emerald-700 transition-colors">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+            <Link href="/admin/products" className="hover:text-emerald-700 dark:hover:text-[#d0de41] transition-colors">
               مدیریت محصولات
             </Link>
             <ChevronLeft className="w-3.5 h-3.5" />
-            <span className="text-slate-900 font-bold">ویرایش محصول</span>
+            <span className="text-slate-900 dark:text-white font-bold">ویرایش محصول</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
             <span>{product.title_fa}</span>
             <span
               className={`text-xs px-3 py-1 rounded-full font-bold border ${
                 product.status === 'published'
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  : 'bg-amber-50 text-amber-800 border-amber-200'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                  : 'bg-amber-50 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
               }`}
             >
               {product.status === 'published' ? 'منتشرشده در فروشگاه' : 'پیش‌نویس (غیرفعال)'}
@@ -477,7 +477,7 @@ export default function AdminEditProductWooPage() {
           <Link
             href={`/product/${product.slug}`}
             target="_blank"
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Eye className="w-4 h-4" />
             <span>مشاهده در سایت</span>

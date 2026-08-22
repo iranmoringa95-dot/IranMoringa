@@ -9,8 +9,6 @@ import (
 	"moringalab/api/internal/content"
 )
 
-const DemoArticleSeedKey = "demo_articles_v1"
-
 func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 	// Guard against execution in production
 	if os.Getenv("APP_ENV") == "production" {

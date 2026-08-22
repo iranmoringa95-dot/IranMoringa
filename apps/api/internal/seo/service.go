@@ -218,7 +218,7 @@ func (s *Service) GenerateSitemapXML() ([]byte, error) {
 
 	// Add Published Products
 	if s.catalogSvc != nil {
-		products := s.catalogSvc.SearchProducts("", uuid.Nil, uuid.Nil, 0, 1000)
+		products, _ := s.catalogSvc.SearchProducts(catalog.ProductFilter{Limit: 1000})
 		for _, p := range products {
 			urls = append(urls, SitemapURL{
 				Loc:        fmt.Sprintf("%s/product/%s", s.canonicalURL, p.Slug),
@@ -279,24 +279,38 @@ Sitemap: %s/sitemap.xml
 func (s *Service) BuildProductJSONLD(prod *catalog.Product, reviewsSummary *reviews.ProductReviewSummary) map[string]interface{} {
 	productURL := fmt.Sprintf("%s/product/%s", s.canonicalURL, prod.Slug)
 
+	var desc string
+	if prod.ShortDescriptionFA != nil {
+		desc = *prod.ShortDescriptionFA
+	} else if prod.FullDescriptionFA != nil {
+		desc = *prod.FullDescriptionFA
+	}
+
+	var sku string
+	var priceIRR int64
+	if len(prod.Variants) > 0 {
+		sku = prod.Variants[0].SKU
+		priceIRR = prod.Variants[0].PriceIRR
+	}
+
 	schema := map[string]interface{}{
 		"@context":    "https://schema.org/",
 		"@type":       "Product",
-		"name":        prod.NameFA,
-		"description": prod.DescriptionFA,
-		"sku":         prod.SKU,
+		"name":        prod.TitleFA,
+		"description": desc,
+		"sku":         sku,
 		"url":         productURL,
 		"offers": map[string]interface{}{
 			"@type":         "Offer",
 			"priceCurrency": "IRR",
-			"price":         prod.PriceIRR,
+			"price":         priceIRR,
 			"availability":  "https://schema.org/InStock",
 			"url":           productURL,
 		},
 	}
 
-	if prod.MainImageURL != "" {
-		schema["image"] = prod.MainImageURL
+	if len(prod.Media) > 0 {
+		schema["image"] = prod.Media[0].URL
 	}
 
 	// AggregateRating ONLY if approved reviews > 0

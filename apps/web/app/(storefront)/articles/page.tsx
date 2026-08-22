@@ -1,14 +1,28 @@
 import Link from 'next/link';
-import { BookOpen, Clock, Calendar, ArrowLeft, ChevronLeft, Search, Tag, Sparkles, X } from 'lucide-react';
+import { BookOpen, Clock, ChevronLeft, X } from 'lucide-react';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { ALL_MORINGA_ARTICLES, ArticleItem } from '@/lib/articles-data';
-import { normalizeSearchText } from '@/lib/search';
 
 export const metadata = {
   title: 'پایگاه دانش و مجله تخصصی مورینگا ایران | مقالات، راهنماها و خواص علمی',
-  description: 'مجموعه ۱۴ مقاله تخصصی درباره خواص پودر و روغن مورینگا، کاشت و زراعت در ایران، کنترل دیابت، لاغری، تقویت پوست و مو و هشدارهای مصرف.',
+  description: 'مجموعه مقالات تخصصی درباره خواص پودر و روغن مورینگا، کاشت و زراعت در ایران، کنترل دیابت، لاغری، تقویت پوست و مو و هشدارهای مصرف.',
 };
+
+async function getArticles(): Promise<ArticleItem[]> {
+  try {
+    const res = await fetch('http://localhost:8080/api/v1/content/articles', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.articles && data.articles.length > 0) {
+        return data.articles;
+      }
+    }
+  } catch (err) {
+    // Fallback to static articles data
+  }
+  return ALL_MORINGA_ARTICLES;
+}
 
 export default async function ArticlesListPage({
   searchParams,
@@ -19,64 +33,30 @@ export default async function ArticlesListPage({
   const currentCat = params.category || 'all';
   const query = (params.q || '').trim();
 
-  let filtered = ALL_MORINGA_ARTICLES;
+  const allArticles = await getArticles();
+  let filtered = allArticles;
 
   if (currentCat !== 'all') {
     filtered = filtered.filter((a) => a.category_slug === currentCat);
   }
 
   if (query) {
-    const normQ = normalizeSearchText(query);
-    const tokens = normQ.split(' ').filter(Boolean);
-
+    const q = query.toLowerCase();
     filtered = filtered.filter((a) => {
-      const normTitle = normalizeSearchText(a.title_fa);
-      const normSummary = normalizeSearchText(a.summary_fa || '');
-      const normCat = normalizeSearchText(a.category_name_fa || '');
-      const normContent = normalizeSearchText(a.content_fa || '');
-      const normTags = a.tags.map((t) => normalizeSearchText(t)).join(' ');
-
-      if (
-        normTitle.includes(normQ) ||
-        normSummary.includes(normQ) ||
-        normCat.includes(normQ) ||
-        normTags.includes(normQ) ||
-        normContent.includes(normQ)
-      ) {
-        return true;
-      }
-
-      if (tokens.length > 1) {
-        return tokens.every(
-          (t) =>
-            normTitle.includes(t) ||
-            normSummary.includes(t) ||
-            normCat.includes(t) ||
-            normTags.includes(t)
-        );
-      }
-
-      return false;
+      const titleMatch = a.title_fa.toLowerCase().includes(q);
+      const summaryMatch = (a.summary_fa || '').toLowerCase().includes(q);
+      return titleMatch || summaryMatch;
     });
   }
 
   const categories = [
-    { slug: 'all', name: 'همه مقالات', count: ALL_MORINGA_ARTICLES.length },
-    {
-      slug: 'about-moringa',
-      name: 'مورینگا چیست',
-      count: ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'about-moringa').length,
-    },
-    {
-      slug: 'growing-moringa',
-      name: 'کاشت و پرورش',
-      count: ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'growing-moringa').length,
-    },
-    {
-      slug: 'health-benefits',
-      name: 'خواص درمانی و سلامتی',
-      count: ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'health-benefits').length,
-    },
+    { slug: 'all', name: 'همه مقالات (۱۰ مقاله)', count: allArticles.length },
+    { slug: 'intro-to-moringa', name: 'آشنایی با مورینگا', count: allArticles.filter((a) => a.category_slug === 'intro-to-moringa').length },
+    { slug: 'product-guides', name: 'راهنمای محصولات', count: allArticles.filter((a) => a.category_slug === 'product-guides').length },
+    { slug: 'storage-guides', name: 'نگهداری', count: allArticles.filter((a) => a.category_slug === 'storage-guides').length },
+    { slug: 'usage-tutorials', name: 'آموزش استفاده', count: allArticles.filter((a) => a.category_slug === 'usage-tutorials').length },
+    { slug: 'buying-guides', name: 'راهنمای خرید', count: allArticles.filter((a) => a.category_slug === 'buying-guides').length },
+    { slug: 'order-faq', name: 'راهنمای سفارش', count: allArticles.filter((a) => a.category_slug === 'order-faq').length },
   ];
 
   return (
@@ -111,12 +91,17 @@ export default async function ArticlesListPage({
               دانشنامه تخصصی درخت مورینگا اولیفرا
             </h1>
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-medium">
-              مجموعه مقالات مستند درباره ارزش تغذیه‌ای، تأثیر بر دیابت و لاغری، شیوه‌های صحیح مصرف، روغن‌گیری و راهنمای زراعت در ایران با بازبینی علمی.
+              مجموعه مقالات مستند درباره خواص، راهنمای نگهداری پودر و روغن، آماده‌سازی دمنوش و نکات اساسی خرید با بازبینی علمی.
             </p>
           </div>
         </div>
 
-        {/* Category Tabs & Quick Filter */}
+        {/* Disclaimer Alert */}
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs sm:text-sm text-emerald-900 font-medium">
+          🌱 <strong>اطلاعیه عمومی:</strong> کلیه مطالب این مجله آموزشی بوده و جایگزین توصیه مستقیم پزشک یا متخصص تغذیه نمی‌باشد.
+        </div>
+
+        {/* Category Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 dark:border-emerald-950 pb-4">
           <div className="flex flex-wrap items-center gap-2">
             {categories.map((cat) => (
@@ -146,7 +131,7 @@ export default async function ArticlesListPage({
           </div>
 
           <span className="text-xs text-stone-500 dark:text-stone-400 font-bold">
-            نمایش {filtered.length} مقاله از {ALL_MORINGA_ARTICLES.length} مقاله مرجع
+            نمایش {filtered.length} مقاله از {allArticles.length} مقاله مرجع
           </span>
         </div>
 
@@ -185,12 +170,16 @@ export default async function ArticlesListPage({
               >
                 <div>
                   {/* Article Image */}
-                  <div className="h-48 bg-stone-100 dark:bg-stone-900 relative overflow-hidden border-b border-stone-100 dark:border-emerald-950">
-                    <img
-                      src={article.cover_image_url}
-                      alt={article.title_fa}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                  <div className="h-48 bg-stone-100 dark:bg-stone-900 relative overflow-hidden border-b border-stone-100 dark:border-emerald-950 flex items-center justify-center">
+                    {article.cover_image_url ? (
+                      <img
+                        src={article.cover_image_url}
+                        alt={article.title_fa}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <span className="text-4xl">📝</span>
+                    )}
                     <span className="absolute top-3 right-3 px-3 py-1 bg-white/95 dark:bg-[#026251] backdrop-blur-xs text-emerald-800 dark:text-white text-[11px] font-bold rounded-full shadow-xs">
                       {article.category_name_fa}
                     </span>
@@ -212,7 +201,7 @@ export default async function ArticlesListPage({
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-stone-400" />
-                      {article.reading_time_minutes} دقیقه مطالعه
+                      {article.reading_time_minutes || 5} دقیقه مطالعه
                     </span>
                   </div>
                   <Link
@@ -229,7 +218,6 @@ export default async function ArticlesListPage({
         )}
       </main>
 
-      {/* Shared Footer */}
       <Footer />
     </div>
   );

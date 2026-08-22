@@ -1,559 +1,787 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Star, MessageSquare, Check, X, CornerUpLeft, Clock, ShieldCheck, ThumbsUp, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  MessageSquare,
+  Star,
+  Check,
+  X,
+  CornerUpLeft,
+  Clock,
+  ShieldCheck,
+  ThumbsUp,
+  AlertCircle,
+  RefreshCw,
+  Search,
+  Filter,
+  Eye,
+  Trash2,
+  Send,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  BookOpen,
+  ShoppingBag,
+  User,
+  Sparkles,
+  CheckCircle2,
+  FileText,
+} from 'lucide-react';
 
-interface OfficialReply {
+interface CommentItem {
   id: string;
-  actor_name: string;
-  reply_body: string;
-  created_at: string;
+  rowNumber: number;
+  targetType: 'article' | 'product' | 'page';
+  targetId?: string;
+  targetTitle: string;
+  parentId?: string;
+  parentAuthor?: string;
+  parentContent?: string;
+  authorName: string;
+  authorEmail: string;
+  authorPhone: string;
+  rating?: number | null;
+  content: string;
+  status: 'approved' | 'pending' | 'rejected' | 'spam';
+  isBuyerVerified: boolean;
+  isAdminReply: boolean;
+  likeCount: number;
+  ipAddress?: string;
+  createdAt: string;
 }
 
-interface Review {
-  id: string;
-  product_id: string;
-  customer_name: string;
-  rating: number;
-  title: string;
-  comment: string;
-  is_verified_buyer: boolean;
-  status: 'pending' | 'approved' | 'rejected';
-  rejection_reason?: string;
-  helpful_count: number;
-  unhelpful_count: number;
-  official_reply?: OfficialReply;
-  created_at: string;
+interface Stats {
+  totalComments: number;
+  productReviews: number;
+  articleComments: number;
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
 }
-
-interface QuestionAnswer {
-  id: string;
-  actor_name: string;
-  answer_body: string;
-  is_official: boolean;
-  status: string;
-  created_at: string;
-}
-
-interface Question {
-  id: string;
-  product_id: string;
-  customer_name: string;
-  question_body: string;
-  status: 'pending' | 'approved' | 'rejected';
-  answers: QuestionAnswer[];
-  created_at: string;
-}
-
-const API_BASE = 'http://localhost:8080/api/v1';
 
 export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    totalComments: 0,
+    productReviews: 0,
+    articleComments: 0,
+    pendingCount: 0,
+    approvedCount: 0,
+    rejectedCount: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'reviews' | 'questions'>('reviews');
-  const [statusFilter, setStatusFilter] = useState<string>('pending');
+  const [error, setError] = useState('');
 
-  // Modals
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [modalType, setModalType] = useState<'reject_review' | 'reply_review' | 'answer_question' | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  // Filters & Pagination
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'product' | 'article'>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Detail & Reply Modal
+  const [selectedComment, setSelectedComment] = useState<CommentItem | null>(null);
   const [replyText, setReplyText] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
+  const [adminName, setAdminName] = useState('پشتیبانی ایران مورینگا');
+  const [replySubmitting, setReplySubmitting] = useState(false);
+  const [replyFeedback, setReplyFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const fetchReviews = useCallback(async () => {
+  // Fetch comments from PostgreSQL API
+  const fetchComments = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${API_BASE}/admin/reviews`);
-      if (res.ok) {
-        const data = await res.json();
-        setReviews(data.reviews || []);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        q: searchQuery,
+        type: typeFilter,
+        status: statusFilter,
+      });
+
+      const res = await fetch(`/api/v1/admin/reviews?${params.toString()}`);
+      if (!res.ok) throw new Error('خطا در دریافت لیست دیدگاه‌ها');
+      const data = await res.json();
+
+      setComments(data.items || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalCount(data.pagination?.total || 0);
+      if (data.stats) {
+        setStats(data.stats);
       }
-    } catch {
-      // Silently handle error
+    } catch (err: any) {
+      setError(err?.message || 'خطا در برقراری ارتباط با پایگاه‌داده');
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const fetchQuestions = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/questions`);
-      if (res.ok) {
-        const data = await res.json();
-        setQuestions(data.questions || []);
-      }
-    } catch {
-      // Silently handle error
-    }
-  }, []);
+  }, [currentPage, pageSize, searchQuery, typeFilter, statusFilter]);
 
   useEffect(() => {
-    fetchReviews();
-    fetchQuestions();
-  }, [fetchReviews, fetchQuestions]);
+    const timer = setTimeout(() => {
+      fetchComments();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [fetchComments]);
 
-  const handleReviewStatus = async (reviewId: string, action: 'approve' | 'reject', reason?: string) => {
-    setActionLoading(true);
+  // Quick Status Toggle (Approve / Reject)
+  const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected' | 'pending', e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     try {
-      const res = await fetch(`${API_BASE}/admin/reviews/${reviewId}/status`, {
+      const res = await fetch('/api/v1/admin/reviews', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, reason }),
+        body: JSON.stringify({ id, status: newStatus }),
       });
 
       if (res.ok) {
-        setModalType(null);
-        setSelectedReview(null);
-        setRejectionReason('');
-        fetchReviews();
-      } else {
-        const data = await res.json();
-        alert(`خطا: ${data.detail}`);
+        setComments((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
+        );
+        if (selectedComment && selectedComment.id === id) {
+          setSelectedComment((prev) => (prev ? { ...prev, status: newStatus } : null));
+        }
       }
-    } catch {
-      alert('خطا در به‌روزرسانی وضعیت دیدگاه.');
-    } finally {
-      setActionLoading(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const handleOfficialReply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedReview || !replyText.trim()) return;
+  // Delete Comment
+  const handleDeleteComment = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!confirm('آیا از حذف دائمی این دیدگاه اطمینان دارید؟')) return;
 
-    setActionLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/admin/reviews/${selectedReview.id}/reply`, {
+      const res = await fetch(`/api/v1/admin/reviews?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setComments((prev) => prev.filter((c) => c.id !== id));
+        if (selectedComment?.id === id) {
+          setSelectedComment(null);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Submit Admin Reply
+  const handleSendReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedComment || !replyText.trim()) return;
+
+    setReplySubmitting(true);
+    setReplyFeedback(null);
+
+    try {
+      const res = await fetch('/api/v1/admin/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reply_body: replyText }),
+        body: JSON.stringify({
+          parent_id: selectedComment.id,
+          target_type: selectedComment.targetType,
+          target_id: selectedComment.targetId,
+          target_title: selectedComment.targetTitle,
+          admin_name: adminName.trim(),
+          reply_content: replyText.trim(),
+        }),
       });
 
-      if (res.ok) {
-        alert('پاسخ رسمی پشتیبانی با موفقیت ثبت شد.');
-        setModalType(null);
-        setSelectedReview(null);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReplyFeedback({ type: 'success', message: 'پاسخ شما با موفقیت ثبت و منتشر گردید.' });
         setReplyText('');
-        fetchReviews();
+        fetchComments();
       } else {
-        const data = await res.json();
-        alert(`خطا: ${data.detail}`);
+        setReplyFeedback({ type: 'error', message: data.error || 'خطا در ثبت پاسخ.' });
       }
-    } catch {
-      alert('خطا در ثبت پاسخ رسمی.');
+    } catch (err) {
+      setReplyFeedback({ type: 'error', message: 'خطا در ارتباط با سرور.' });
     } finally {
-      setActionLoading(false);
+      setReplySubmitting(false);
     }
   };
 
-  const handleQuestionStatus = async (questionId: string, action: 'approve' | 'reject') => {
-    setActionLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/admin/questions/${questionId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      });
-
-      if (res.ok) {
-        fetchQuestions();
-      } else {
-        const data = await res.json();
-        alert(`خطا: ${data.detail}`);
-      }
-    } catch {
-      alert('خطا در به‌روزرسانی پرسش.');
-    } finally {
-      setActionLoading(false);
-    }
+  // Export CSV
+  const handleExportCSV = () => {
+    if (!comments.length) return;
+    const headers = ['ردیف', 'نویسنده', 'ایمیل', 'نوع هدف', 'عنوان هدف', 'امتیاز', 'متن دیدگاه', 'وضعیت', 'تاریخ'];
+    const rows = comments.map((c) => [
+      c.rowNumber,
+      `"${c.authorName}"`,
+      c.authorEmail || '',
+      c.targetType === 'product' ? 'محصول' : 'مقاله',
+      `"${c.targetTitle}"`,
+      c.rating || '',
+      `"${c.content.replace(/"/g, '""')}"`,
+      c.status === 'approved' ? 'تایید شده' : c.status === 'pending' ? 'در انتظار' : 'رد شده',
+      new Date(c.createdAt).toLocaleDateString('fa-IR'),
+    ]);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `moringa_reviews_comments_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  const handleAnswerQuestion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedQuestion || !replyText.trim()) return;
-
-    setActionLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/admin/questions/${selectedQuestion.id}/answers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer_body: replyText }),
-      });
-
-      if (res.ok) {
-        alert('پاسخ رسمی به پرسش ثبت شد.');
-        setModalType(null);
-        setSelectedQuestion(null);
-        setReplyText('');
-        fetchQuestions();
-      } else {
-        const data = await res.json();
-        alert(`خطا: ${data.detail}`);
-      }
-    } catch {
-      alert('خطا در ثبت پاسخ.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const filteredReviews = reviews.filter((r) => statusFilter === '' || r.status === statusFilter);
-  const pendingReviewsCount = reviews.filter((r) => r.status === 'pending').length;
-  const pendingQuestionsCount = questions.filter((q) => q.status === 'pending').length;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">مدیریت دیدگاه‌ها، امتیازات و پرسش‌ها</h1>
-          <p className="text-xs text-slate-500">صف تایید دیدگاه‌های مشتریان، ثبت پاسخ رسمی پشتیبانی و پاسخ به سوالات</p>
-        </div>
-        <button
-          onClick={() => { fetchReviews(); fetchQuestions(); }}
-          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-2 self-start"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>به‌روزرسانی صف</span>
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('reviews')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'reviews'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          <span>دیدگاه‌ها</span>
-          {pendingReviewsCount > 0 && (
-            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-              {pendingReviewsCount.toLocaleString('fa-IR')}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('questions')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'questions'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          <span>پرسش و پاسخ (Q&A)</span>
-          {pendingQuestionsCount > 0 && (
-            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-              {pendingQuestionsCount.toLocaleString('fa-IR')}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* ── Reviews Tab ── */}
-      {activeTab === 'reviews' && (
-        <div className="space-y-4">
-          {/* Status Filter */}
-          <div className="flex gap-2">
-            {[
-              { value: 'pending', label: 'در انتظار تایید' },
-              { value: 'approved', label: 'تایید شده' },
-              { value: 'rejected', label: 'رد شده' },
-              { value: '', label: 'همه' },
-            ].map((f) => (
-              <button
-                key={f.value}
-                onClick={() => setStatusFilter(f.value)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                  statusFilter === f.value
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
+    <div className="space-y-6 pb-12">
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shadow-inner flex-shrink-0">
+            <MessageSquare className="w-7 h-7" />
           </div>
-
-          {/* Reviews List */}
-          <div className="space-y-3">
-            {loading ? (
-              <div className="bg-white p-12 rounded-2xl text-center text-slate-400 text-sm">
-                <Clock className="w-6 h-6 mx-auto mb-2 animate-pulse" />
-                در حال بارگذاری دیدگاه‌ها...
-              </div>
-            ) : filteredReviews.length === 0 ? (
-              <div className="bg-white p-12 rounded-2xl text-center text-slate-400 text-sm">
-                <MessageSquare className="w-8 h-8 mx-auto mb-2" />
-                هیچ دیدگاهی در این بخش وجود ندارد
-              </div>
-            ) : (
-              filteredReviews.map((rev) => (
-                <div key={rev.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">{rev.customer_name}</span>
-                      {rev.is_verified_buyer && (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                          <ShieldCheck className="w-3 h-3" />
-                          خریدار واقعی
-                        </span>
-                      )}
-                      <div className="flex items-center gap-0.5 mr-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3.5 h-3.5 ${
-                              i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        rev.status === 'approved'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : rev.status === 'rejected'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {rev.status === 'approved' ? 'تایید شده' : rev.status === 'rejected' ? 'رد شده' : 'در انتظار تایید'}
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {new Date(rev.created_at).toLocaleDateString('fa-IR')}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    {rev.title && <h4 className="font-bold text-slate-900 text-xs mb-1">{rev.title}</h4>}
-                    <p className="text-xs text-slate-700 leading-relaxed">{rev.comment}</p>
-                  </div>
-
-                  {rev.rejection_reason && (
-                    <div className="bg-red-50 text-red-800 text-xs p-2.5 rounded-xl border border-red-100">
-                      علت رد: {rev.rejection_reason}
-                    </div>
-                  )}
-
-                  {/* Official Reply Box */}
-                  {rev.official_reply && (
-                    <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 text-xs space-y-1">
-                      <div className="font-bold text-emerald-800 flex items-center gap-1">
-                        <CornerUpLeft className="w-3.5 h-3.5" />
-                        <span>پاسخ رسمی {rev.official_reply.actor_name}</span>
-                      </div>
-                      <p className="text-slate-700">{rev.official_reply.reply_body}</p>
-                    </div>
-                  )}
-
-                  {/* Action Bar */}
-                  <div className="pt-2 flex flex-wrap gap-2 justify-end">
-                    {rev.status !== 'approved' && (
-                      <button
-                        onClick={() => handleReviewStatus(rev.id, 'approve')}
-                        disabled={actionLoading}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        تایید دیدگاه
-                      </button>
-                    )}
-
-                    {rev.status !== 'rejected' && (
-                      <button
-                        onClick={() => { setSelectedReview(rev); setModalType('reject_review'); }}
-                        disabled={actionLoading}
-                        className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        رد دیدگاه
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => { setSelectedReview(rev); setModalType('reply_review'); setReplyText(rev.official_reply?.reply_body || ''); }}
-                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      پاسخ رسمی پشتیبانی
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Questions Tab ── */}
-      {activeTab === 'questions' && (
-        <div className="space-y-3">
-          {questions.length === 0 ? (
-            <div className="bg-white p-12 rounded-2xl text-center text-slate-400 text-sm">
-              <MessageSquare className="w-8 h-8 mx-auto mb-2" />
-              هیچ پرسشی ثبت نشده است
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                مدیریت دیدگاه‌ها و نظرات کاربران
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                {totalCount.toLocaleString('fa-IR')} دیدگاه در دیتابیس
+              </span>
             </div>
-          ) : (
-            questions.map((q) => (
-              <div key={q.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <span className="font-bold text-slate-900 text-xs">{q.customer_name} پرسیده:</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    q.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {q.status === 'approved' ? 'تایید شده' : 'در انتظار تایید'}
-                  </span>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              مدیریت یکپارچه دیدگاه‌های مقالات، نظرات و امتیازات محصولات، پاسخگویی رسمی و انتشار در سایت.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl font-semibold text-xs transition-colors"
+            title="خروجی فایل اکسل / CSV"
+          >
+            <Download className="w-4 h-4" />
+            <span>خروجی اکسل</span>
+          </button>
+          <button
+            onClick={() => fetchComments()}
+            disabled={loading}
+            className="p-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl transition-colors disabled:opacity-50"
+            title="به‌روزرسانی اطلاعات"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">کل نظرات و دیدگاه‌ها</p>
+            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+              {stats.totalComments.toLocaleString('fa-IR')}
+            </p>
+            <p className="text-xs text-emerald-600 mt-1 font-medium flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> ۱۰۰٪ در پایگاه‌داده
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <MessageSquare className="w-6 h-6" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">دیدگاه‌های مقالات و وبلاگ</p>
+            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+              {stats.articleComments.toLocaleString('fa-IR')}
+            </p>
+            <p className="text-xs text-indigo-600 mt-1 font-medium">بحث‌های علمی و پاسخ‌ها</p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <BookOpen className="w-6 h-6" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">نظرات و امتیازات محصولات</p>
+            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+              {stats.productReviews.toLocaleString('fa-IR')}
+            </p>
+            <p className="text-xs text-amber-600 mt-1 font-medium flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> تجربیات مصرف خریداران
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <ShoppingBag className="w-6 h-6" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">دیدگاه‌های تاییدشده</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+              {stats.approvedCount.toLocaleString('fa-IR')}
+            </p>
+            <p className="text-xs text-zinc-400 mt-1">منتشر شده در فروشگاه</p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Tabs & Search Bar */}
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Segmented Filter: All / Products / Articles */}
+          <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-xs font-semibold">
+            <button
+              onClick={() => {
+                setTypeFilter('all');
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                typeFilter === 'all' ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
+              }`}
+            >
+              همه دیدگاه‌ها ({stats.totalComments})
+            </button>
+            <button
+              onClick={() => {
+                setTypeFilter('article');
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                typeFilter === 'article' ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>دیدگاه‌های مقالات ({stats.articleComments})</span>
+            </button>
+            <button
+              onClick={() => {
+                setTypeFilter('product');
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                typeFilter === 'product' ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
+              }`}
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>نظرات محصولات ({stats.productReviews})</span>
+            </button>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+            >
+              <option value="all">همه وضعیت‌ها</option>
+              <option value="approved">تایید شده (منتشر)</option>
+              <option value="pending">در انتظار بررسی</option>
+              <option value="rejected">رد شده / نامناسب</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Search Box */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="جستجو در متن نظر، نام نویسنده، ایمیل یا عنوان مقاله/محصول..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-4 pr-10 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400"
+          />
+        </div>
+      </div>
+
+      {/* Main Comments Table */}
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center space-y-3">
+            <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+            <p className="text-sm text-zinc-500">در حال بارگذاری دیدگاه‌ها از دیتابیس...</p>
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center space-y-3">
+            <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+            <p className="text-sm font-medium text-rose-600">{error}</p>
+            <button
+              onClick={() => fetchComments()}
+              className="px-4 py-2 bg-zinc-100 text-xs font-bold rounded-xl"
+            >
+              تلاش مجدد
+            </button>
+          </div>
+        ) : comments.length === 0 ? (
+          <div className="p-12 text-center space-y-2 text-zinc-400">
+            <MessageSquare className="w-8 h-8 mx-auto opacity-50" />
+            <p className="text-sm font-semibold">دیدگاهی با این فیلترها یافت نشد.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-xs">
+              <thead className="bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 font-semibold border-b border-zinc-200 dark:border-zinc-800">
+                <tr>
+                  <th className="py-3.5 px-3 text-center whitespace-nowrap">#</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">نویسنده دیدگاه</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">هدف (مقاله / محصول)</th>
+                  <th className="py-3.5 px-3 text-center whitespace-nowrap">امتیاز</th>
+                  <th className="py-3.5 px-4">متن دیدگاه</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">تاریخ ثبت</th>
+                  <th className="py-3.5 px-3 text-center whitespace-nowrap">وضعیت</th>
+                  <th className="py-3.5 px-3 text-center whitespace-nowrap">عملیات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/80">
+                {comments.map((c) => (
+                  <tr
+                    key={c.id}
+                    onClick={() => {
+                      setSelectedComment(c);
+                      setReplyFeedback(null);
+                    }}
+                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors group"
+                  >
+                    {/* Row Number */}
+                    <td className="py-3.5 px-3 text-center font-mono text-zinc-400 text-[11px] whitespace-nowrap">
+                      {c.rowNumber.toLocaleString('fa-IR')}
+                    </td>
+
+                    {/* Author Info */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-bold flex items-center justify-center text-xs shadow-sm flex-shrink-0">
+                          {c.authorName ? c.authorName[0] : 'U'}
+                        </div>
+                        <div>
+                          <p className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                            <span>{c.authorName}</span>
+                            {c.isAdminReply && (
+                              <span className="px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[9px] rounded font-bold">
+                                مدیر
+                              </span>
+                            )}
+                          </p>
+                          {c.authorEmail && (
+                            <p className="text-[10px] text-zinc-400 font-mono truncate max-w-[140px]" dir="ltr">
+                              {c.authorEmail}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Target Item */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        {c.targetType === 'product' ? (
+                          <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded text-[10px] font-semibold flex items-center gap-1">
+                            <ShoppingBag className="w-3 h-3" />
+                            محصول
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded text-[10px] font-semibold flex items-center gap-1">
+                            <BookOpen className="w-3 h-3" />
+                            مقاله
+                          </span>
+                        )}
+                        <span className="font-bold text-zinc-800 dark:text-zinc-200 max-w-[180px] truncate" title={c.targetTitle}>
+                          {c.targetTitle}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Rating */}
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                      {c.rating ? (
+                        <div className="flex items-center justify-center gap-0.5 text-amber-400">
+                          <span className="font-bold text-[11px] font-mono text-zinc-800 dark:text-zinc-200 ml-1">
+                            {c.rating}
+                          </span>
+                          <Star className="w-3.5 h-3.5 fill-amber-400" />
+                        </div>
+                      ) : (
+                        <span className="text-zinc-300 dark:text-zinc-600 font-bold">—</span>
+                      )}
+                    </td>
+
+                    {/* Content Preview */}
+                    <td className="py-3.5 px-4 max-w-xs sm:max-w-md">
+                      {c.parentAuthor && (
+                        <div className="text-[10px] text-zinc-400 flex items-center gap-1 mb-0.5">
+                          <CornerUpLeft className="w-3 h-3 text-emerald-600" />
+                          <span>در پاسخ به {c.parentAuthor}</span>
+                        </div>
+                      )}
+                      <p className="truncate text-zinc-800 dark:text-zinc-200 leading-relaxed font-normal" title={c.content}>
+                        {c.content}
+                      </p>
+                    </td>
+
+                    {/* Date */}
+                    <td className="py-3.5 px-4 text-center text-zinc-500 dark:text-zinc-400 text-[11px] whitespace-nowrap">
+                      {new Date(c.createdAt).toLocaleDateString('fa-IR')}
+                    </td>
+
+                    {/* Status Badge */}
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          c.status === 'approved'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                            : c.status === 'pending'
+                            ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                            : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                        }`}
+                      >
+                        {c.status === 'approved' ? '✔ تایید شده' : c.status === 'pending' ? '⏳ در انتظار' : '✖ رد شده'}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1">
+                        {c.status !== 'approved' && (
+                          <button
+                            onClick={(e) => handleStatusChange(c.id, 'approved', e)}
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-colors"
+                            title="تایید و انتشار نظر"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        )}
+                        {c.status === 'approved' && (
+                          <button
+                            onClick={(e) => handleStatusChange(c.id, 'rejected', e)}
+                            className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                            title="رد کردن و عدم نمایش"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedComment(c);
+                          }}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+                          title="مشاهده و پاسخ مدیریت"
+                        >
+                          <CornerUpLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteComment(c.id, e)}
+                          className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                          title="حذف دیدگاه"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination Footer */}
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50/50 dark:bg-zinc-800/30">
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            نمایش ردیف {(currentPage - 1) * pageSize + 1} تا {Math.min(currentPage * pageSize, totalCount)} از{' '}
+            <span className="font-bold text-zinc-900 dark:text-zinc-100">{totalCount.toLocaleString('fa-IR')}</span> دیدگاه
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2.5 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              <option value="25">۲۵ در صفحه</option>
+              <option value="50">۵۰ در صفحه</option>
+              <option value="100">۱۰۰ در صفحه</option>
+            </select>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1 || loading}
+                className="p-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-600 hover:bg-zinc-100 disabled:opacity-40"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <span className="px-3 py-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                صفحه {currentPage.toLocaleString('fa-IR')} از {totalPages.toLocaleString('fa-IR')}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages || loading}
+                className="p-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-600 hover:bg-zinc-100 disabled:opacity-40"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal: View Comment & Send Admin Reply */}
+      {selectedComment && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-2xl w-full my-auto overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/60 dark:bg-zinc-800/40">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold">
+                  {selectedComment.authorName ? selectedComment.authorName[0] : 'U'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                    <span>دیدگاه {selectedComment.authorName}</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded font-normal text-zinc-500">
+                      {selectedComment.targetType === 'product' ? 'محصول' : 'مقاله'}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    مربوط به: <span className="font-semibold text-zinc-700 dark:text-zinc-300">{selectedComment.targetTitle}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedComment(null)}
+                className="p-2 text-zinc-400 hover:text-zinc-600 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {/* User Comment Box */}
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100">{selectedComment.authorName}</span>
+                    {selectedComment.authorEmail && (
+                      <span className="text-zinc-400 font-mono" dir="ltr">({selectedComment.authorEmail})</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {selectedComment.rating && (
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        <Star className="w-3.5 h-3.5 fill-amber-400" />
+                        <span className="font-bold font-mono">{selectedComment.rating}</span>
+                      </div>
+                    )}
+                    <span className="text-zinc-400">
+                      {new Date(selectedComment.createdAt).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
                 </div>
 
-                <p className="text-xs text-slate-800 font-medium">{q.question_body}</p>
+                <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed whitespace-pre-wrap">
+                  {selectedComment.content}
+                </p>
 
-                {/* Answers */}
-                {q.answers?.map((ans) => (
-                  <div key={ans.id} className="bg-slate-50 p-3 rounded-xl text-xs space-y-1 border border-slate-100">
-                    <div className="font-bold text-slate-700 flex items-center gap-1">
-                      {ans.is_official && <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded">رسمی</span>}
-                      <span>{ans.actor_name}:</span>
-                    </div>
-                    <p className="text-slate-600">{ans.answer_body}</p>
-                  </div>
-                ))}
-
-                <div className="pt-2 flex gap-2 justify-end">
-                  {q.status !== 'approved' && (
-                    <button
-                      onClick={() => handleQuestionStatus(q.id, 'approve')}
-                      className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-colors"
-                    >
-                      تایید پرسش
-                    </button>
-                  )}
+                {/* Status Toggle buttons inside modal */}
+                <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center gap-2">
+                  <span className="text-zinc-400">وضعیت انتشار:</span>
                   <button
-                    onClick={() => { setSelectedQuestion(q); setModalType('answer_question'); setReplyText(''); }}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors"
+                    onClick={() => handleStatusChange(selectedComment.id, 'approved')}
+                    className={`px-3 py-1 rounded-lg font-bold ${
+                      selectedComment.status === 'approved'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
+                    }`}
                   >
-                    ارسال پاسخ رسمی
+                    ✔ تایید و نمایش
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(selectedComment.id, 'rejected')}
+                    className={`px-3 py-1 rounded-lg font-bold ${
+                      selectedComment.status === 'rejected'
+                        ? 'bg-rose-600 text-white'
+                        : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
+                    }`}
+                  >
+                    ✖ عدم تایید
                   </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      )}
 
-      {/* Reject Modal */}
-      {selectedReview && modalType === 'reject_review' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-2xl max-w-md w-full space-y-4">
-            <h3 className="font-bold text-slate-900 text-base">رد دیدگاه مشتری</h3>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">علت رد دیدگاه</label>
-              <textarea
-                rows={3}
-                required
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="توضیح علت عدم انتشار..."
-                className="w-full p-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setModalType(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 text-xs rounded-xl font-semibold"
-              >
-                انصراف
-              </button>
-              <button
-                onClick={() => handleReviewStatus(selectedReview.id, 'reject', rejectionReason)}
-                disabled={actionLoading}
-                className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl hover:bg-red-700"
-              >
-                تایید و رد دیدگاه
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Admin Reply Form */}
+              <form onSubmit={handleSendReply} className="space-y-3 pt-2">
+                <h4 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                  <CornerUpLeft className="w-4 h-4 text-emerald-600" />
+                  <span>ثبت پاسخ رسمی مدیریت / کارشناس</span>
+                </h4>
 
-      {/* Official Reply Modal */}
-      {selectedReview && modalType === 'reply_review' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-2xl max-w-md w-full space-y-4">
-            <h3 className="font-bold text-slate-900 text-base">ثبت پاسخ رسمی پشتیبانی</h3>
-            <form onSubmit={handleOfficialReply} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">متن پاسخ رسمی</label>
-                <textarea
-                  rows={4}
-                  required
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="پاسخ رسمی پشتیبانی سبزینه..."
-                  className="w-full p-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setModalType(null)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs rounded-xl font-semibold"
-                >
-                  انصراف
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-zinc-500 block mb-1">نام پاسخ‌دهنده:</label>
+                    <input
+                      type="text"
+                      value={adminName}
+                      onChange={(e) => setAdminName(e.target.value)}
+                      className="w-full p-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-zinc-500 block mb-1">متن پاسخ:</label>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="پاسخ کارشناس، راهنمایی مصرف یا توضیحات علمی..."
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {replyFeedback && (
+                  <div
+                    className={`p-3 rounded-xl font-bold flex items-center gap-2 ${
+                      replyFeedback.type === 'success'
+                        ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border border-emerald-200'
+                        : 'bg-rose-50 dark:bg-rose-950 text-rose-800 dark:text-rose-200 border border-rose-200'
+                    }`}
+                  >
+                    {replyFeedback.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                    <span>{replyFeedback.message}</span>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700"
+                  disabled={replySubmitting || !replyText.trim()}
+                  className="py-2.5 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
-                  ثبت پاسخ رسمی
+                  {replySubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  <span>ارسال و انتشار پاسخ مدیریت</span>
                 </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Answer Question Modal */}
-      {selectedQuestion && modalType === 'answer_question' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-2xl max-w-md w-full space-y-4">
-            <h3 className="font-bold text-slate-900 text-base">ارسال پاسخ رسمی به پرسش</h3>
-            <form onSubmit={handleAnswerQuestion} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">متن پاسخ</label>
-                <textarea
-                  rows={4}
-                  required
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="پاسخ رسمی به پرسش مشتری..."
-                  className="w-full p-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setModalType(null)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs rounded-xl font-semibold"
-                >
-                  انصراف
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700"
-                >
-                  ارسال پاسخ رسمی
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}

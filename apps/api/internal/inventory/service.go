@@ -227,3 +227,14 @@ func (s *Service) ReleaseReservation(resID uuid.UUID) error {
 	}
 	return nil
 }
+
+func (s *Service) GetStockLedgerSummary() []*InventoryItem {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var list []*InventoryItem
+	for _, item := range s.items {
+		list = append(list, item)
+	}
+	return list
+}

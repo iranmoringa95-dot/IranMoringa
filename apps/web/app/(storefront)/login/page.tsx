@@ -176,13 +176,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-[#f0f7f3] to-[#eaf3ee] dark:from-[#06120e] dark:via-[#091f18] dark:to-[#041410] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 dir-rtl relative overflow-hidden transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-[#f0f7f3] to-[#eaf3ee] dark:from-[#06120e] dark:via-[#091f18] dark:to-[#041410] flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 dir-rtl relative overflow-hidden transition-colors duration-200">
       {/* Top Floating Controls */}
-      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex items-center gap-2">
-        <ThemeToggle />
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex items-center gap-2.5">
+        <ThemeToggle variant="pill" />
         <Link
           href="/"
-          className="px-3.5 py-2 bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 border border-stone-200 dark:border-white/15 rounded-full text-xs font-bold transition-all shadow-xs backdrop-blur-md"
+          className="px-4 py-2 bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/15 rounded-full text-xs font-bold transition-all shadow-xs backdrop-blur-md"
         >
           بازگشت به سایت
         </Link>
@@ -193,7 +193,7 @@ export default function LoginPage() {
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#026251]/10 dark:bg-[#026251]/20 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Container Card */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      <div className="w-full max-w-md mx-auto relative z-10">
         {/* Brand Header */}
         <div className="text-center space-y-4 mb-6">
           <div className="inline-block hover:scale-105 transition-transform">
@@ -220,7 +220,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card Box */}
-        <div className="bg-white/95 dark:bg-[#0a2019]/90 backdrop-blur-md py-8 px-6 sm:px-10 shadow-2xl border border-stone-200/90 dark:border-emerald-800/50 rounded-3xl space-y-6">
+        <div className="bg-white dark:bg-[#0a2019] backdrop-blur-md py-8 px-6 sm:px-10 shadow-2xl border border-slate-200 dark:border-emerald-800/50 rounded-3xl space-y-6">
           {/* Error Message */}
           {error && (
             <div className="bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs p-3.5 rounded-2xl flex items-start gap-2.5 shadow-xs animate-shake">
@@ -312,8 +312,8 @@ export default function LoginPage() {
 
                   <button
                     type="submit"
-                    disabled={loading || !phone}
-                    className="w-full py-3.5 px-4 bg-[#026251] hover:bg-[#024a3d] text-white rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                    disabled={loading}
+                    className="w-full py-3.5 px-4 bg-[#026251] hover:bg-[#01493c] dark:bg-[#037863] dark:hover:bg-[#026251] text-white rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />

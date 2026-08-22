@@ -129,7 +129,9 @@ func (s *Service) CreateOrder(req *Order) (*Order, error) {
 	now := time.Now()
 	req.ID = uuid.New()
 	req.OrderNumber = s.GenerateOrderNumber()
-	req.Status = StatusPendingPayment
+	if req.Status == "" {
+		req.Status = StatusPendingPayment
+	}
 	req.CreatedAt = now
 	req.UpdatedAt = now
 
@@ -145,7 +147,7 @@ func (s *Service) CreateOrder(req *Order) (*Order, error) {
 		ID:        uuid.New(),
 		OrderID:   req.ID,
 		EventType: "order_created",
-		NewStatus: StatusPendingPayment,
+		NewStatus: req.Status,
 		ActorType: ActorSystem,
 		Note:      "سفارش ایجاد شد",
 		CreatedAt: now,
@@ -233,6 +235,18 @@ func (s *Service) ListOrders(filter ListFilter) ListResult {
 		Page:       filter.Page,
 		PageSize:   filter.PageSize,
 	}
+}
+
+// GetAllOrders returns all orders in memory
+func (s *Service) GetAllOrders() []*Order {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []*Order
+	for _, ord := range s.orders {
+		result = append(result, ord)
+	}
+	return result
 }
 
 // ─── List Orders by Customer (IDOR-safe) ─────────────────────────────────────
@@ -440,4 +454,21 @@ func isValidTransition(current, next OrderStatus) bool {
 		return next == StatusRefunded
 	}
 	return false
+}
+
+func (s *Service) ListOrdersForAdmin(status, searchQuery string) []Order {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var res []Order
+	for _, ord := range s.orders {
+		if status != "" && string(ord.Status) != status {
+			continue
+		}
+		if searchQuery != "" && !strings.Contains(ord.OrderNumber, searchQuery) {
+			continue
+		}
+		res = append(res, *ord)
+	}
+	return res
 }

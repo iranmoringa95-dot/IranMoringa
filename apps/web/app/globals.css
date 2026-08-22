@@ -78,9 +78,37 @@
 
 :root {
   --font-iransans: 'IRANSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg-page: #faf8f5;
+  --bg-card: #ffffff;
+  --border-card: rgba(2, 98, 81, 0.12);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --brand-primary: #026251;
+  --brand-accent: #d0de41;
 }
 
-html,
+.dark {
+  --bg-page: #06120e;
+  --bg-card: #091f18;
+  --border-card: rgba(16, 185, 129, 0.2);
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --brand-primary: #026251;
+  --brand-accent: #d0de41;
+}
+
+html {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   font-family: 'IRANSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   direction: rtl;
@@ -95,6 +123,8 @@ body {
   font-size: 15px;
   line-height: 1.7;
   letter-spacing: -0.01em;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
 }
 
 /* Ensure headings have crisp weights and generous leading */
@@ -140,9 +170,48 @@ h1, h2, h3, h4, h5, h6 {
   background: #d0de41;
 }
 
-/* Dark mode smooth transition */
-html.dark {
-  color-scheme: dark;
+/* Global Form Input and Select Dark Mode Overrides */
+.dark input[type="text"],
+.dark input[type="password"],
+.dark input[type="email"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark select,
+.dark textarea {
+  background-color: #041410 !important;
+  color: #f8fafc !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.dark select option {
+  background-color: #08201a !important;
+  color: #f8fafc !important;
+}
+
+/* Custom UI Utility Classes */
+.moringa-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.dark .moringa-card {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+}
+
+.moringa-card:hover {
+  border-color: rgba(2, 98, 81, 0.3);
+}
+
+.dark .moringa-card:hover {
+  border-color: rgba(208, 222, 65, 0.4);
 }
 
 /* Organic Moringa Leaf breeze animation */
@@ -157,3 +226,4 @@ html.dark {
     transform: rotate(3deg) scale(1.02);
   }
 }
+

@@ -37,6 +37,18 @@ func NewService(catSvc *catalog.Service, promoSvc *promotions.Service) *Service 
 	}
 }
 
+func (s *Service) GetCart(cartID uuid.UUID) (*Cart, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	cart, exists := s.carts[cartID]
+	if !exists {
+		return nil, ErrCartNotFound
+	}
+	s.recalculateCartUnlocked(cart)
+	return cart, nil
+}
+
 func (s *Service) GetOrCreateCart(anonID *string, userID *uuid.UUID) *Cart {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -242,8 +254,8 @@ func (s *Service) recalculateCartUnlocked(cart *Cart) {
 		for _, li := range lineItems {
 			subtotalTemp += li.UnitPriceIRR * int64(li.Quantity)
 		}
-		if d, err := s.promoService.ValidateAndCalculate(*cart.CouponCode, subtotalTemp); err == nil {
-			cartDiscount = d
+		if res, err := s.promoService.EvaluateCoupon(*cart.CouponCode, promotions.EvaluationRequest{SubtotalIRR: subtotalTemp}); err == nil {
+			cartDiscount = res.DiscountIRR
 		} else {
 			cart.CouponCode = nil
 		}

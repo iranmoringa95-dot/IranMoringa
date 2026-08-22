@@ -76,7 +76,7 @@ export default function AdminNewProductPage() {
         ],
       };
 
-      const res = await fetch('http://localhost:8080/api/v1/admin/products', {
+      const res = await fetch('/api/v1/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -96,22 +96,22 @@ export default function AdminNewProductPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 text-slate-800 dir-rtl">
-      <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <div className="max-w-4xl mx-auto space-y-6 text-slate-800 dark:text-slate-100 dir-rtl transition-colors duration-200">
+      <div className="flex items-center justify-between bg-white dark:bg-[#08201a] p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-emerald-900/40">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">افزودن محصول جدید</h1>
-          <p className="text-sm text-slate-500 mt-1">تکمیل مشخصات عمومی، قیمت، وزن، تصاویر و موجودی</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">افزودن محصول جدید</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">تکمیل مشخصات عمومی، قیمت‌گذاری به تومان، وزن استاندارد و موجودی</p>
         </div>
         <Link
           href="/admin/products"
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl text-sm transition-colors"
+          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 font-bold rounded-2xl text-xs transition-colors"
         >
           بازگشت به فهرست
         </Link>
       </div>
 
       {errorMessage && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm font-semibold">
+        <div className="p-4 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-200 rounded-2xl text-xs font-bold">
           ⚠️ {errorMessage}
         </div>
       )}

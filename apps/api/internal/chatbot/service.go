@@ -68,9 +68,19 @@ func (s *Service) SyncKnowledgeIndex() int {
 
 	// 1. Index Products
 	if s.catalogSvc != nil {
-		products := s.catalogSvc.SearchProducts("", uuid.Nil, uuid.Nil, 0, 1000)
+		products, _ := s.catalogSvc.SearchProducts(catalog.ProductFilter{Limit: 1000})
 		for _, p := range products {
-			docContent := fmt.Sprintf("محصول %s با قیمت %d ریال. SKU: %s. توضیحات: %s", p.NameFA, p.PriceIRR, p.SKU, p.DescriptionFA)
+			desc := ""
+			if p.ShortDescriptionFA != nil {
+				desc = *p.ShortDescriptionFA
+			}
+			sku := ""
+			var price int64
+			if len(p.Variants) > 0 {
+				sku = p.Variants[0].SKU
+				price = p.Variants[0].PriceIRR
+			}
+			docContent := fmt.Sprintf("محصول %s با قیمت %d ریال. SKU: %s. توضیحات: %s", p.TitleFA, price, sku, desc)
 			h := sha256.Sum256([]byte(docContent))
 			checksum := fmt.Sprintf("%x", h[:8])
 
@@ -78,7 +88,7 @@ func (s *Service) SyncKnowledgeIndex() int {
 				ID:              uuid.New(),
 				SourceType:      "product",
 				SourceID:        p.ID,
-				Title:           p.NameFA,
+				Title:           p.TitleFA,
 				ApprovedContent: docContent,
 				Checksum:        checksum,
 				IndexedAt:       time.Now(),
@@ -161,8 +171,7 @@ func (s *Service) StartConversation(userID *uuid.UUID) *ChatConversation {
 
 func (s *Service) SendMessage(ctx context.Context, conversationID uuid.UUID, userContent string) (*ChatMessage, error) {
 	s.mu.Lock()
-	conv, exists := s.conversations[conversationID]
-	if !exists {
+	if _, exists := s.conversations[conversationID]; !exists {
 		s.mu.Unlock()
 		return nil, ErrConversationNotFound
 	}

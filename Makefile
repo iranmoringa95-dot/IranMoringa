@@ -28,7 +28,7 @@ seed-demo-products:
 
 seed-demo-articles:
 	@echo "Seeding 10 demo published articles into development database..."
-	@cd apps/api && go test -v ./internal/content/service_test.go -run TestSeedDemoArticlesIdempotencyAndProductionGuard
+	@cd apps/api && go test -v ./internal/content/service_admin_test.go -run TestSeedDemoArticlesIdempotencyAndProductionGuard
 
 sqlc:
 	@echo "Generating sqlc queries..."

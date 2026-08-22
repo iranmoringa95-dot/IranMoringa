@@ -11,17 +11,19 @@ import (
 	"moringalab/api/internal/inventory"
 	"moringalab/api/internal/orders"
 	"moringalab/api/internal/payments"
+	"moringalab/api/internal/shipping"
 )
 
 type SubmitCheckoutRequest struct {
-	CartID         uuid.UUID                   `json:"cart_id"`
-	RecipientName  string                      `json:"recipient_name"`
-	RecipientPhone string                      `json:"recipient_phone"`
-	Province       string                      `json:"province"`
-	City           string                      `json:"city"`
-	PostalAddress  string                      `json:"postal_address"`
-	PostalCode     string                      `json:"postal_code"`
-	IdempotencyKey string                      `json:"idempotency_key"`
+	CartID         uuid.UUID `json:"cart_id"`
+	RecipientName  string    `json:"recipient_name"`
+	RecipientPhone string    `json:"recipient_phone"`
+	Province       string    `json:"province"`
+	City           string    `json:"city"`
+	PostalAddress  string    `json:"postal_address"`
+	PostalCode     string    `json:"postal_code"`
+	ShippingMethod string    `json:"shipping_method"`
+	IdempotencyKey string    `json:"idempotency_key"`
 }
 
 type SubmitCheckoutResponse struct {
@@ -35,6 +37,7 @@ type Service struct {
 	inventoryService *inventory.Service
 	orderService     *orders.Service
 	paymentService   *payments.Service
+	shippingService  *shipping.Service
 	seenOrders       map[string]*SubmitCheckoutResponse
 }
 
@@ -43,12 +46,14 @@ func NewService(
 	invSvc *inventory.Service,
 	orderSvc *orders.Service,
 	paySvc *payments.Service,
+	shipSvc *shipping.Service,
 ) *Service {
 	return &Service{
 		cartService:      cartSvc,
 		inventoryService: invSvc,
 		orderService:     orderSvc,
 		paymentService:   paySvc,
+		shippingService:  shipSvc,
 		seenOrders:       make(map[string]*SubmitCheckoutResponse),
 	}
 }
@@ -63,13 +68,62 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 	}
 	s.mu.Unlock()
 
-	// 1. Get cart
-	cart := s.cartService.GetOrCreateCart(nil, nil)
-	if len(cart.Items) == 0 {
+	// 1. Get cart by ID if provided, or active guest cart
+	var cart *carts.Cart
+	var err error
+	if req.CartID != uuid.Nil {
+		cart, err = s.cartService.GetCart(req.CartID)
+		if err != nil {
+			cart = s.cartService.GetOrCreateCart(nil, nil)
+		}
+	} else {
+		cart = s.cartService.GetOrCreateCart(nil, nil)
+	}
+
+	if cart == nil || len(cart.Items) == 0 {
 		return nil, errors.New("سبد خرید شما خالی است")
 	}
 
-	// 2. Reserve inventory for items
+	// 2. Determine and calculate shipping fee & validate method
+	shippingMethod := req.ShippingMethod
+	if shippingMethod == "" {
+		shippingMethod = "post_pishtaz"
+	}
+
+	var shippingFeeIRR int64 = cart.Breakdown.ShippingFeeIRR
+	if s.shippingService != nil {
+		parcelItems := make([]shipping.ShippingParcelItem, len(cart.Items))
+		for i, item := range cart.Items {
+			w := item.ShippingWeightGrams
+			if w <= 0 {
+				w = item.NetWeightGrams
+			}
+			if w <= 0 {
+				w = 200
+			}
+			parcelItems[i] = shipping.ShippingParcelItem{
+				WeightGrams: w,
+				LengthCM:    10,
+				WidthCM:     10,
+				HeightCM:    5,
+				Quantity:    item.Quantity,
+			}
+		}
+
+		calculatedFee, err := s.shippingService.CalculateShippingFee(req.Province, req.City, shippingMethod, parcelItems)
+		if err != nil {
+			return nil, err
+		}
+
+		// Apply free shipping rule if applicable
+		settings := s.shippingService.GetTariffSettings()
+		if shippingMethod == "post_pishtaz" && settings.FreeShippingThresholdIRR > 0 && cart.Breakdown.SubtotalIRR >= settings.FreeShippingThresholdIRR {
+			calculatedFee = 0
+		}
+		shippingFeeIRR = calculatedFee
+	}
+
+	// 3. Reserve inventory for items
 	reservations := make([]*inventory.StockReservation, 0, len(cart.Items))
 	for _, item := range cart.Items {
 		res, err := s.inventoryService.ReserveStock(item.VariantID, item.Quantity, nil, 15*time.Minute)
@@ -83,7 +137,7 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 		reservations = append(reservations, res)
 	}
 
-	// 3. Freeze item snapshots
+	// 4. Freeze item snapshots
 	orderItems := make([]orders.OrderItemSnapshot, len(cart.Items))
 	for i, item := range cart.Items {
 		orderItems[i] = orders.OrderItemSnapshot{
@@ -96,10 +150,11 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 			UnitPriceIRR: item.UnitPriceIRR,
 			Quantity:     item.Quantity,
 			SubtotalIRR:  item.LineSubtotalIRR,
+			WeightGrams:  item.ShippingWeightGrams,
 		}
 	}
 
-	// 4. Freeze address snapshot
+	// 5. Freeze address snapshot
 	addressSnap := orders.OrderAddressSnapshot{
 		RecipientName:  req.RecipientName,
 		RecipientPhone: req.RecipientPhone,
@@ -109,13 +164,21 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 		PostalCode:     req.PostalCode,
 	}
 
-	// 5. Create Order with snapshots & Idempotency-Key
+	// 6. Compute total with calculated shipping fee
+	discountTotal := cart.Breakdown.ItemDiscountIRR + cart.Breakdown.CartDiscountIRR
+	grandTotal := cart.Breakdown.SubtotalIRR - discountTotal + shippingFeeIRR
+	if grandTotal < 0 {
+		grandTotal = 0
+	}
+
+	// 7. Create Order with snapshots & Idempotency-Key
 	ord, err := s.orderService.CreateOrder(&orders.Order{
 		GuestPhone:     &req.RecipientPhone,
 		SubtotalIRR:    cart.Breakdown.SubtotalIRR,
-		DiscountIRR:    cart.Breakdown.ItemDiscountIRR + cart.Breakdown.CartDiscountIRR,
-		ShippingFeeIRR: cart.Breakdown.ShippingFeeIRR,
-		TotalIRR:       cart.Breakdown.GrandTotalIRR,
+		DiscountIRR:    discountTotal,
+		ShippingFeeIRR: shippingFeeIRR,
+		TotalIRR:       grandTotal,
+		ShippingMethod: shippingMethod,
 		IdempotencyKey: req.IdempotencyKey,
 		Address:        addressSnap,
 		Items:          orderItems,
@@ -128,7 +191,7 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 		return nil, err
 	}
 
-	// 6. Create Payment session
+	// 8. Create Payment session
 	payment, err := s.paymentService.CreatePaymentSession(ord.ID, ord.OrderNumber, ord.TotalIRR)
 	if err != nil {
 		// Rollback reservations

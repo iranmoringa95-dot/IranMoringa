@@ -29,7 +29,6 @@ func CalculateBreakdown(items []CartLineItem, cartDiscountIRR int64, shippingFee
 		}
 	}
 
-	totalDiscount := itemDiscount + cartDiscountIRR
 	grandTotal := subtotal - cartDiscountIRR + shippingFeeIRR
 	if grandTotal < 0 {
 		grandTotal = 0

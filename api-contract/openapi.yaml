@@ -234,9 +234,106 @@ paths:
         '200':
           description: Article published
 
+  /admin/orders:
+    get:
+      summary: List all orders with filters
+      responses:
+        '200':
+          description: Paginated order list
+    post:
+      summary: Create new order directly by store operator/admin
+      responses:
+        '201':
+          description: Order created successfully
+
+  /admin/customers:
+    get:
+      summary: List customers and order metrics
+      responses:
+        '200':
+          description: Customer directory with order metrics
+
+  /admin/access:
+    get:
+      summary: List all administrators with roles and permissions linked to PostgreSQL users table
+      responses:
+        '200':
+          description: List of admins
+    post:
+      summary: Create new admin or promote existing user to admin
+      responses:
+        '200':
+          description: Admin created/promoted successfully
+    patch:
+      summary: Update admin user details, roles, and allowed sections
+      responses:
+        '200':
+          description: Admin updated successfully
+    delete:
+      summary: Revoke admin role from user
+      responses:
+        '200':
+          description: Admin role revoked
+
+  /admin/access/search-users:
+    get:
+      summary: Search existing registered users to promote to admin
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching users list
+
+  /admin/access/change-password:
+    post:
+      summary: Change or reset admin password in credentials store
+      responses:
+        '200':
+          description: Password updated successfully
+
+  /shipping/quotes:
+    post:
+      summary: Calculate dynamic shipping quotes based on province, city, parcel weight and volumetric dimensions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculateQuotesRequest'
+      responses:
+        '200':
+          description: Available shipping options for destination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingQuotesResponse'
+
+  /admin/shipping/tariffs:
+    get:
+      summary: Get active Iran Post and Courier tariff settings
+      responses:
+        '200':
+          description: Active shipping tariffs
+    put:
+      summary: Update shipping tariff parameters and pricing rules
+      responses:
+        '200':
+          description: Tariffs updated successfully
+
+  /admin/shipping/tariffs/sync:
+    post:
+      summary: Trigger online API sync to fetch latest postal tariffs
+      responses:
+        '200':
+          description: Sync completed
+
   /orders:
     post:
-      summary: Place order and reserve stock transactionally
+      summary: Place order and reserve stock transactionally with shipping method selection
       parameters:
         - name: Idempotency-Key
           in: header
@@ -288,3 +385,78 @@ components:
               type: string
         request_id:
           type: string
+
+    CalculateQuotesRequest:
+      type: object
+      required: [province, city]
+      properties:
+        province:
+          type: string
+          example: "اصفهان"
+        city:
+          type: string
+          example: "اصفهان"
+        subtotal_irr:
+          type: integer
+          format: int64
+          example: 10000000
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              weight_grams:
+                type: integer
+                example: 250
+              length_cm:
+                type: integer
+                example: 12
+              width_cm:
+                type: integer
+                example: 8
+              height_cm:
+                type: integer
+                example: 5
+              quantity:
+                type: integer
+                example: 2
+
+    ShippingQuotesResponse:
+      type: object
+      properties:
+        province:
+          type: string
+        city:
+          type: string
+        quotes:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: "post_pishtaz"
+              name_fa:
+                type: string
+                example: "پست پیشتاز سراسری"
+              carrier:
+                type: string
+                example: "post"
+              fee_irr:
+                type: integer
+                format: int64
+                example: 420000
+              eta_min_days:
+                type: integer
+              eta_max_days:
+                type: integer
+              is_free:
+                type: boolean
+              description:
+                type: string
+              charged_weight_grams:
+                type: integer
+              volumetric_weight_grams:
+                type: integer
+              actual_weight_grams:
+                type: integer

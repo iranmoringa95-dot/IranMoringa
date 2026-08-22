@@ -9,12 +9,17 @@ export interface AdminPermission {
 }
 
 export interface AdminUser {
-  id: string;
+  id: string; // user UUID
+  userId?: string;
+  roleId?: string;
   identifier: string; // phone or email
   fullName: string;
+  firstName?: string;
+  lastName?: string;
+  customTitle?: string;
   phone?: string;
   email?: string;
-  passwordHash: string; // stored password (plain/hash in localStorage store)
+  passwordHash?: string; // stored password
   role: AdminRole;
   isSuperAdmin: boolean;
   mustChangePassword: boolean;
@@ -43,24 +48,30 @@ export const ALL_ADMIN_SECTIONS = [
 
 export const INITIAL_SUPER_ADMINS: AdminUser[] = [
   {
-    id: 'adm-001',
+    id: '2992c005-a44b-409e-aa99-fe81aa8cea5c',
     identifier: '09132391843',
     phone: '09132391843',
     fullName: 'احسان پویا (مدیر ارشد)',
+    firstName: 'احسان',
+    lastName: 'پویا',
+    customTitle: 'احسان پویا (مدیر ارشد)',
     email: 'pqehsan@gmail.com',
     passwordHash: '@KamalGeraei990',
     role: 'super_admin',
     isSuperAdmin: true,
-    mustChangePassword: true,
+    mustChangePassword: false,
     isActive: true,
     createdAt: '۱۴۰۴/۰۱/۰۱',
     allowedSections: ALL_ADMIN_SECTIONS.map((s) => s.id),
   },
   {
-    id: 'adm-002',
+    id: '530f1703-afea-42d7-9c48-cf1087f272ae',
     identifier: '09175929345',
     phone: '09175929345',
     fullName: 'مدیریت عملیات و مزرعه',
+    firstName: 'مدیریت',
+    lastName: 'عملیات و مزرعه',
+    customTitle: 'مدیریت عملیات و مزرعه',
     email: 'info@iran-moringa.ir',
     passwordHash: '@KamalGeraei990',
     role: 'super_admin',
@@ -71,10 +82,13 @@ export const INITIAL_SUPER_ADMINS: AdminUser[] = [
     allowedSections: ALL_ADMIN_SECTIONS.map((s) => s.id),
   },
   {
-    id: 'adm-003',
+    id: '196c24ef-4362-4185-8a4f-8d866987bce3',
     identifier: 'pqehsan@gmail.com',
     email: 'pqehsan@gmail.com',
     fullName: 'احسان پویا',
+    firstName: 'احسان',
+    lastName: 'پویا',
+    customTitle: 'احسان پویا',
     passwordHash: '@KamalGeraei990',
     role: 'super_admin',
     isSuperAdmin: true,
@@ -107,6 +121,41 @@ export function saveAdminUsers(users: AdminUser[]) {
   localStorage.setItem(STORAGE_ADMIN_USERS_KEY, JSON.stringify(users));
 }
 
+export async function fetchAdminUsersFromApi(): Promise<AdminUser[]> {
+  try {
+    const res = await fetch('/api/v1/admin/access');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        const mapped: AdminUser[] = data.items.map((it: any) => ({
+          id: it.id,
+          userId: it.userId,
+          roleId: it.roleId,
+          identifier: (it.phone || it.email || '').toLowerCase(),
+          fullName: it.fullName || it.customTitle || 'مدیر سیستم',
+          firstName: it.firstName,
+          lastName: it.lastName,
+          customTitle: it.customTitle,
+          phone: it.phone,
+          email: it.email,
+          passwordHash: it.hasPassword ? '••••••••' : '@KamalGeraei990',
+          role: it.role || 'shop_manager',
+          isSuperAdmin: Boolean(it.isSuperAdmin),
+          mustChangePassword: Boolean(it.mustChangePassword),
+          isActive: Boolean(it.isActive),
+          createdAt: it.createdAt,
+          allowedSections: it.allowedSections || ALL_ADMIN_SECTIONS.map((s) => s.id),
+        }));
+        saveAdminUsers(mapped);
+        return mapped;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to sync admins from API:', e);
+  }
+  return getAdminUsers();
+}
+
 export function findAdminByIdentifier(identifier: string): AdminUser | null {
   const norm = identifier.trim().toLowerCase().replace(/^(\+98|0098)/, '0');
   const users = getAdminUsers();
@@ -114,7 +163,7 @@ export function findAdminByIdentifier(identifier: string): AdminUser | null {
     users.find(
       (u) =>
         u.identifier.toLowerCase() === norm ||
-        (u.phone && u.phone === norm) ||
+        (u.phone && u.phone.replace(/^(\+98|0098)/, '0') === norm) ||
         (u.email && u.email.toLowerCase() === norm)
     ) || null
   );
@@ -146,19 +195,32 @@ export function clearAdminSession() {
   window.dispatchEvent(new Event('moringa_admin_session_updated'));
 }
 
-export function changeAdminPassword(adminId: string, newPass: string): boolean {
+export async function changeAdminPassword(adminId: string, newPass: string): Promise<boolean> {
   const users = getAdminUsers();
   const idx = users.findIndex((u) => u.id === adminId);
-  if (idx === -1) return false;
+  if (idx !== -1) {
+    users[idx].passwordHash = newPass;
+    users[idx].mustChangePassword = false;
+    saveAdminUsers(users);
+  }
 
-  users[idx].passwordHash = newPass;
-  users[idx].mustChangePassword = false;
-  saveAdminUsers(users);
+  // Update backend DB as well
+  try {
+    await fetch('/api/v1/admin/access/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: adminId, newPassword: newPass }),
+    });
+  } catch (e) {
+    console.error('Failed to sync password change to API:', e);
+  }
 
   // Update session if active
   const currentSession = getActiveAdminSession();
   if (currentSession && currentSession.id === adminId) {
-    setAdminSession(users[idx]);
+    if (idx !== -1) {
+      setAdminSession(users[idx]);
+    }
   }
   return true;
 }

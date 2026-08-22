@@ -17,13 +17,6 @@
   - **M18 — چت‌بات دانش‌محور (Grounded Chatbot)**: **COMPLETED & VERIFIED**
   - **M20 — گزارش‌های مالی، تحلیلی و دشبورد مدیریتی**: **COMPLETED & VERIFIED**
 - **Completed PROMPT A**: Product Catalog Module, Admin UI & 10 Demo Published Seed Products (**100% VERIFIED**)
-- **Completed PROMPT B**: Article Management Module, Content Editor, Editorial Workflow, Public/Admin APIs, Storefront & Admin Article Pages & 10 Demo Published Seed Articles (**100% VERIFIED**)
-- **Date**: ۱۴۰۵/۰۵/۱۶ (۲۰۲۶-۰۸-۰۷)
-
----
-
-## PROMPT B — Content & Article Management & 10 Demo Seed Articles — Completed & Verified
-
 ### Audit Findings & Implementation Status
 - **Article Data Model & Revisions**: `verified` — Full `articles` schema with UUID, slug, Persian title/summary/body, tags, SEO metadata, cover images, medical disclaimer, and `article_revisions` table supporting version history & restore.
 - **Editorial Workflow & Health Claims Gate**: `verified` — Multi-stage workflow (`draft`, `in_review`, `changes_requested`, `approved`, `published`, `archived`) with medical reviewer attribution, scientific sources requirement for health claims, and `ScanForbiddenMedicalClaims` regex scanner blocking forbidden claims (`درمان قطعی`, `پیشگیری قطعی`, `علاج قطعی`, `جایگزین دارو`).

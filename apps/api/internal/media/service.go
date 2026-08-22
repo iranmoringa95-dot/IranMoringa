@@ -1,7 +1,6 @@
 package media
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"

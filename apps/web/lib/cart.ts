@@ -1,6 +1,7 @@
 'use client';
 
 import { ALL_MORINGA_PRODUCTS, ProductItem } from './products-data';
+import { calculateShippingQuotes, computeCartParcelMetrics } from './shipping';
 
 export interface CartItem {
   productId: string;
@@ -24,6 +25,12 @@ export interface CartSummary {
   grand_total_irr: number;
   couponCode?: string;
   couponDiscountPercent?: number;
+  shippingMethod?: string;
+  shippingMethodTitle?: string;
+  chargedWeightGrams?: number;
+  volumetricWeightGrams?: number;
+  actualWeightGrams?: number;
+  packagingTierFA?: string;
 }
 
 const CART_STORAGE_KEY = 'moringalab_cart_v1';
@@ -146,7 +153,13 @@ export function clearCart() {
 /**
  * Calculate cart breakdown and financial summary
  */
-export function calculateCartSummary(items: CartItem[], couponCode?: string): CartSummary {
+export function calculateCartSummary(
+  items: CartItem[],
+  couponCode?: string,
+  shippingMethod?: string,
+  province: string = 'اصفهان',
+  city: string = 'اصفهان'
+): CartSummary {
   const subtotal_irr = items.reduce((sum, item) => sum + item.price_irr * item.quantity, 0);
 
   let couponDiscountPercent = 0;
@@ -160,9 +173,33 @@ export function calculateCartSummary(items: CartItem[], couponCode?: string): Ca
   }
 
   const discount_irr = Math.round((subtotal_irr * couponDiscountPercent) / 100);
+
+  // Compute parcel metrics
+  const parcelMetrics = computeCartParcelMetrics(items);
+
+  // Calculate dynamic shipping quotes
+  const quotes = calculateShippingQuotes(province, city, subtotal_irr, items);
   
-  // Free shipping over 500,000 Tomans (5,000,000 IRR)
-  const shipping_fee_irr = subtotal_irr > 5000000 || subtotal_irr === 0 ? 0 : 350000;
+  let selectedQuote = quotes.find((q) => q.code === shippingMethod);
+  if (!selectedQuote) {
+    selectedQuote = quotes[0] || {
+      code: 'post_pishtaz',
+      name_fa: 'پست پیشتاز سراسری',
+      carrier: 'post',
+      fee_irr: 380000,
+      fee_toman: 38000,
+      eta_min_days: 2,
+      eta_max_days: 4,
+      is_free: false,
+      description: 'ارسال با پست پیشتاز',
+      charged_weight_grams: 500,
+      volumetric_weight_grams: 200,
+      actual_weight_grams: 300,
+      packaging_tier_fa: 'کارتن پستی استاندارد',
+    };
+  }
+
+  const shipping_fee_irr = items.length === 0 ? 0 : selectedQuote.fee_irr;
   const grand_total_irr = Math.max(0, subtotal_irr - discount_irr + shipping_fee_irr);
 
   return {
@@ -173,6 +210,12 @@ export function calculateCartSummary(items: CartItem[], couponCode?: string): Ca
     grand_total_irr,
     couponCode,
     couponDiscountPercent,
+    shippingMethod: selectedQuote.code,
+    shippingMethodTitle: selectedQuote.name_fa,
+    chargedWeightGrams: parcelMetrics.charged_weight_grams,
+    volumetricWeightGrams: parcelMetrics.volumetric_weight_grams,
+    actualWeightGrams: parcelMetrics.actual_weight_grams,
+    packagingTierFA: parcelMetrics.packaging_tier_fa,
   };
 }
 

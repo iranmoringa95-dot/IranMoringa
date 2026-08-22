@@ -206,14 +206,14 @@ func (s *Service) GetTopSellingProducts(limit int) ([]ProductPerformanceItem, er
 				if !exists {
 					pItem = &ProductPerformanceItem{
 						ProductID:     item.ProductID,
-						SKU:           item.SKUSnapshot,
-						ProductNameFA: item.ProductNameSnapshot,
+						SKU:           item.SKU,
+						ProductNameFA: item.ProductTitle,
 					}
 					prodMap[item.ProductID] = pItem
 				}
 				pItem.UnitsSold += item.Quantity
 				pItem.GrossSalesIRR += (item.UnitPriceIRR * int64(item.Quantity))
-				pItem.NetRevenueIRR += (item.TotalPriceIRR)
+				pItem.NetRevenueIRR += item.SubtotalIRR
 			}
 		}
 	}

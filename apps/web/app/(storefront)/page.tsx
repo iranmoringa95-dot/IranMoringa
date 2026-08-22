@@ -70,7 +70,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8f5] text-slate-800 dir-rtl font-sans selection:bg-[#d0de41] selection:text-[#026251] overflow-x-hidden w-full">
+    <div className="min-h-screen flex flex-col bg-[#faf8f5] dark:bg-[#06120e] text-slate-800 dark:text-slate-100 dir-rtl font-sans selection:bg-[#d0de41] selection:text-[#026251] overflow-x-hidden w-full transition-colors duration-200">
       <Header />
 
       <main className="flex-1">

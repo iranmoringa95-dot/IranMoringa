@@ -138,13 +138,13 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-[#f0f7f3] to-[#eaf3ee] dark:from-[#06120e] dark:via-[#091f18] dark:to-[#041410] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 dir-rtl relative overflow-hidden transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-[#f0f7f3] to-[#eaf3ee] dark:from-[#06120e] dark:via-[#091f18] dark:to-[#041410] flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 dir-rtl relative overflow-hidden transition-colors duration-200">
       {/* Top Floating Controls */}
-      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex items-center gap-2">
-        <ThemeToggle />
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex items-center gap-2.5">
+        <ThemeToggle variant="pill" />
         <Link
           href="/"
-          className="px-3.5 py-2 bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 border border-stone-200 dark:border-white/15 rounded-full text-xs font-bold transition-all shadow-xs backdrop-blur-md"
+          className="px-4 py-2 bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/15 rounded-full text-xs font-bold transition-all shadow-xs backdrop-blur-md"
         >
           بازگشت به سایت
         </Link>
@@ -154,7 +154,7 @@ export default function RegisterPage() {
       <div className="absolute -top-32 -right-32 w-[450px] h-[450px] bg-[#d0de41]/20 dark:bg-[#d0de41]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -left-32 w-[450px] h-[450px] bg-[#026251]/15 dark:bg-[#026251]/25 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
+      <div className="w-full max-w-lg mx-auto relative z-10">
         {/* Brand Header */}
         <div className="text-center space-y-3 mb-6">
           <div className="inline-block hover:scale-105 transition-transform">

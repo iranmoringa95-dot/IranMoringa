@@ -91,3 +91,14 @@ func (h *Handler) ListAuditLogs(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(logs)
 }
+
+func (h *Handler) AdminListCustomers(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query().Get("q")
+	customers := h.adminService.ListCustomers(q)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"customers": customers,
+		"total":     len(customers),
+	})
+}

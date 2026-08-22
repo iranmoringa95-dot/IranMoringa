@@ -16,6 +16,9 @@ import {
   Tag,
   Sparkles,
   Building2,
+  Clock,
+  Box,
+  Scale,
 } from 'lucide-react';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
@@ -23,6 +26,11 @@ import { getStoredCart, calculateCartSummary, clearCart, CartItem } from '@/lib/
 import { PROVINCES_DATASET } from '@/lib/localization/provinces';
 import { normalizePhone } from '@/lib/localization/normalize';
 import { validatePostalCode } from '@/lib/localization/postal';
+import {
+  calculateShippingQuotes,
+  isCityIsfahan,
+  ShippingQuote,
+} from '@/lib/shipping';
 import {
   getCustomerProfile,
   getCustomerOrders,
@@ -41,6 +49,9 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [savedAddresses, setSavedAddresses] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('addr-1');
+
+  // Shipping Method state
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState<'courier_isfahan' | 'post_pishtaz'>('courier_isfahan');
 
   // Coupon state
   const [couponCodeInput, setCouponCodeInput] = useState('');
@@ -70,6 +81,9 @@ export default function CheckoutPage() {
       if (matchedProvince) {
         setSelectedProvinceId(matchedProvince.id);
         setSelectedCityName(def.city);
+        if (!isCityIsfahan(def.city)) {
+          setSelectedShippingMethod('post_pishtaz');
+        }
       }
     }
   }, []);
@@ -81,7 +95,18 @@ export default function CheckoutPage() {
     setSelectedProvinceId(provinceId);
     const prov = PROVINCES_DATASET.find((p) => p.id === provinceId);
     if (prov && prov.cities.length > 0) {
-      setSelectedCityName(prov.cities[0].name_fa);
+      const newCity = prov.cities[0].name_fa;
+      setSelectedCityName(newCity);
+      if (!isCityIsfahan(newCity)) {
+        setSelectedShippingMethod('post_pishtaz');
+      }
+    }
+  };
+
+  const handleCityChange = (cityName: string) => {
+    setSelectedCityName(cityName);
+    if (!isCityIsfahan(cityName)) {
+      setSelectedShippingMethod('post_pishtaz');
     }
   };
 
@@ -95,6 +120,9 @@ export default function CheckoutPage() {
     if (matchedProv) {
       setSelectedProvinceId(matchedProv.id);
       setSelectedCityName(addr.city);
+      if (!isCityIsfahan(addr.city)) {
+        setSelectedShippingMethod('post_pishtaz');
+      }
     }
   };
 
@@ -112,11 +140,29 @@ export default function CheckoutPage() {
     }
   };
 
-  const summary = calculateCartSummary(items, appliedCoupon || undefined);
+  // Calculate cart summary with selected shipping method and destination
+  const summary = calculateCartSummary(
+    items,
+    appliedCoupon || undefined,
+    selectedShippingMethod,
+    activeProvince.name_fa,
+    selectedCityName
+  );
+
   const subtotalToman = Math.round(summary.subtotal_irr / 10);
   const discountToman = Math.round(summary.discount_irr / 10);
   const shippingToman = Math.round(summary.shipping_fee_irr / 10);
   const grandTotalToman = Math.round(summary.grand_total_irr / 10);
+
+  // Available shipping options for current destination
+  const shippingQuotes = calculateShippingQuotes(
+    activeProvince.name_fa,
+    selectedCityName,
+    summary.subtotal_irr,
+    items
+  );
+
+  const isIsfahan = isCityIsfahan(selectedCityName);
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,12 +187,22 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // 1. Generate real unique order number and postal tracking code
+      // 1. Generate unique order number and tracking code
       const orderNum = `MOR-1405-${Math.floor(100 + Math.random() * 900)}`;
-      const trackingCode = `POST-IR-${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-      
+      const trackingCode =
+        selectedShippingMethod === 'courier_isfahan'
+          ? `EXP-ISF-${Math.floor(100000 + Math.random() * 900000)}`
+          : `POST-IR-${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+
       const now = new Date();
-      const persianDate = '۱۴۰۵/۰۳/۲۰ - ' + now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+      const persianDate =
+        '۱۴۰۵/۰۳/۲۰ - ' +
+        now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+
+      const shippingTitle =
+        selectedShippingMethod === 'courier_isfahan'
+          ? 'پیک موتوری فوری درون‌شهری اصفهان (۲ تا ۴ ساعته)'
+          : 'پست پیشتاز سراسری جمهوری اسلامی ایران';
 
       // 2. Snapshot order data into customer store
       const newOrder: CustomerOrder = {
@@ -154,11 +210,14 @@ export default function CheckoutPage() {
         orderNumber: orderNum,
         createdAt: persianDate,
         status: 'processing',
-        statusLabel: 'در حال پردازش و آماده‌سازی مرسوله',
+        statusLabel:
+          selectedShippingMethod === 'courier_isfahan'
+            ? 'در حال آماده‌سازی و تحویل به پیک موتوری اصفهان'
+            : 'در حال پردازش و آماده‌سازی مرسوله پستی',
         totalIrr: summary.grand_total_irr,
         totalToman: grandTotalToman,
         trackingCode: trackingCode,
-        shippingMethod: 'پست پیشتاز هوایی',
+        shippingMethod: shippingTitle,
         items: items.map((item) => ({
           title: item.title_fa,
           variant: item.subtitle_fa || 'بسته استاندارد خالص',
@@ -212,13 +271,13 @@ export default function CheckoutPage() {
               تکمیل نشانی و تسویه حساب
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-stone-600 dark:text-stone-300">
-              بررسی نهایی اقلام، مشخصات گیرنده و ثبت سریع سفارش
+              بررسی نهایی اقلام، مشخصات گیرنده، انتخاب روش تحویل و ثبت سریع سفارش
             </p>
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-[#d0de41] text-xs font-bold self-start">
             <Truck className="w-4 h-4 text-[#22c55e]" />
-            <span>ارسال پست پیشتاز سراسری</span>
+            <span>ارسال سراسری + پیک موتوری اصفهان</span>
           </div>
         </div>
 
@@ -244,7 +303,7 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* ── Left Column: Recipient & Address (7 Cols) ── */}
+            {/* ── Left Column: Recipient, Address & Shipping Method (7 Cols) ── */}
             <div className="lg:col-span-7 space-y-6">
               {/* 1. Saved Addresses Quick Selector */}
               {savedAddresses.length > 0 && (
@@ -336,7 +395,7 @@ export default function CheckoutPage() {
               <div className="bg-white dark:bg-[#08201a] p-6 rounded-3xl border border-stone-200 dark:border-emerald-900/60 shadow-xs space-y-4">
                 <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-stone-100 dark:border-emerald-900/30 pb-3">
                   <MapPin className="w-4 h-4 text-emerald-600" />
-                  <span>نشانی دقیق ارسال پستی</span>
+                  <span>نشانی دقیق ارسال و مقصد</span>
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -363,7 +422,7 @@ export default function CheckoutPage() {
                     </label>
                     <select
                       value={selectedCityName}
-                      onChange={(e) => setSelectedCityName(e.target.value)}
+                      onChange={(e) => handleCityChange(e.target.value)}
                       className="w-full px-4 py-3 rounded-2xl border border-stone-200 dark:border-emerald-900/60 text-xs sm:text-sm bg-stone-50/50 dark:bg-[#061410] dark:text-white focus:border-emerald-600 focus:outline-none cursor-pointer"
                     >
                       {activeProvince.cities.map((c) => (
@@ -404,7 +463,129 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* 4. Payment Method Options */}
+              {/* 4. Shipping Method Selection Card (Dynamic Rules: Isfahan vs All Iran) */}
+              <div className="bg-white dark:bg-[#08201a] p-6 rounded-3xl border border-stone-200 dark:border-emerald-900/60 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-emerald-900/30 pb-3">
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-emerald-600" />
+                    <span>انتخاب روش ارسال سفارش</span>
+                  </h2>
+                  <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400">
+                    مقصد: {selectedCityName} ({activeProvince.name_fa})
+                  </span>
+                </div>
+
+                {/* City Notice */}
+                {isIsfahan ? (
+                  <div className="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 text-[11px] text-emerald-900 dark:text-emerald-200 flex items-start gap-2.5">
+                    <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <p className="leading-relaxed">
+                      <strong>آدرس شما داخل شهر اصفهان است:</strong> می‌توانید سفارش خود را با <strong>پیک موتوری فوری (۲ تا ۴ ساعته)</strong> تحویل بگیرید یا از طریق <strong>پست پیشتاز</strong> دریافت نمایید.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3.5 bg-blue-50/80 dark:bg-blue-950/40 rounded-2xl border border-blue-200 dark:border-blue-900/50 text-[11px] text-blue-950 dark:text-blue-200 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <p className="leading-relaxed">
+                      <strong>ارسال به {selectedCityName}:</strong> برای تمام شهرهای خارج از اصفهان، ارسال منحصراً از طریق <strong>پست پیشتاز هوایی و زمینی شرکت ملی پست</strong> با تعرفه مصوب و بارکد رهگیری انجام می‌گردد.
+                    </p>
+                  </div>
+                )}
+
+                {/* Shipping Method Options */}
+                <div className="space-y-3 pt-1">
+                  {shippingQuotes.map((quote) => {
+                    const isSelected = selectedShippingMethod === quote.code;
+                    const isCourier = quote.code === 'courier_isfahan';
+
+                    return (
+                      <label
+                        key={quote.code}
+                        onClick={() => setSelectedShippingMethod(quote.code)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                          isSelected
+                            ? 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-600 dark:border-emerald-500 shadow-xs ring-1 ring-emerald-500/20'
+                            : 'bg-stone-50/60 dark:bg-[#0c2b23] border-stone-200 dark:border-emerald-900/40 hover:bg-emerald-50/40'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 ${
+                            isCourier ? 'bg-amber-100 dark:bg-amber-950 text-amber-600' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600'
+                          }`}>
+                            {isCourier ? '🛵' : '📦'}
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                                {quote.name_fa}
+                              </span>
+                              {isCourier && (
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  تحویل فوری امروز
+                                </span>
+                              )}
+                              {!isCourier && isIsfahan && (
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100">
+                                  تحویل ۱ الی ۲ روزه
+                                </span>
+                              )}
+                              {!isIsfahan && (
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100">
+                                  ارسال پیشتاز سراسری
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                              {quote.description}
+                            </p>
+
+                            {/* Weight & Packaging details */}
+                            <div className="flex items-center gap-3 pt-1 text-[10px] text-stone-500 dark:text-stone-400">
+                              <span className="flex items-center gap-1">
+                                <Scale className="w-3 h-3 text-emerald-600" />
+                                وزن مرسوله: {quote.charged_weight_grams.toLocaleString('fa-IR')} گرم
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Box className="w-3 h-3 text-emerald-600" />
+                                {quote.packaging_tier_fa}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Price & Radio */}
+                        <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-stone-200 dark:border-emerald-900/30 shrink-0">
+                          <div>
+                            {quote.is_free ? (
+                              <span className="text-xs sm:text-sm font-black text-emerald-700 dark:text-[#d0de41] bg-emerald-100 dark:bg-emerald-900/60 px-2.5 py-1 rounded-xl">
+                                رایگان 🎁
+                              </span>
+                            ) : (
+                              <div className="text-left dir-ltr">
+                                <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                  {quote.fee_toman.toLocaleString('fa-IR')}
+                                </span>
+                                <span className="text-[10px] text-stone-500 dark:text-stone-400 ml-1">تومان</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className={`w-4 h-4 rounded-full border-2 mt-1 hidden sm:flex items-center justify-center ${
+                            isSelected ? 'border-emerald-600 bg-emerald-600' : 'border-stone-400'
+                          }`}>
+                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block" />}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 5. Payment Method Options */}
               <div className="bg-white dark:bg-[#08201a] p-6 rounded-3xl border border-stone-200 dark:border-emerald-900/60 shadow-xs space-y-3">
                 <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-stone-100 dark:border-emerald-900/30 pb-3">
                   <CreditCard className="w-4 h-4 text-emerald-600" />
@@ -455,7 +636,7 @@ export default function CheckoutPage() {
                           کارت به کارت / انتقال مستقیم بانکی
                         </span>
                         <span className="text-[11px] text-stone-500 dark:text-stone-400">
-                          واریز به شماره شبا و ارسال فیش در واتساپ
+                          واریز به شماره شبا و ارسال فیش در پیام‌رسان
                         </span>
                       </div>
                     </div>
@@ -554,12 +735,25 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
-                  <div className="flex justify-between text-stone-600 dark:text-stone-300">
-                    <span>هزینه ارسال پست پیشتاز:</span>
+                  <div className="flex justify-between items-center text-stone-600 dark:text-stone-300">
+                    <div className="space-y-0.5">
+                      <span className="block">هزینه ارسال:</span>
+                      <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                        {summary.shippingMethodTitle || (selectedShippingMethod === 'courier_isfahan' ? 'پیک موتوری اصفهان' : 'پست پیشتاز')}
+                      </span>
+                    </div>
                     <span className={shippingToman === 0 ? 'text-emerald-700 dark:text-[#d0de41] font-bold' : 'font-bold text-slate-900 dark:text-white'}>
                       {shippingToman === 0 ? 'رایگان 🎁' : `${shippingToman.toLocaleString('fa-IR')} تومان`}
                     </span>
                   </div>
+
+                  {/* Parcel Weight info in summary */}
+                  {summary.chargedWeightGrams && (
+                    <div className="flex justify-between text-[11px] text-stone-500 dark:text-stone-400 bg-stone-50 dark:bg-[#0c2b23] p-2 rounded-xl border border-stone-100 dark:border-emerald-900/30">
+                      <span>محاسبه وزن بسته:</span>
+                      <span>{summary.chargedWeightGrams.toLocaleString('fa-IR')} گرم ({summary.packagingTierFA})</span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-baseline pt-3 border-t border-stone-200 dark:border-emerald-900/40 text-slate-900 dark:text-white">
                     <span className="text-sm font-bold">مبلغ نهایی قابل پرداخت:</span>

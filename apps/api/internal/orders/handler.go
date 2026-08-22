@@ -57,6 +57,93 @@ func (h *Handler) AdminGetOrder(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, ord)
 }
 
+// AdminCreateOrder handles POST /api/v1/admin/orders
+func (h *Handler) AdminCreateOrder(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		RecipientName  string              `json:"recipient_name"`
+		RecipientPhone string              `json:"recipient_phone"`
+		Province       string              `json:"province"`
+		City           string              `json:"city"`
+		PostalAddress  string              `json:"postal_address"`
+		PostalCode     string              `json:"postal_code"`
+		ShippingMethod string              `json:"shipping_method"`
+		Status         OrderStatus         `json:"status"`
+		DiscountIRR    int64               `json:"discount_irr"`
+		ShippingFeeIRR int64               `json:"shipping_fee_irr"`
+		Notes          string              `json:"notes"`
+		Items          []OrderItemSnapshot `json:"items"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_JSON", "فرمت ورودی نامعتبر است")
+		return
+	}
+
+	if payload.RecipientName == "" || payload.RecipientPhone == "" {
+		writeError(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", "نام گیرنده و شماره همراه الزامی است")
+		return
+	}
+
+	if len(payload.Items) == 0 {
+		writeError(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", "سفارش باید حداقل شامل یک محصول باشد")
+		return
+	}
+
+	var subtotal int64
+	for i := range payload.Items {
+		if payload.Items[i].ID == uuid.Nil {
+			payload.Items[i].ID = uuid.New()
+		}
+		if payload.Items[i].Quantity <= 0 {
+			payload.Items[i].Quantity = 1
+		}
+		payload.Items[i].SubtotalIRR = payload.Items[i].UnitPriceIRR * int64(payload.Items[i].Quantity)
+		subtotal += payload.Items[i].SubtotalIRR
+	}
+
+	total := subtotal + payload.ShippingFeeIRR - payload.DiscountIRR
+	if total < 0 {
+		total = 0
+	}
+
+	status := payload.Status
+	if status == "" {
+		status = StatusProcessing
+	}
+
+	shippingMethod := payload.ShippingMethod
+	if shippingMethod == "" {
+		shippingMethod = "پست پیشتاز"
+	}
+
+	ord := &Order{
+		Status:         status,
+		SubtotalIRR:    subtotal,
+		DiscountIRR:    payload.DiscountIRR,
+		ShippingFeeIRR: payload.ShippingFeeIRR,
+		TotalIRR:       total,
+		ShippingMethod: shippingMethod,
+		Notes:          payload.Notes,
+		Address: OrderAddressSnapshot{
+			RecipientName:  payload.RecipientName,
+			RecipientPhone: payload.RecipientPhone,
+			Province:       payload.Province,
+			City:           payload.City,
+			PostalAddress:  payload.PostalAddress,
+			PostalCode:     payload.PostalCode,
+		},
+		Items: payload.Items,
+	}
+
+	created, err := h.service.CreateOrder(ord)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "CREATE_FAILED", err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, created)
+}
+
 // AdminTransitionStatus handles PATCH /api/v1/admin/orders/{id}/status
 func (h *Handler) AdminTransitionStatus(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
