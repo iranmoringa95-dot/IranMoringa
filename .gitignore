@@ -36,4 +36,5 @@ Thumbs.db
 /infra/minio-data/
 /infra/postgres-data/
 /tmp/
+/DATABASE/
 data/wp_export/*.sql

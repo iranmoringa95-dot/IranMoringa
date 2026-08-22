@@ -30,6 +30,7 @@ import {
   ArrowUpDown,
 } from 'lucide-react';
 import { ALL_MORINGA_PRODUCTS } from '@/lib/products-data';
+import { STORE_ORDERS } from '@/lib/orders-data';
 
 interface OrderItem {
   id?: string;
@@ -255,15 +256,80 @@ export default function AdminOrdersPage() {
       params.set('page', String(page));
       params.set('limit', String(pageSize));
 
-      const res = await fetch(`${API_BASE}/admin/orders?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        const list = data.items || data.orders || [];
-        setOrders(list);
-        setTotalCount(data.total || data.total_count || list.length);
-        if (data.status_counts) {
-          setStatusCounts(data.status_counts);
+      let hasApiData = false;
+      try {
+        const res = await fetch(`${API_BASE}/admin/orders?${params}`);
+        if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            const list = data.items || data.orders || [];
+            setOrders(list);
+            setTotalCount(data.total || data.total_count || list.length);
+            if (data.status_counts) {
+              setStatusCounts(data.status_counts);
+            }
+            hasApiData = true;
+          }
         }
+      } catch (e) {}
+
+      if (!hasApiData) {
+        // Fallback to pre-bundled STORE_ORDERS dataset
+        let allOrders: Order[] = STORE_ORDERS.map((so) => ({
+          id: so.id,
+          order_number: so.orderNumber,
+          status: so.status,
+          subtotal_irr: so.totalIrr,
+          shipping_fee_irr: 0,
+          discount_irr: 0,
+          total_irr: so.totalIrr,
+          total_toman: so.totalToman,
+          tracking_code: so.trackingCode,
+          shipping_method: so.shippingMethod,
+          payment_method: so.paymentMethod,
+          guest_phone: so.customerPhone,
+          customer: {
+            first_name: so.customerName,
+            phone: so.customerPhone,
+          },
+          address: {
+            recipient_name: so.address?.recipientName || so.customerName,
+            recipient_phone: so.address?.phone || so.customerPhone,
+            province: so.address?.province || 'اصفهان',
+            city: so.address?.city || 'اصفهان',
+            postal_address: so.address?.addressLine || 'آدرس ثبت شده در سفارش',
+            postal_code: so.address?.postalCode || '',
+          },
+          items: [],
+          created_at: so.createdAt,
+        }));
+
+        // Calculate status counts
+        const sc: Record<string, number> = {};
+        for (const o of allOrders) {
+          sc[o.status] = (sc[o.status] || 0) + 1;
+        }
+        setStatusCounts(sc);
+
+        // Filter
+        let filtered = allOrders.filter((o) => {
+          if (statusFilter && o.status !== statusFilter) return false;
+          if (searchQuery.trim()) {
+            const q = searchQuery.trim().toLowerCase();
+            const matchNum = o.order_number.toLowerCase().includes(q);
+            const matchName = (o.address?.recipient_name || '').toLowerCase().includes(q);
+            const matchPhone = (o.address?.recipient_phone || o.guest_phone || '').toLowerCase().includes(q);
+            const matchTrack = (o.tracking_code || '').toLowerCase().includes(q);
+            if (!matchNum && !matchName && !matchPhone && !matchTrack) return false;
+          }
+          return true;
+        });
+
+        setTotalCount(filtered.length);
+        const startIdx = (page - 1) * pageSize;
+        const paged = filtered.slice(startIdx, startIdx + pageSize);
+        setOrders(paged);
       }
     } catch (err) {
       console.error('Error fetching orders:', err);
