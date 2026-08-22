@@ -1136,7 +1136,7 @@ export default function AdminOrdersPage() {
                       {/* Total Amount */}
                       <td className="p-4">
                         <div className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                          {(ord.total_irr / 10).toLocaleString('fa-IR')}
+                          {(ord.total_toman || Math.round((ord.total_irr || 0) / 10)).toLocaleString('fa-IR')}
                           <span className="text-[10px] font-sans font-normal text-slate-500 mr-1">تومان</span>
                         </div>
                         {ord.items && ord.items.length > 0 && (

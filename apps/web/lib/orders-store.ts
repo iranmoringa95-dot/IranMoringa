@@ -1,18 +1,27 @@
-﻿'use client';
+'use client';
 
 import { STORE_ORDERS, StoreOrder } from './orders-data';
 
-const STORAGE_ADMIN_ORDERS_KEY = 'moringalab_admin_orders_v1';
+const STORAGE_ADMIN_ORDERS_KEY = 'moringalab_admin_orders_v4';
 
 export function getStoredAdminOrders(): StoreOrder[] {
   if (typeof window === 'undefined') return STORE_ORDERS;
   try {
+    // Clear out old deprecated caches if present
+    localStorage.removeItem('moringalab_admin_orders_v1');
+    localStorage.removeItem('moringalab_admin_orders_v2');
+
     const raw = localStorage.getItem(STORAGE_ADMIN_ORDERS_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_ADMIN_ORDERS_KEY, JSON.stringify(STORE_ORDERS));
       return STORE_ORDERS;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0 || parsed[0]?.customerName === 'مشتری') {
+      localStorage.setItem(STORAGE_ADMIN_ORDERS_KEY, JSON.stringify(STORE_ORDERS));
+      return STORE_ORDERS;
+    }
+    return parsed;
   } catch {
     return STORE_ORDERS;
   }
