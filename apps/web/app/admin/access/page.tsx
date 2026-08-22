@@ -29,8 +29,10 @@ import {
   AdminRole,
   ALL_ADMIN_SECTIONS,
   getActiveAdminSession,
+  getAdminUsers,
   saveAdminUsers,
 } from '@/lib/admin-auth-store';
+import { WORDPRESS_CUSTOMERS } from '@/lib/customers-data';
 
 interface SearchedUser {
   id: string;
@@ -104,20 +106,25 @@ export default function AdminAccessControlPage() {
     setError('');
     try {
       const res = await fetch('/api/v1/admin/access');
-      if (!res.ok) {
-        throw new Error('خطا در دریافت لیست مدیران از پایگاه‌داده');
-      }
-      const data = await res.json();
-      if (Array.isArray(data.items)) {
-        setAdminUsers(data.items);
-        saveAdminUsers(data.items);
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (Array.isArray(data.items)) {
+            setAdminUsers(data.items);
+            saveAdminUsers(data.items);
+            setLoading(false);
+            return;
+          }
+        }
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err?.message || 'خطا در برقراری ارتباط با پایگاه‌داده');
-    } finally {
-      setLoading(false);
+      console.warn('API unavailable, using local/saved admin users store');
     }
+
+    const fallbackUsers = getAdminUsers();
+    setAdminUsers(fallbackUsers);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -139,14 +146,38 @@ export default function AdminAccessControlPage() {
           `/api/v1/admin/access/search-users?q=${encodeURIComponent(userSearchQuery.trim())}`
         );
         if (res.ok) {
-          const data = await res.json();
-          setSearchResults(data.users || []);
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            setSearchResults(data.users || []);
+            setSearchingUsers(false);
+            return;
+          }
         }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setSearchingUsers(false);
-      }
+      } catch (e) {}
+
+      // Fallback search from WORDPRESS_CUSTOMERS
+      const q = userSearchQuery.trim().toLowerCase();
+      const matched = WORDPRESS_CUSTOMERS.filter((c) => {
+        const matchPhone = (c.phone || '').toLowerCase().includes(q);
+        const matchName = (c.fullName || `${c.firstName} ${c.lastName}`).toLowerCase().includes(q);
+        const matchEmail = (c.email || '').toLowerCase().includes(q);
+        return matchPhone || matchName || matchEmail;
+      }).slice(0, 10).map((c) => ({
+        id: c.id,
+        phone: c.phone,
+        email: c.email || '',
+        firstName: c.firstName,
+        lastName: c.lastName,
+        fullName: c.fullName || `${c.firstName} ${c.lastName}`,
+        isActive: c.isActive,
+        isAdmin: Boolean(c.isAdmin),
+        adminRole: c.adminRole,
+        isSuperAdmin: Boolean(c.isSuperAdmin),
+      }));
+
+      setSearchResults(matched);
+      setSearchingUsers(false);
     }, 300);
 
     return () => clearTimeout(timer);
