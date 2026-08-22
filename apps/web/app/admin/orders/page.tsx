@@ -191,6 +191,7 @@ export default function AdminOrdersPage() {
 
   // Order Details editing state
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [editTotalToman, setEditTotalToman] = useState<number>(0);
   const [editAddress, setEditAddress] = useState({
     recipient_name: '',
     recipient_phone: '',
@@ -405,6 +406,7 @@ export default function AdminOrdersPage() {
 
   const openOrderDetails = (ord: Order) => {
     setSelectedOrder(ord);
+    setEditTotalToman(Math.round((ord.total_irr || (ord.total_toman ? ord.total_toman * 10 : 0)) / 10));
     setEditAddress({
       recipient_name: ord.address?.recipient_name || '',
       recipient_phone: ord.address?.recipient_phone || ord.guest_phone || '',
@@ -441,14 +443,18 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({
           order_id: selectedOrder.id,
           address: editAddress,
+          total_toman: editTotalToman,
         }),
       });
     } catch (e) {}
 
     // Fallback: update in orders-store
+    const finalToman = editTotalToman || Math.round(selectedOrder.total_irr / 10);
     updateAdminOrder(selectedOrder.id, {
       customerName: editAddress.recipient_name,
       customerPhone: editAddress.recipient_phone,
+      totalToman: finalToman,
+      totalIrr: finalToman * 10,
       address: {
         recipientName: editAddress.recipient_name,
         phone: editAddress.recipient_phone,
@@ -461,7 +467,7 @@ export default function AdminOrdersPage() {
 
     setIsEditingAddress(false);
     fetchOrders();
-    alert('آدرس تحویل‌گیرنده با موفقیت اصلاح شد.');
+    alert('مشخصات و مبلغ سفارش با موفقیت ویرایش و ذخیره شد.');
     setActionLoading(false);
   };
 
@@ -1865,42 +1871,84 @@ export default function AdminOrdersPage() {
                   </div>
                 ) : (
                   <div className="space-y-2.5">
-                    <input
-                      type="text"
-                      placeholder="نام تحویل‌گیرنده"
-                      value={editAddress.recipient_name}
-                      onChange={(e) => setEditAddress({ ...editAddress, recipient_name: e.target.value })}
-                      className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 rounded-xl text-xs"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] text-slate-500 font-bold mb-1">نام و نام خانوادگی تحویل‌گیرنده:</label>
                       <input
                         type="text"
-                        placeholder="استان"
-                        value={editAddress.province}
-                        onChange={(e) => setEditAddress({ ...editAddress, province: e.target.value })}
-                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 rounded-xl text-xs"
-                      />
-                      <input
-                        type="text"
-                        placeholder="شهر"
-                        value={editAddress.city}
-                        onChange={(e) => setEditAddress({ ...editAddress, city: e.target.value })}
-                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 rounded-xl text-xs"
+                        placeholder="نام تحویل‌گیرنده"
+                        value={editAddress.recipient_name}
+                        onChange={(e) => setEditAddress({ ...editAddress, recipient_name: e.target.value })}
+                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs"
                       />
                     </div>
-                    <textarea
-                      rows={2}
-                      placeholder="نشانی پستی دقیق"
-                      value={editAddress.postal_address}
-                      onChange={(e) => setEditAddress({ ...editAddress, postal_address: e.target.value })}
-                      className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 rounded-xl text-xs"
-                    />
+                    <div>
+                      <label className="block text-[11px] text-slate-500 font-bold mb-1">شماره تماس همراه:</label>
+                      <input
+                        type="text"
+                        placeholder="09123456789"
+                        value={editAddress.recipient_phone}
+                        onChange={(e) => setEditAddress({ ...editAddress, recipient_phone: e.target.value })}
+                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs font-mono dir-ltr text-right"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] text-slate-500 font-bold mb-1">استان:</label>
+                        <input
+                          type="text"
+                          placeholder="استان"
+                          value={editAddress.province}
+                          onChange={(e) => setEditAddress({ ...editAddress, province: e.target.value })}
+                          className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-500 font-bold mb-1">شهر:</label>
+                        <input
+                          type="text"
+                          placeholder="شهر"
+                          value={editAddress.city}
+                          onChange={(e) => setEditAddress({ ...editAddress, city: e.target.value })}
+                          className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-500 font-bold mb-1">کد پستی (۱۰ رقمی):</label>
+                      <input
+                        type="text"
+                        placeholder="کد پستی"
+                        value={editAddress.postal_code}
+                        onChange={(e) => setEditAddress({ ...editAddress, postal_code: e.target.value })}
+                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs font-mono dir-ltr text-right"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-500 font-bold mb-1">نشانی پستی دقیق:</label>
+                      <textarea
+                        rows={2}
+                        placeholder="نشانی پستی دقیق"
+                        value={editAddress.postal_address}
+                        onChange={(e) => setEditAddress({ ...editAddress, postal_address: e.target.value })}
+                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-500 font-bold mb-1">مبلغ کل سفارش (تومان):</label>
+                      <input
+                        type="number"
+                        placeholder="مبلغ به تومان"
+                        value={editTotalToman || ''}
+                        onChange={(e) => setEditTotalToman(parseInt(e.target.value, 10) || 0)}
+                        className="w-full p-2 bg-white dark:bg-[#08201a] border border-slate-300 dark:border-emerald-900/60 rounded-xl text-xs font-mono dir-ltr text-right"
+                      />
+                    </div>
                     <button
                       onClick={handleSaveAddress}
                       disabled={actionLoading}
-                      className="w-full py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700"
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm"
                     >
-                      ذخیره تغییرات نشانی
+                      ذخیره تغییرات کامل سفارش
                     </button>
                   </div>
                 )}

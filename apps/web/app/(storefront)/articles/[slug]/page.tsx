@@ -20,16 +20,23 @@ import { CommentsSection } from '@/components/storefront/CommentsSection';
 import { ALL_MORINGA_ARTICLES, ArticleItem } from '@/lib/articles-data';
 import { ALL_MORINGA_PRODUCTS, ProductItem } from '@/lib/products-data';
 
+export function generateStaticParams() {
+  return ALL_MORINGA_ARTICLES.map((article) => ({
+    slug: article.slug,
+  }));
+}
+
 async function fetchArticleFromAPI(slug: string): Promise<ArticleItem | null> {
+  const decodedSlug = decodeURIComponent(slug);
   try {
-    const res = await fetch(`http://localhost:8080/api/v1/content/articles/${slug}`, { cache: 'no-store' });
+    const res = await fetch(`http://localhost:8080/api/v1/content/articles/${encodeURIComponent(decodedSlug)}`, { cache: 'no-store' });
     if (res.ok) {
       return await res.json();
     }
   } catch (err) {
     // Fallback to static articles
   }
-  return ALL_MORINGA_ARTICLES.find((a) => a.slug === slug) || null;
+  return ALL_MORINGA_ARTICLES.find((a) => a.slug === slug || a.slug === decodedSlug) || null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
