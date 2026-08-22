@@ -69,6 +69,7 @@ interface Order {
   shipping_method?: string;
   payment_method?: string;
   payment_status?: string;
+  guest_phone?: string;
   customer?: {
     id?: string;
     first_name?: string;
