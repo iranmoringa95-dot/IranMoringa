@@ -28,6 +28,12 @@ function copyRecursive(src, dest) {
   }
 }
 
+// Strip Next.js route groups like (storefront), (account), etc. from URL path
+function normalizeRoutePath(rel) {
+  const parts = rel.split(path.sep).filter(p => !/^\(.*\)$/.test(p));
+  return parts.join(path.sep);
+}
+
 // 2. Copy Public Assets (images, fonts, brand)
 if (fs.existsSync(publicDir)) {
   copyRecursive(publicDir, distDir);
@@ -41,38 +47,75 @@ if (fs.existsSync(nextStaticDir)) {
   console.log('✓ Copied .next/static to cf-dist/_next/static');
 }
 
-// 4. Copy and map all HTML files from .next/server/app
-function processHtmlFiles(dir, rel = '') {
+// 4. Copy and map all HTML, RSC, and META files from .next/server/app
+function processServerAppFiles(dir, rel = '') {
   if (!fs.existsSync(dir)) return;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    const relPath = path.join(rel, entry.name);
+    const rawRelPath = path.join(rel, entry.name);
 
     if (entry.isDirectory()) {
-      processHtmlFiles(fullPath, relPath);
-    } else if (entry.name.endsWith('.html')) {
-      const destPath = path.join(distDir, relPath);
-      copyRecursive(fullPath, destPath);
+      processServerAppFiles(fullPath, rawRelPath);
+    } else {
+      const cleanRel = normalizeRoutePath(rel);
+      const cleanRelPath = normalizeRoutePath(rawRelPath);
 
-      // Also create index.html in subfolder for clean URLs (e.g. shop.html -> shop/index.html)
-      const baseName = entry.name.replace(/\.html$/, '');
-      if (baseName !== 'index' && baseName !== '_not-found') {
-        const cleanDir = path.join(distDir, rel, baseName);
-        if (!fs.existsSync(cleanDir)) fs.mkdirSync(cleanDir, { recursive: true });
-        fs.copyFileSync(fullPath, path.join(cleanDir, 'index.html'));
-      }
+      // Copy .html, .rsc, .meta, .json, .txt
+      if (
+        entry.name.endsWith('.html') ||
+        entry.name.endsWith('.rsc') ||
+        entry.name.endsWith('.meta') ||
+        entry.name.endsWith('.json') ||
+        entry.name.endsWith('.txt')
+      ) {
+        const destPath = path.join(distDir, cleanRelPath);
+        copyRecursive(fullPath, destPath);
 
-      if (baseName === '_not-found') {
-        fs.copyFileSync(fullPath, path.join(distDir, '404.html'));
+        // Also copy with route group preserved just in case
+        if (rawRelPath !== cleanRelPath) {
+          const rawDestPath = path.join(distDir, rawRelPath);
+          copyRecursive(fullPath, rawDestPath);
+        }
+
+        // For .html files, create clean URL index.html and handle 404
+        if (entry.name.endsWith('.html')) {
+          const baseName = entry.name.replace(/\.html$/, '');
+
+          if (baseName === '_not-found') {
+            fs.copyFileSync(fullPath, path.join(distDir, '404.html'));
+          } else if (baseName !== 'index') {
+            const cleanDir = path.join(distDir, cleanRel, baseName);
+            if (!fs.existsSync(cleanDir)) fs.mkdirSync(cleanDir, { recursive: true });
+            fs.copyFileSync(fullPath, path.join(cleanDir, 'index.html'));
+
+            // Also support URL-encoded directory for non-ASCII slugs
+            const encoded = encodeURIComponent(baseName);
+            if (encoded !== baseName) {
+              const encodedDir = path.join(distDir, cleanRel, encoded);
+              if (!fs.existsSync(encodedDir)) fs.mkdirSync(encodedDir, { recursive: true });
+              fs.copyFileSync(fullPath, path.join(encodedDir, 'index.html'));
+            }
+          }
+        }
+
+        // For .rsc files, support URL-encoded paths as well
+        if (entry.name.endsWith('.rsc')) {
+          const baseName = entry.name.replace(/\.rsc$/, '');
+          const encoded = encodeURIComponent(baseName);
+          if (encoded !== baseName) {
+            const encodedDest = path.join(distDir, cleanRel, `${encoded}.rsc`);
+            fs.copyFileSync(fullPath, encodedDest);
+          }
+        }
       }
     }
   }
 }
 
 if (fs.existsSync(serverAppDir)) {
-  processHtmlFiles(serverAppDir);
-  console.log('✓ Processed all HTML pages for Cloudflare CDN');
+  processServerAppFiles(serverAppDir);
+  console.log('✓ Processed and mapped all HTML & RSC routes for Cloudflare CDN');
 }
 
 // 5. Clean .next/cache to save space
