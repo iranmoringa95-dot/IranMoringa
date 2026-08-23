@@ -81,7 +81,7 @@ export default function DownloadAppPage() {
               <Sparkles size={14} className="text-amber-400" />
               <span>نسخه اختصاصی اندروید ۱.۰.۰</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold mb-3 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold mb-3 leading-snug sm:leading-normal">
               مدیریت فروشگاه و سفارشات سبزینه همیشه در جیب شما
             </h1>
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed mb-6">

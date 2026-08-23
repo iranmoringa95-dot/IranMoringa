@@ -126,7 +126,7 @@ export function IranMoringaLogotype({
       <div className="relative inline-flex items-center gap-1.5 leading-none pb-0.5">
         {/* Word 1: "ایران" in Warm Citrus Orange */}
         <span
-          className={`font-black tracking-tight bg-gradient-to-r from-[#ff9a3d] via-[#f97316] to-[#ea580c] bg-clip-text text-transparent drop-shadow-xs ${fontSizes[size]}`}
+          className={`font-black tracking-tight text-[#f47a24] drop-shadow-xs ${fontSizes[size]}`}
           style={{ letterSpacing: '-0.02em' }}
         >
           ایران
@@ -140,7 +140,7 @@ export function IranMoringaLogotype({
           </div>
 
           <span
-            className={`font-black tracking-tight bg-gradient-to-r from-[#86efac] via-[#22c55e] to-[#15803d] bg-clip-text text-transparent drop-shadow-xs ${fontSizes[size]}`}
+            className={`font-black tracking-tight text-[#176b39] dark:text-[#2ea355] drop-shadow-xs ${fontSizes[size]}`}
             style={{ letterSpacing: '-0.01em' }}
           >
             مورینگا
@@ -149,16 +149,16 @@ export function IranMoringaLogotype({
       </div>
 
       {/* ── Sleek Gradient Underline Bar (Orange to Green) ── */}
-      <div className="w-full h-0.75 rounded-full bg-gradient-to-l from-[#f97316] via-[#22c55e] to-[#d0de41] opacity-90 shadow-[0_0_8px_rgba(34,197,94,0.35)] mt-0.5" />
+      <div className="w-full h-0.5 rounded-full bg-gradient-to-l from-[#f47a24] via-[#2ea355] to-[#176b39] opacity-80 mt-0.5" />
 
       {/* ── Subtitle / Tagline ── */}
       {showSubtext && (
         <div className="hidden sm:flex items-center justify-between gap-1 mt-1 text-[8.5px] sm:text-[9.5px] font-bold tracking-wider uppercase font-mono">
-          <span className="bg-gradient-to-r from-[#22c55e] to-[#86efac] bg-clip-text text-transparent font-black">
+          <span className="text-[#176b39] dark:text-[#5eba7a] font-black">
             ORGANIC SUPERFOODS
           </span>
-          <span className="text-[#f97316] text-[8px]">•</span>
-          <span className="text-emerald-200/90 dark:text-emerald-300/80 font-sans text-[8.5px]">
+          <span className="text-[#f47a24] text-[8px]">•</span>
+          <span className="text-stone-500 dark:text-stone-400 font-sans text-[8.5px]">
             ۱۰۰٪ خالص
           </span>
         </div>

@@ -18,7 +18,7 @@ import (
 var (
 	ErrRedirectLoop  = errors.New("ایجاد حلقه ریدایرکت (Loop) مجاز نیست")
 	ErrRuleNotFound  = errors.New("قانون ریدایرکت یافت نشد")
-	DefaultCanonical = "https://moringalab.ir"
+	DefaultCanonical = "https://iranmoringa.ir"
 )
 
 // Sitemap XML Structs
@@ -38,7 +38,7 @@ type SitemapURLSet struct {
 type Service struct {
 	mu           sync.RWMutex
 	canonicalURL string
-	redirects    map[string]*RedirectRule  // key: normalized source path
+	redirects    map[string]*RedirectRule // key: normalized source path
 	rulesByID    map[uuid.UUID]*RedirectRule
 	notFound     map[string]*NotFoundEvent // key: normalized path
 	legacy       map[string]*LegacyURLMapping

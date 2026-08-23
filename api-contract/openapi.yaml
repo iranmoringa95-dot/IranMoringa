@@ -126,7 +126,23 @@ paths:
                   example: "09123456789"
       responses:
         '200':
-          description: OTP challenge created
+          description: OTP challenge created and SMS accepted by the configured provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OTPRequestResponse'
+        '422':
+          description: Invalid Iranian mobile number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '502':
+          description: SMS provider did not accept the OTP delivery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
 
   /auth/otp/verify:
     post:
@@ -147,6 +163,12 @@ paths:
       responses:
         '200':
           description: Session issued
+        '401':
+          description: OTP is invalid, expired, or has exceeded its attempt limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
 
   /carts/current:
     get:
@@ -245,6 +267,27 @@ paths:
       responses:
         '201':
           description: Order created successfully
+
+  /admin/orders/stats/summary:
+    get:
+      summary: Real-time orders summary statistics for mobile app and dashboard
+      responses:
+        '200':
+          description: Orders statistics counters and today's sales
+
+  /admin/orders/notifications/poll:
+    get:
+      summary: Poll for newly created or updated orders since a given timestamp or ID
+      responses:
+        '200':
+          description: List of new orders with summary stats
+
+  /admin/orders/notifications/stream:
+    get:
+      summary: Server-Sent Events stream for instantaneous real-time push notifications of store orders
+      responses:
+        '200':
+          description: SSE stream of order events
 
   /admin/customers:
     get:
@@ -358,6 +401,27 @@ components:
           type: array
           items:
             type: object
+    OTPRequestResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          enum: [success]
+        message:
+          type: string
+        dev_otp:
+          type: string
+          description: Present only outside the production environment.
+
+    AuthErrorResponse:
+      type: object
+      required: [code, detail]
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
     ProblemDetails:
       type: object
       required: [type, title, status, code, detail]

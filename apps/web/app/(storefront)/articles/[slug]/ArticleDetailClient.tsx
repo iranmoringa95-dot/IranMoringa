@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -12,55 +12,63 @@ import {
   Tag,
   ShoppingBag,
   UserCheck,
+  FileText,
+  ExternalLink,
+  HelpCircle,
+  ChevronDown,
+  Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
-import { JsonLd } from '@/components/storefront/JsonLd';
 import { CommentsSection } from '@/components/storefront/CommentsSection';
 import { ArticleItem } from '@/lib/articles-data';
 import { ALL_MORINGA_PRODUCTS, ProductItem } from '@/lib/products-data';
+import { SITE_CONFIG } from '@/lib/site-config';
+
+function renderFormattedText(text: string) {
+  if (!text) return null;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-bold text-[#114627] dark:text-[#97d2a7]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
 
 interface ArticleDetailClientProps {
   article: ArticleItem;
 }
 
 export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
   // Look up related products
   const relatedProducts: ProductItem[] = (article.related_product_ids || [])
     .map((id) => ALL_MORINGA_PRODUCTS.find((p) => p.id === id))
     .filter((p): p is ProductItem => Boolean(p));
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: article.title_fa,
-    description: article.summary_fa,
-    image: article.cover_image_url ? `https://moringano.ir${article.cover_image_url}` : undefined,
-    author: {
-      '@type': 'Person',
-      name: article.author_name_fa || 'تیم تحریریه مورینگا ایران',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'فروشگاه تخصصی مورینگا ایران',
-      url: 'https://moringano.ir',
-    },
-    datePublished: article.published_at || article.created_at,
+  const toggleFaq = (idx: number) => {
+    setOpenFaqIndex((current) => (current === idx ? null : idx));
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8f5] dark:bg-[#061410] dir-rtl text-slate-800 dark:text-slate-100 font-sans selection:bg-[#d0de41] selection:text-[#026251] transition-colors duration-200">
-      <JsonLd data={jsonLd} />
+    <div className="min-h-screen flex flex-col bg-[#fafbf8] dark:bg-[#072714] dir-rtl text-[#17251c] dark:text-[#f2f9f4] font-sans selection:bg-[#c3e5cd] selection:text-[#176b39] transition-colors duration-200">
       <Header />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Breadcrumb Navigation */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
-          <Link href="/" className="hover:text-[#026251] dark:hover:text-[#d0de41] transition-colors font-medium">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-stone-500">
+          <Link href="/" className="hover:text-[#176b39] transition-colors font-medium">
             صفحه اصلی
           </Link>
           <ChevronLeft className="w-3.5 h-3.5 text-stone-400" />
-          <Link href="/articles" className="hover:text-[#026251] dark:hover:text-[#d0de41] transition-colors font-medium">
+          <Link href="/articles" className="hover:text-[#176b39] transition-colors font-medium">
             مجله و دانشنامه تخصصی
           </Link>
           <ChevronLeft className="w-3.5 h-3.5 text-stone-400" />
@@ -68,10 +76,10 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
         </nav>
 
         {/* Article Header Card */}
-        <header className="bg-white dark:bg-[#091e18] rounded-3xl border border-stone-200 dark:border-emerald-900/60 p-6 sm:p-10 shadow-xs space-y-6">
+        <header className="bg-white dark:bg-stone-900 rounded-3xl border border-[#e5e8de] dark:border-stone-800 p-6 sm:p-10 shadow-xs space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 font-bold rounded-full border border-emerald-200 dark:border-emerald-800">
+              <span className="px-3 py-1 bg-[#f2f9f4] dark:bg-[#0a331b] text-[#176b39] dark:text-[#97d2a7] font-bold rounded-full border border-[#c3e5cd] dark:border-[#14552f]">
                 {article.category_name_fa || 'عمومی'}
               </span>
               <span className="flex items-center gap-1 text-stone-500 dark:text-stone-400 font-medium mr-2">
@@ -88,24 +96,24 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
             )}
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-black text-[#17251c] dark:text-white leading-normal sm:leading-relaxed">
             {article.title_fa}
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-700 dark:text-slate-200 leading-relaxed bg-[#faf8f5] dark:bg-[#051410] p-5 rounded-2xl border border-stone-200/70 dark:border-emerald-900/40 font-medium">
+          <p className="text-sm sm:text-base text-[#17251c] dark:text-stone-200 leading-relaxed bg-[#fafbf8] dark:bg-stone-800 p-5 rounded-2xl border border-[#e5e8de] dark:border-stone-700 font-medium">
             {article.summary_fa}
           </p>
 
-          <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-stone-100 dark:border-emerald-950 text-xs text-stone-600 dark:text-stone-300">
+          <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-600 dark:text-stone-300">
             <div className="flex items-center gap-1.5 font-medium">
               <span className="text-stone-400 font-normal">نویسنده:</span>
-              <span className="font-bold text-slate-900 dark:text-white">{article.author_name_fa || 'تیم تحریریه مورینگا ایران'}</span>
+              <span className="font-bold text-[#17251c] dark:text-white">{article.author_name_fa || 'تیم پژوهشی ایران مورینگا'}</span>
             </div>
 
             {article.reviewer_name_fa && (
-              <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                <UserCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-[#d0de41]" />
-                <span className="font-bold">تاییدیه علمی: {article.reviewer_name_fa}</span>
+              <div className="flex items-center gap-1.5 bg-[#f2f9f4] dark:bg-[#0a331b] text-[#176b39] dark:text-[#97d2a7] px-3 py-1 rounded-full border border-[#c3e5cd] dark:border-[#14552f]">
+                <UserCheck className="w-3.5 h-3.5 text-[#2ea355]" />
+                <span className="font-bold">تأییدیه علمی: {article.reviewer_name_fa}</span>
               </div>
             )}
           </div>
@@ -113,7 +121,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
 
         {/* Featured Cover Image */}
         {article.cover_image_url && (
-          <div className="rounded-3xl overflow-hidden border border-stone-200 shadow-sm max-h-[440px] bg-stone-100 flex items-center justify-center">
+          <div className="rounded-3xl overflow-hidden border border-[#e5e8de] dark:border-stone-800 shadow-xs max-h-[440px] bg-[#fafbf8] dark:bg-stone-800 flex items-center justify-center">
             <img
               src={article.cover_image_url}
               alt={article.title_fa}
@@ -123,69 +131,225 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
         )}
 
         {/* Article Body Content */}
-        <section className="bg-white dark:bg-[#091e18] rounded-3xl border border-stone-200 dark:border-emerald-900/60 p-6 sm:p-10 shadow-xs space-y-6 leading-loose text-sm sm:text-base text-slate-700 dark:text-slate-200">
-          <div className="space-y-6 prose-stone max-w-none">
+        <section className="bg-white dark:bg-stone-900 rounded-3xl border border-[#e5e8de] dark:border-stone-800 p-6 sm:p-10 shadow-xs space-y-6 leading-loose text-sm sm:text-base text-[#17251c] dark:text-stone-200">
+          <div className="space-y-6 max-w-none">
             {article.content_fa.split('\n\n').map((paragraph, index) => {
-              if (paragraph.startsWith('## ')) {
+              const trimmed = paragraph.trim();
+
+              // Table parsing
+              if (trimmed.startsWith('|') && trimmed.includes('\n|')) {
+                const lines = trimmed.split('\n').filter((l) => l.trim().startsWith('|'));
+                if (lines.length >= 2) {
+                  const parseRow = (line: string) =>
+                    line
+                      .split('|')
+                      .map((c) => c.trim())
+                      .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+                  const headerRow = parseRow(lines[0]);
+                  const isDivider = (line: string) => line.replace(/[|\-\s:]/g, '').length === 0;
+                  const bodyRows = lines.slice(1).filter((l) => !isDivider(l)).map(parseRow);
+
+                  return (
+                    <div key={index} className="my-6 overflow-x-auto rounded-2xl border border-[#e5e8de] dark:border-stone-800 shadow-xs">
+                      <table className="w-full text-right text-xs sm:text-sm">
+                        <thead className="bg-[#f2f9f4] dark:bg-[#0a331b] text-[#176b39] dark:text-[#97d2a7] font-bold border-b border-[#e5e8de] dark:border-stone-800">
+                          <tr>
+                            {headerRow.map((cell, cIdx) => (
+                              <th key={cIdx} className="px-4 py-3.5 whitespace-nowrap">
+                                {renderFormattedText(cell)}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
+                          {bodyRows.map((row, rIdx) => (
+                            <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-transparent' : 'bg-[#fafbf8] dark:bg-stone-800/50'}>
+                              {row.map((cell, cIdx) => (
+                                <td key={cIdx} className="px-4 py-3 text-stone-700 dark:text-stone-300 font-medium">
+                                  {renderFormattedText(cell)}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                }
+              }
+
+              if (trimmed.startsWith('## ')) {
                 return (
-                  <h2 key={index} className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-6 border-b border-stone-100 dark:border-emerald-950 pb-2 flex items-center gap-2">
-                    <span className="w-2 h-5 bg-[#026251] dark:bg-[#d0de41] rounded-full inline-block" />
-                    <span>{paragraph.replace('## ', '')}</span>
+                  <h2 key={index} className="text-lg sm:text-xl font-bold text-[#17251c] dark:text-white pt-6 border-b border-stone-100 dark:border-stone-800 pb-2 flex items-center gap-2 leading-relaxed">
+                    <span className="w-1.5 h-5 bg-[#176b39] dark:bg-[#2ea355] rounded-full inline-block" />
+                    <span>{renderFormattedText(trimmed.replace('## ', ''))}</span>
                   </h2>
                 );
               }
-              if (paragraph.startsWith('### ')) {
+              if (trimmed.startsWith('### ')) {
                 return (
-                  <h3 key={index} className="text-base sm:text-lg font-bold text-emerald-900 dark:text-[#d0de41] pt-3">
-                    {paragraph.replace('### ', '')}
+                  <h3 key={index} className="text-base sm:text-lg font-bold text-[#176b39] dark:text-[#97d2a7] pt-3 leading-relaxed">
+                    {renderFormattedText(trimmed.replace('### ', ''))}
                   </h3>
                 );
               }
-              if (paragraph.startsWith('# ')) {
+              if (trimmed.startsWith('# ')) {
                 return (
-                  <h2 key={index} className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-4">
-                    {paragraph.replace('# ', '')}
+                  <h2 key={index} className="text-xl sm:text-2xl font-bold text-[#17251c] dark:text-white pt-4 leading-relaxed">
+                    {renderFormattedText(trimmed.replace('# ', ''))}
                   </h2>
                 );
               }
-              if (paragraph.startsWith('- ')) {
-                const items = paragraph.split('\n- ');
+              if (trimmed.startsWith('- ')) {
+                const items = trimmed.split('\n- ');
                 return (
-                  <ul key={index} className="space-y-2 text-slate-700 dark:text-slate-300 mr-4 list-disc marker:text-emerald-700 dark:marker:text-[#d0de41]">
+                  <ul key={index} className="space-y-2 text-[#17251c] dark:text-stone-300 mr-4 list-disc marker:text-[#176b39]">
                     {items.map((it, idx) => (
                       <li key={idx} className="leading-relaxed">
-                        {it.replace(/^- /, '')}
+                        {renderFormattedText(it.replace(/^- /, ''))}
                       </li>
                     ))}
                   </ul>
                 );
               }
-              if (paragraph.match(/^\d+\./)) {
-                const items = paragraph.split('\n');
+              if (trimmed.match(/^\d+\./)) {
+                const items = trimmed.split('\n');
                 return (
-                  <ol key={index} className="space-y-2 text-slate-700 dark:text-slate-300 mr-2 list-none">
+                  <ol key={index} className="space-y-2 text-[#17251c] dark:text-stone-300 mr-2 list-none">
                     {items.map((it, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-[#d0de41] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border border-emerald-300 dark:border-emerald-800">
+                        <span className="bg-[#f2f9f4] dark:bg-[#0a331b] text-[#176b39] dark:text-[#97d2a7] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border border-[#c3e5cd] dark:border-[#14552f]">
                           {idx + 1}
                         </span>
-                        <span>{it.replace(/^\d+\.\s*/, '')}</span>
+                        <span>{renderFormattedText(it.replace(/^\d+\.\s*/, ''))}</span>
                       </li>
                     ))}
                   </ol>
                 );
               }
               return (
-                <p key={index} className="text-slate-700 dark:text-slate-200 leading-relaxed text-justify">
-                  {paragraph}
+                <p key={index} className="text-[#17251c] dark:text-stone-200 leading-relaxed text-justify">
+                  {renderFormattedText(paragraph)}
                 </p>
               );
             })}
           </div>
 
+          {/* Direct Commercial Conversion CTA Box */}
+          <div className="my-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#114627] to-[#072714] text-white shadow-xl relative overflow-hidden border border-[#2ea355]/30">
+            <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-[#2ea355]/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[#97d2a7] text-xs font-bold border border-white/10">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>خرید مستقیم از تولیدکننده مزارع ایران مورینگا</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  قصد خرید پودر یا روغن مورینگا ۱۰۰٪ خالص و اصل را دارید؟
+                </h3>
+                <p className="text-xs sm:text-sm text-[#c3e5cd] leading-relaxed">
+                  تمامی محصولات ایران مورینگا دارای ضمانت اصالت، برگه آزمایشگاهی خلوص، بسته‌بندی بهداشتی و ارسال سریع به سراسر ایران هستند.
+                </p>
+              </div>
+              <div className="shrink-0 flex flex-col sm:flex-row gap-2.5">
+                <Link
+                  href="/shop"
+                  className="px-6 py-3 bg-[#2ea355] hover:bg-[#258746] text-white rounded-2xl font-bold text-xs sm:text-sm transition-all shadow-md text-center flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>خرید آنلاین مورینگا اصل</span>
+                </Link>
+                <a
+                  href={`https://wa.me/98${SITE_CONFIG.supportPhoneIntl.replace('+', '').slice(2)}?text=${encodeURIComponent('سلام، جهت مشاوره و خرید مورینگا پیام می‌دهم.')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-xs transition-all border border-white/15 text-center flex items-center justify-center gap-1"
+                >
+                  <span>مشاوره رایگان مصرف</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive In-Article FAQ Accordion */}
+          {article.faqs && article.faqs.length > 0 && (
+            <div className="my-8 space-y-4 pt-6 border-t border-stone-100 dark:border-stone-800">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-[#176b39] dark:text-[#2ea355]" />
+                <h3 className="text-base sm:text-lg font-bold text-[#17251c] dark:text-white">
+                  پرسش‌های متداول و کلیدی درباره {article.title_fa}
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {article.faqs.map((faq, fIdx) => (
+                  <div
+                    key={fIdx}
+                    className="border border-[#e5e8de] dark:border-stone-800 rounded-2xl overflow-hidden bg-[#fafbf8] dark:bg-stone-800/60 transition-colors"
+                  >
+                    <button
+                      onClick={() => toggleFaq(fIdx)}
+                      className="w-full p-4 text-right font-bold text-xs sm:text-sm text-[#17251c] dark:text-white flex items-center justify-between gap-4"
+                    >
+                      <span className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-[#176b39] dark:text-[#2ea355] shrink-0" />
+                        <span>{faq.question}</span>
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-stone-400 shrink-0 transition-transform duration-200 ${
+                          openFaqIndex === fIdx ? 'rotate-180 text-[#176b39]' : ''
+                        }`}
+                      />
+                    </button>
+                    {openFaqIndex === fIdx && (
+                      <div className="px-5 pb-4 pt-1 text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed border-t border-stone-100 dark:border-stone-700/60 bg-white dark:bg-stone-900/40">
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Scientific Sources & DOI References */}
+          {article.sources && article.sources.length > 0 && (
+            <div className="bg-[#f8faf7] dark:bg-stone-800/60 border border-[#e5e8de] dark:border-stone-700/60 rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="flex items-center gap-2 text-[#176b39] dark:text-[#97d2a7] font-bold text-sm border-b border-[#e5e8de] dark:border-stone-700 pb-3">
+                <FileText className="w-4 h-4 text-[#2ea355]" />
+                <span>منابع، مقالات داوری‌شده و مراجع علمی معتبر (Scientific References):</span>
+              </div>
+              <ul className="space-y-2.5 text-xs text-stone-600 dark:text-stone-300">
+                {article.sources.map((src, sIdx) => (
+                  <li key={sIdx} className="flex items-start gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#176b39] dark:bg-[#2ea355] mt-1.5 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-semibold text-stone-800 dark:text-stone-200">{src.title}</span>
+                      {(src.publisher || src.year) && (
+                        <span className="text-stone-400 mr-2 text-[11px]">
+                          ({[src.publisher, src.year].filter(Boolean).join(' • ')})
+                        </span>
+                      )}
+                      {src.url && (
+                        <a
+                          href={src.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[#176b39] dark:text-[#2ea355] hover:underline mr-2 text-[11px]"
+                        >
+                          <span>مشاهده پیوند DOI</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Tags */}
           {article.tags && article.tags.length > 0 && (
-            <div className="pt-6 border-t border-stone-100 dark:border-emerald-950 flex flex-wrap items-center gap-2">
+            <div className="pt-6 border-t border-stone-100 dark:border-stone-800 flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1">
                 <Tag className="w-3.5 h-3.5" />
                 برچسب‌ها:
@@ -194,7 +358,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                 <Link
                   key={i}
                   href={`/articles?q=${encodeURIComponent(tag)}`}
-                  className="px-3 py-1 bg-stone-100 dark:bg-white/10 hover:bg-emerald-100 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 text-xs rounded-full font-medium transition-colors"
+                  className="px-3 py-1 bg-stone-100 dark:bg-stone-800 hover:bg-[#f2f9f4] text-[#17251c] dark:text-stone-200 text-xs rounded-full font-medium transition-colors"
                 >
                   #{tag}
                 </Link>
@@ -207,17 +371,17 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
             <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
               <span className="font-bold block text-amber-900 dark:text-amber-300 mb-1">هشدار و سلب مسئولیت پزشکی (Medical Disclaimer):</span>
-              <p>{article.disclaimers_fa || 'این مطلب صرفاً برای آشنایی عمومی است و جایگزین توصیه پزشک یا متخصص تغذیه نیست.'}</p>
+              <p>{article.disclaimers_fa || 'این مطلب صرفاً برای آشنایی عمومی و افزایش آگاهی است و جایگزین توصیه مستقیم پزشک یا متخصص تغذیه نمی‌باشد.'}</p>
             </div>
           </div>
         </section>
 
         {/* Related Products Grid */}
         {relatedProducts.length > 0 && (
-          <section className="bg-white dark:bg-[#091e18] rounded-3xl border border-stone-200 dark:border-emerald-900/60 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex items-center gap-2 border-b border-stone-100 dark:border-emerald-950 pb-4">
-              <ShoppingBag className="w-5 h-5 text-[#026251] dark:text-[#d0de41]" />
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">فرآورده‌های ارگانیک مرتبط معرفی‌شده در این مقاله</h3>
+          <section className="bg-white dark:bg-stone-900 rounded-3xl border border-[#e5e8de] dark:border-stone-800 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center gap-2 border-b border-stone-100 dark:border-stone-800 pb-4">
+              <ShoppingBag className="w-5 h-5 text-[#176b39]" />
+              <h3 className="font-bold text-[#17251c] dark:text-white text-base">محصولات ارگانیک مرتبط معرفی‌شده در این مقاله</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {relatedProducts.map((p) => {
@@ -227,10 +391,10 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                 return (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between gap-4 p-4 bg-stone-50 dark:bg-[#051410] hover:bg-emerald-50/60 dark:hover:bg-[#071a15] rounded-2xl border border-stone-200 dark:border-emerald-900/50 transition-all group"
+                    className="flex items-center justify-between gap-4 p-4 bg-[#fafbf8] dark:bg-stone-800 hover:bg-[#f2f9f4] dark:hover:bg-[#0a331b] rounded-2xl border border-[#e5e8de] dark:border-stone-700 transition-all group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-16 h-16 bg-white dark:bg-stone-900 rounded-xl overflow-hidden shrink-0 border border-stone-200 dark:border-emerald-900/50 flex items-center justify-center p-1">
+                      <div className="w-16 h-16 bg-white dark:bg-stone-900 rounded-xl overflow-hidden shrink-0 border border-[#e5e8de] dark:border-stone-700 flex items-center justify-center p-1">
                         {primaryMedia ? (
                           <img src={primaryMedia.url} alt={p.title_fa} className="w-full h-full object-contain" />
                         ) : (
@@ -238,10 +402,10 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white group-hover:text-emerald-800 dark:group-hover:text-[#d0de41] truncate">
+                        <h4 className="font-bold text-xs sm:text-sm text-[#17251c] dark:text-white group-hover:text-[#176b39] truncate">
                           {p.title_fa}
                         </h4>
-                        <p className="text-xs font-black text-emerald-900 dark:text-[#d0de41] mt-1">
+                        <p className="text-xs font-bold text-[#176b39] dark:text-[#2ea355] mt-1">
                           {priceToman.toLocaleString('fa-IR')} <span className="text-[10px] font-normal text-stone-500 dark:text-stone-400">تومان</span>
                         </p>
                       </div>
@@ -249,7 +413,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
 
                     <Link
                       href={`/product/${p.slug}`}
-                      className="px-3.5 py-2 bg-[#026251] hover:bg-[#024a3d] text-white rounded-xl text-xs font-bold transition-colors shrink-0 shadow-xs"
+                      className="px-3.5 py-2 bg-[#176b39] hover:bg-[#14552f] text-white rounded-2xl text-xs font-bold transition-colors shrink-0 shadow-xs"
                     >
                       مشاهده و خرید
                     </Link>
@@ -273,16 +437,16 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
         <div className="pt-4 flex justify-between items-center">
           <Link
             href="/articles"
-            className="px-5 py-2.5 bg-white dark:bg-[#091e18] hover:bg-stone-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-stone-200 dark:border-emerald-900/60 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shadow-xs"
+            className="px-5 py-2.5 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[#17251c] dark:text-stone-200 border border-[#e5e8de] dark:border-stone-800 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shadow-xs"
           >
             <ArrowRight className="w-4 h-4" />
             <span>بازگشت به فهرست مقالات</span>
           </Link>
           <Link
             href="/shop"
-            className="px-5 py-2.5 bg-[#026251] hover:bg-[#024a3d] text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shadow-xs"
+            className="px-5 py-2.5 bg-[#176b39] hover:bg-[#14552f] text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shadow-xs"
           >
-            <span>مشاهده فروشگاه مورینگا</span>
+            <span>مشاهده فروشگاه محصولات</span>
             <ChevronLeft className="w-4 h-4" />
           </Link>
         </div>

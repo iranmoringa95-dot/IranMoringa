@@ -53,33 +53,33 @@ func NewService(ordersSvc *orders.Service) *Service {
 	// Seed Channels
 	c1 := uuid.New()
 	svc.channels[c1] = &SupportChannel{
-		ID:              c1,
-		Type:            "whatsapp",
-		LabelFA:         "پشتیبانی واتساپ",
-		HandleOrURL:     "https://wa.me/989123456789",
-		PrefillTemplate: "سلام، درباره سفارش/محصول سوال دارم.",
+		ID:               c1,
+		Type:             "whatsapp",
+		LabelFA:          "پشتیبانی واتساپ",
+		HandleOrURL:      "https://wa.me/989123456789",
+		PrefillTemplate:  "سلام، درباره سفارش/محصول سوال دارم.",
 		AvailabilityInfo: "شنبه تا چهارشنبه ۹ الی ۱۷",
-		IsActive:        true,
+		IsActive:         true,
 	}
 
 	c2 := uuid.New()
 	svc.channels[c2] = &SupportChannel{
-		ID:              c2,
-		Type:            "telegram",
-		LabelFA:         "کانال تلگرام سبزینه",
-		HandleOrURL:     "https://t.me/moringalab_support",
+		ID:               c2,
+		Type:             "telegram",
+		LabelFA:          "کانال تلگرام سبزینه",
+		HandleOrURL:      "https://t.me/moringalab_support",
 		AvailabilityInfo: "پاسخگویی سریع آنلاین",
-		IsActive:        true,
+		IsActive:         true,
 	}
 
 	c3 := uuid.New()
 	svc.channels[c3] = &SupportChannel{
-		ID:              c3,
-		Type:            "phone",
-		LabelFA:         "تماس تلفنی",
-		HandleOrURL:     "02188888888",
+		ID:               c3,
+		Type:             "phone",
+		LabelFA:          "تماس تلفنی",
+		HandleOrURL:      "02188888888",
 		AvailabilityInfo: "ساعات کاری ۹ الی ۱۷",
-		IsActive:        true,
+		IsActive:         true,
 	}
 
 	// Seed Inquiry Ticket

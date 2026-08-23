@@ -38,18 +38,18 @@ type EmailProvider interface {
 // ─── Sent Message Records for Inspection/Testing ────────────────────────────
 
 type SentSMS struct {
-	ID        string    `json:"id"`
-	To        string    `json:"to"`
-	Body      string    `json:"body"`
-	SentAt    time.Time `json:"sent_at"`
+	ID     string    `json:"id"`
+	To     string    `json:"to"`
+	Body   string    `json:"body"`
+	SentAt time.Time `json:"sent_at"`
 }
 
 type SentEmail struct {
-	ID        string    `json:"id"`
-	To        string    `json:"to"`
-	Subject   string    `json:"subject"`
-	Body      string    `json:"body"`
-	SentAt    time.Time `json:"sent_at"`
+	ID      string    `json:"id"`
+	To      string    `json:"to"`
+	Subject string    `json:"subject"`
+	Body    string    `json:"body"`
+	SentAt  time.Time `json:"sent_at"`
 }
 
 // ─── Fake SMS Provider Adapter ───────────────────────────────────────────────

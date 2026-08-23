@@ -24,13 +24,13 @@ const (
 )
 
 type SupportChannel struct {
-	ID              uuid.UUID `json:"id"`
-	Type            string    `json:"type"` // "whatsapp", "telegram", "instagram", "phone", "contact_form"
-	LabelFA         string    `json:"label_fa"`
-	HandleOrURL     string    `json:"handle_or_url"`
-	PrefillTemplate string    `json:"prefill_template,omitempty"`
-	AvailabilityInfo string   `json:"availability_info"`
-	IsActive        bool      `json:"is_active"`
+	ID               uuid.UUID `json:"id"`
+	Type             string    `json:"type"` // "whatsapp", "telegram", "instagram", "phone", "contact_form"
+	LabelFA          string    `json:"label_fa"`
+	HandleOrURL      string    `json:"handle_or_url"`
+	PrefillTemplate  string    `json:"prefill_template,omitempty"`
+	AvailabilityInfo string    `json:"availability_info"`
+	IsActive         bool      `json:"is_active"`
 }
 
 type BusinessHours struct {

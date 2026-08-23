@@ -27,12 +27,12 @@ type CartItem struct {
 }
 
 type Cart struct {
-	ID         uuid.UUID              `json:"id"`
-	AnonymousID *string               `json:"anonymous_id,omitempty"`
-	UserID     *uuid.UUID             `json:"user_id,omitempty"`
-	CouponCode *string                `json:"coupon_code,omitempty"`
-	Items      []CartItem             `json:"items"`
-	Breakdown  pricing.PriceBreakdown `json:"breakdown"`
-	CreatedAt  time.Time              `json:"created_at"`
-	UpdatedAt  time.Time              `json:"updated_at"`
+	ID          uuid.UUID              `json:"id"`
+	AnonymousID *string                `json:"anonymous_id,omitempty"`
+	UserID      *uuid.UUID             `json:"user_id,omitempty"`
+	CouponCode  *string                `json:"coupon_code,omitempty"`
+	Items       []CartItem             `json:"items"`
+	Breakdown   pricing.PriceBreakdown `json:"breakdown"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
 }

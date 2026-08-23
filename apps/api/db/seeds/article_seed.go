@@ -93,15 +93,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 	articles := []*content.Article{
 		// 1
 		{
-			ID:                 uuid.MustParse("77777777-0001-1111-1111-111111111111"),
-			CategoryID:         catIntro.ID,
-			CategoryNameFA:     catIntro.NameFA,
-			CategorySlug:       catIntro.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "what-is-moringa",
-			TitleFA:            "مورینگا چیست؟ آشنایی ساده با این گیاه",
-			SummaryFA:          "معرفی جامع گیاه مورینگا اولیفرا، بخش‌های قابل مصرف، تاریخچه کشت و کاربردهای عمومی تغذیه‌ای آن در زندگی روزمره.",
+			ID:             uuid.MustParse("77777777-0001-1111-1111-111111111111"),
+			CategoryID:     catIntro.ID,
+			CategoryNameFA: catIntro.NameFA,
+			CategorySlug:   catIntro.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "what-is-moringa",
+			TitleFA:        "مورینگا چیست؟ آشنایی ساده با این گیاه",
+			SummaryFA:      "معرفی جامع گیاه مورینگا اولیفرا، بخش‌های قابل مصرف، تاریخچه کشت و کاربردهای عمومی تغذیه‌ای آن در زندگی روزمره.",
 			ContentFA: `گیاه مورینگا اولیفرا (Moringa oleifera) یکی از شناخته‌شده‌ترین گیاهان بومی مناطق گرمسیری و نیمه‌گرمسیری است که به دلیل تنوع کاربرد بخش‌های مختلف آن، در سراسر جهان مورد توجه قرار گرفته است. درخت مورینگا رشد سریعی دارد و تقریباً تمامی اجزای آن شامل برگ‌ها، دانه‌ها، ریشه و غلاف‌ها قابل استفاده یا فرآوری هستند.
 
 ## مشخصات ظاهری و تاریخچه کشت
@@ -133,15 +133,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 2
 		{
-			ID:                 uuid.MustParse("77777777-0002-1111-1111-111111111111"),
-			CategoryID:         catProductGuides.ID,
-			CategoryNameFA:     catProductGuides.NameFA,
-			CategorySlug:       catProductGuides.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "moringa-powder-vs-dried-leaves",
-			TitleFA:            "تفاوت پودر مورینگا و برگ خشک مورینگا",
-			SummaryFA:          "بررسی تفاوت‌های ظاهری، نحوه مصرف، شیوه نگهداری و انتخاب بین پودر خالص برگ و برگ خشک کامل مورینگا.",
+			ID:             uuid.MustParse("77777777-0002-1111-1111-111111111111"),
+			CategoryID:     catProductGuides.ID,
+			CategoryNameFA: catProductGuides.NameFA,
+			CategorySlug:   catProductGuides.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "moringa-powder-vs-dried-leaves",
+			TitleFA:        "تفاوت پودر مورینگا و برگ خشک مورینگا",
+			SummaryFA:      "بررسی تفاوت‌های ظاهری، نحوه مصرف، شیوه نگهداری و انتخاب بین پودر خالص برگ و برگ خشک کامل مورینگا.",
 			ContentFA: `هنگام تصمیم‌گیری برای خرید فرآورده‌های برگ مورینگا، با دو فرم اصلی مواجه می‌شوید: **پودر برگ مورینگا** و **برگ خشک کامل مورینگا**. اگرچه هر دو از یک گیاه سرچشمه می‌گیرند، اما تفاوت‌هایی در بافت، نحوه آماده‌سازی و نوع مصرف آن‌ها وجود دارد.
 
 ## ویژگی‌ها و کاربرد پودر برگ مورینگا
@@ -178,15 +178,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 3
 		{
-			ID:                 uuid.MustParse("77777777-0003-1111-1111-111111111111"),
-			CategoryID:         catStorage.ID,
-			CategoryNameFA:     catStorage.NameFA,
-			CategorySlug:       catStorage.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "how-to-store-moringa-powder",
-			TitleFA:            "راهنمای نگهداری صحیح پودر مورینگا",
-			SummaryFA:          "نکات مهم کلیدی برای حفظ کیفیت، رنگ سبز طبیعی، عطر و طعم پودر مورینگا در برابر نور، رطوبت و اکسیژن.",
+			ID:             uuid.MustParse("77777777-0003-1111-1111-111111111111"),
+			CategoryID:     catStorage.ID,
+			CategoryNameFA: catStorage.NameFA,
+			CategorySlug:   catStorage.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "how-to-store-moringa-powder",
+			TitleFA:        "راهنمای نگهداری صحیح پودر مورینگا",
+			SummaryFA:      "نکات مهم کلیدی برای حفظ کیفیت، رنگ سبز طبیعی، عطر و طعم پودر مورینگا در برابر نور، رطوبت و اکسیژن.",
 			ContentFA: `پودر برگ مورینگا ماده‌ای حساس به عوامل محیطی مانند نور مستقیم، اکسیژن و رطوبت است. برای حفظ عطر، رنگ سبز روشن و طعم طبیعی پودر مورینگا، رعایت چند نکته ساده اما حیاتی در خانه ضروری است.
 
 ## دشمنان اصلی کیفیت پودر مورینگا
@@ -221,15 +221,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 4
 		{
-			ID:                 uuid.MustParse("77777777-0004-1111-1111-111111111111"),
-			CategoryID:         catHowToUse.ID,
-			CategoryNameFA:     catHowToUse.NameFA,
-			CategorySlug:       catHowToUse.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "how-to-prepare-moringa-tea",
-			TitleFA:            "روش ساده آماده‌کردن دمنوش مورینگا",
-			SummaryFA:          "دستورالعمل گام به گام و ساده دم‌آوری دمنوش مورینگا با ترکیب لیمو و دارچین جهت طعم‌دهی دلپذیر.",
+			ID:             uuid.MustParse("77777777-0004-1111-1111-111111111111"),
+			CategoryID:     catHowToUse.ID,
+			CategoryNameFA: catHowToUse.NameFA,
+			CategorySlug:   catHowToUse.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "how-to-prepare-moringa-tea",
+			TitleFA:        "روش ساده آماده‌کردن دمنوش مورینگا",
+			SummaryFA:      "دستورالعمل گام به گام و ساده دم‌آوری دمنوش مورینگا با ترکیب لیمو و دارچین جهت طعم‌دهی دلپذیر.",
 			ContentFA: `دمنوش مورینگا نوشیدنی گیاهی مطبوع و فاقد کافئین است که می‌توانید آن را به عنوان یک میان‌وعده آرامش‌بخش در طول روز میل کنید. طعم طبیعی دمنوش مورینگا شبیه به چای سبز ملایم است و به‌راحتی با طعم‌دهنده‌های طبیعی مانند لیمو، عسل یا دارچین ترکیب می‌شود.
 
 ## روش اول: آماده‌سازی با دمنوش کیسه‌ای (تی‌بگ)
@@ -265,15 +265,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 5
 		{
-			ID:                 uuid.MustParse("77777777-0005-1111-1111-111111111111"),
-			CategoryID:         catBuyingGuides.ID,
-			CategoryNameFA:     catBuyingGuides.NameFA,
-			CategorySlug:       catBuyingGuides.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "moringa-buying-guide",
-			TitleFA:            "هنگام خرید محصولات مورینگا به چه نکاتی توجه کنیم؟",
-			SummaryFA:          "چک‌لیست کارآمد برای تشخیص پودر و روغن اصل مورینگا، بررسی بسته‌بندی، نشان‌های سلامت و اطلاعات تولیدکننده.",
+			ID:             uuid.MustParse("77777777-0005-1111-1111-111111111111"),
+			CategoryID:     catBuyingGuides.ID,
+			CategoryNameFA: catBuyingGuides.NameFA,
+			CategorySlug:   catBuyingGuides.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "moringa-buying-guide",
+			TitleFA:        "هنگام خرید محصولات مورینگا به چه نکاتی توجه کنیم؟",
+			SummaryFA:      "چک‌لیست کارآمد برای تشخیص پودر و روغن اصل مورینگا، بررسی بسته‌بندی، نشان‌های سلامت و اطلاعات تولیدکننده.",
 			ContentFA: `با افزایش محبوبیت محصولات گیاهی ارگانیک، تنوع برندها و عرضه فرآورده‌های مورینگا در بازار افزایش یافته است. توجه به کیفیت اولیه محصول، به شما کمک می‌کند تا بهترین گزینه را برای مصرف خود انتخاب کنید.
 
 ## ۱. رنگ و بافت ظاهری محصول
@@ -311,15 +311,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 6
 		{
-			ID:                 uuid.MustParse("77777777-0006-1111-1111-111111111111"),
-			CategoryID:         catIntro.ID,
-			CategoryNameFA:     catIntro.NameFA,
-			CategorySlug:       catIntro.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "moringa-seeds-guide",
-			TitleFA:            "آشنایی با دانه مورینگا و شیوه نگهداری آن",
-			SummaryFA:          "معرفی ویژگی‌های دانه مورینگا اولیفرا، روش نگهداری در شرایط خشکی و خنکی، و کاربردهای سنتی آن.",
+			ID:             uuid.MustParse("77777777-0006-1111-1111-111111111111"),
+			CategoryID:     catIntro.ID,
+			CategoryNameFA: catIntro.NameFA,
+			CategorySlug:   catIntro.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "moringa-seeds-guide",
+			TitleFA:        "آشنایی با دانه مورینگا و شیوه نگهداری آن",
+			SummaryFA:      "معرفی ویژگی‌های دانه مورینگا اولیفرا، روش نگهداری در شرایط خشکی و خنکی، و کاربردهای سنتی آن.",
 			ContentFA: `دانه‌های درخت مورینگا اولیفرا درون غلاف‌های بلند گیاه رشد می‌کنند. این دانه‌ها دارای پوسته قهوه‌ای یا سیاه با سه باله کاغذی کوچک هستند. دانه مورینگا هم برای استخراج روغن و هم جهت باغبانی و کشت گیاه مورد توجه قرار دارد.
 
 ## ویژگی دانه‌های سالم و باکیفیت
@@ -352,15 +352,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 7
 		{
-			ID:                 uuid.MustParse("77777777-0007-1111-1111-111111111111"),
-			CategoryID:         catProductGuides.ID,
-			CategoryNameFA:     catProductGuides.NameFA,
-			CategorySlug:       catProductGuides.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "moringa-oil-storage-guide",
-			TitleFA:            "روغن مورینگا چیست و چگونه نگهداری می‌شود؟",
-			SummaryFA:          "آشنایی با فرآیند عصاره‌گیری پرس سرد دانه مورینگا و شرایط ایده‌آل نگهداری ظرف شیشه‌ای آن دور از تابش نور.",
+			ID:             uuid.MustParse("77777777-0007-1111-1111-111111111111"),
+			CategoryID:     catProductGuides.ID,
+			CategoryNameFA: catProductGuides.NameFA,
+			CategorySlug:   catProductGuides.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "moringa-oil-storage-guide",
+			TitleFA:        "روغن مورینگا چیست و چگونه نگهداری می‌شود؟",
+			SummaryFA:      "آشنایی با فرآیند عصاره‌گیری پرس سرد دانه مورینگا و شرایط ایده‌آل نگهداری ظرف شیشه‌ای آن دور از تابش نور.",
 			ContentFA: `روغن مورینگا (Moringa Oil) از فشردن دانه‌های مغذی درخت مورینگا به روش مکانیکی پرس سرد (Cold Press) استحصال می‌شود. این روغن به دلیل داشتن اسیدهای چرب پایدار (مانند اسید اولئیک) مقاومت بالایی در برابر اکسیداسیون دارد.
 
 ## ویژگی‌های ظاهری روغن پرس سرد اصل
@@ -393,15 +393,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 8
 		{
-			ID:                 uuid.MustParse("77777777-0008-1111-1111-111111111111"),
-			CategoryID:         catBuyingGuides.ID,
-			CategoryNameFA:     catBuyingGuides.NameFA,
-			CategorySlug:       catBuyingGuides.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "read-moringa-product-labels",
-			TitleFA:            "راهنمای خواندن برچسب محصولات مورینگا",
-			SummaryFA:          "آموزش نحوه‌ تحلیل جدول ارزش غذایی، وزن خالص، تاریخ تولید و انقضا، شماره پروانه بهداشتی و هشدارهای عمومی.",
+			ID:             uuid.MustParse("77777777-0008-1111-1111-111111111111"),
+			CategoryID:     catBuyingGuides.ID,
+			CategoryNameFA: catBuyingGuides.NameFA,
+			CategorySlug:   catBuyingGuides.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "read-moringa-product-labels",
+			TitleFA:        "راهنمای خواندن برچسب محصولات مورینگا",
+			SummaryFA:      "آموزش نحوه‌ تحلیل جدول ارزش غذایی، وزن خالص، تاریخ تولید و انقضا، شماره پروانه بهداشتی و هشدارهای عمومی.",
 			ContentFA: `برچسب یا لیبل روی بسته‌بندی هر محصول غذایی و گیاهی، شناسنامه رسمی آن محسوب می‌شود. خواندن دقیق اطلاعات درج‌شده روی برچسب محصولات مورینگا به شما کمک می‌کند تا خریدی آگاهانه و مطمئن داشته باشید.
 
 ## اجزای اصلی روی برچسب محصولات استاندارد
@@ -432,15 +432,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 9
 		{
-			ID:                 uuid.MustParse("77777777-0009-1111-1111-111111111111"),
-			CategoryID:         catBuyingGuides.ID,
-			CategoryNameFA:     catBuyingGuides.NameFA,
-			CategorySlug:       catBuyingGuides.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "net-weight-vs-shipping-weight",
-			TitleFA:            "تفاوت وزن خالص و وزن ارسال در فروشگاه آنلاین",
-			SummaryFA:          "توضیح شفاف علت تفاوت وزن ماده داخل بسته (وزن خالص) و وزن نهایی مرسوله پستی شامل جعبه و ضربه‌گیر.",
+			ID:             uuid.MustParse("77777777-0009-1111-1111-111111111111"),
+			CategoryID:     catBuyingGuides.ID,
+			CategoryNameFA: catBuyingGuides.NameFA,
+			CategorySlug:   catBuyingGuides.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "net-weight-vs-shipping-weight",
+			TitleFA:        "تفاوت وزن خالص و وزن ارسال در فروشگاه آنلاین",
+			SummaryFA:      "توضیح شفاف علت تفاوت وزن ماده داخل بسته (وزن خالص) و وزن نهایی مرسوله پستی شامل جعبه و ضربه‌گیر.",
 			ContentFA: `یکی از پرسش‌های متداول خریداران در فروشگاه‌های اینترنتی، تفاوت عدد ثبت‌شده به عنوان **وزن خالص** و **وزن ارسال (پستی)** در جزئیات محصولات است. در این مطلب علت این اختلاف وزن را به‌صورت شفاف توضیح می‌دهیم.
 
 ## تعریف وزن خالص (Net Weight)
@@ -475,15 +475,15 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 		},
 		// 10
 		{
-			ID:                 uuid.MustParse("77777777-0010-1111-1111-111111111111"),
-			CategoryID:         catOrderingFAQ.ID,
-			CategoryNameFA:     catOrderingFAQ.NameFA,
-			CategorySlug:       catOrderingFAQ.Slug,
-			AuthorID:           authorID,
-			AuthorNameFA:       authorName,
-			Slug:               "moringa-order-faq",
-			TitleFA:            "پرسش‌های متداول درباره سفارش محصولات مورینگا",
-			SummaryFA:          "پاسخ جامع به سوالات رایج خریداران درباره روش‌های پرداخت آنلاین، زمان‌بندی ارسال پستی و نحوه پیگیری سفارش.",
+			ID:             uuid.MustParse("77777777-0010-1111-1111-111111111111"),
+			CategoryID:     catOrderingFAQ.ID,
+			CategoryNameFA: catOrderingFAQ.NameFA,
+			CategorySlug:   catOrderingFAQ.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   authorName,
+			Slug:           "moringa-order-faq",
+			TitleFA:        "پرسش‌های متداول درباره سفارش محصولات مورینگا",
+			SummaryFA:      "پاسخ جامع به سوالات رایج خریداران درباره روش‌های پرداخت آنلاین، زمان‌بندی ارسال پستی و نحوه پیگیری سفارش.",
 			ContentFA: `در این راهنما به متداول‌ترین پرسش‌های خریداران محترم درباره نحوه ثبت سفارش، پرداخت امن، شیوه‌های تحویل و پیگیری مرسولات در فروشگاه مورینگا پاسخ داده شده است.
 
 ## ۱. نحوه ثبت سفارش و پرداخت آنلاین
@@ -515,6 +515,77 @@ func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
 			CreatedAt:          baseTime.Add(10 * 24 * time.Hour),
 			UpdatedAt:          baseTime.Add(10 * 24 * time.Hour),
 			Tags:               []string{"پرسش متداول", "ارسال پستی", "راهنمای سفارش"},
+		},
+		// 11
+		{
+			ID:             uuid.MustParse("77777777-0011-1111-1111-111111111111"),
+			CategoryID:     catIntro.ID,
+			CategoryNameFA: catIntro.NameFA,
+			CategorySlug:   catIntro.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   "دکتر سارا احمدی (داروساز و متخصص فیتوتراپی)",
+			ReviewerNameFA: &[]string{"دکتر محمد حسینی (متخصص تغذیه)"}[0],
+			Slug:           "moringa-vs-spirulina-comparison",
+			TitleFA:        "مقایسه جامع مورینگا و اسپیرولینا؛ تفاوت‌ها، ارزش غذایی، لاغری و عضله‌سازی | کدام بهتر است؟",
+			SummaryFA:      "تحلیل بیوشیمیایی و تغذیه‌ای تطبیقی پودر مورینگا و جلبک اسپیرولینا؛ مقایسه درصد پروتئین، آهن، ویتامین C، آنتی‌اکسیدان‌ها، اثر بر چربی‌سوزی، بدنسازی، طبع طب سنتی و شیوه مصرف همزمان.",
+			ContentFA: `در دنیای تغذیه مدرن و گرایش روزافزون به گیاهان دارویی ارگانیک و سوپرفودهای طبیعی، پودر برگ مورینگا و جلبک اسپیرولینا بیش از هر مکمل دیگری مورد توجه قرار گرفته‌اند.
+
+## ۱. مقایسه ترکیبات مغذی
+- **پروتئین:** اسپیرولینا با حدود ۶۰٪ پروتئین متراکم‌تر است، در حالی که مورینگا ۳۰٪ پروتئین به همراه آمینواسیدهای کامل دارد.
+- **ویتامین C و کلسیم:** مورینگا با برتری چشمگیر، تا ۱۷ برابر شیر کلسیم و ویتامین C بسیار بالایی دارد.
+- **آهن:** هر دو منبع غنی آهن طبیعی هستند؛ اما ویتامین C مورینگا جذب آهن آن را تسریع می‌کند.
+
+## ۲. کدام برای لاغری بهتر است؟
+مورینگا به دلیل حضور ایزوتیوسیانات‌ها و اسید کلروژنیک حساسیت به انسولین را ارتقا داده و سوخت‌وساز چربی را افزایش می‌دهد.
+
+` + disclaimerText,
+			CoverImageURL:      "/images/articles/moringa-antioxidants-orac.jpg",
+			Status:             content.StatusPublished,
+			Version:            1,
+			DisclaimersFA:      disclaimerText,
+			ReadingTimeMinutes: 10,
+			SEOTitle:           "مقایسه مورینگا و اسپیرولینا؛ ارزش غذایی، لاغری، پروتئین | کدام بهتر است؟",
+			SEODescription:     "مقایسه علمی پودر مورینگا و جلبک اسپیرولینا؛ بررسی درصد پروتئین، ویتامین C، آهن، لاغری، بدنسازی و طبع در طب سنتی.",
+			PublishedAt:        &[]time.Time{baseTime.Add(11 * 24 * time.Hour)}[0],
+			CreatedAt:          baseTime.Add(11 * 24 * time.Hour),
+			UpdatedAt:          baseTime.Add(11 * 24 * time.Hour),
+			Tags:               []string{"مقایسه_مورینگا_و_اسپیرولینا", "اسپیرولینا_یا_مورینگا", "سوپرفود", "پروتئین_گیاهی", "لاغری_و_چربی_سوزی", "گیاهان_دارویی"},
+			RelatedProductIDs:  []uuid.UUID{pPowder100, pPowder250},
+		},
+		// 12
+		{
+			ID:             uuid.MustParse("77777777-0012-1111-1111-111111111111"),
+			CategoryID:     catIntro.ID,
+			CategoryNameFA: catIntro.NameFA,
+			CategorySlug:   catIntro.Slug,
+			AuthorID:       authorID,
+			AuthorNameFA:   "مهندس محمدرضا فرهمند (کارشناس ارشد کشت گیاهان دارویی)",
+			ReviewerNameFA: &[]string{"دکتر سارا احمدی (پژوهشگر طب سنتی و نوین)"}[0],
+			Slug:           "top-medicinal-plants-superfoods-guide",
+			TitleFA:        "راهنمای جامع برترین گیاهان دارویی و سوپرفودهای جهان در کنار مورینگا (آشواگاندا، ماچا، جینسینگ، ماکا و کلرلا)",
+			SummaryFA:      "معرفی جامع قدرتمندترین گیاهان دارویی و سوپرفودهای ارگانیک جهان؛ خواص مورینگا در کنار آشواگاندا، جینسینگ، پودر ماچا، ماکا و کلرلا برای افزایش پایدار انرژی، تعادل هورمونی، کاهش استرس و جایگزینی مکمل‌های شیمیایی.",
+			ContentFA: `با افزایش فشارهای روانی و آلاینده‌های محیطی، استفاده از گیاهان دارویی اصیل، سوپرفودها و آداپتوژن‌ها اهمیت ویژه‌ای یافته است.
+
+## گیاهان شاخص در کنار مورینگا
+1. **آشواگاندا:** مهار ترشح کورتیزول و کاهش اضطراب
+2. **چای ماچا:** آنتی‌اکسیدان EGCG و افزایش تمرکز بدون افت قند
+3. **جینسینگ کره‌ای:** تقویت قوای بدنی و سیستم ایمنی
+4. **ریشه ماکا:** تعادل هورمونی و استقامت
+5. **کلرلا:** سم‌زدایی و دفع فلزات سنگین
+
+` + disclaimerText,
+			CoverImageURL:      "/images/articles/moringa-daily-wellness-routine.jpg",
+			Status:             content.StatusPublished,
+			Version:            1,
+			DisclaimersFA:      disclaimerText,
+			ReadingTimeMinutes: 12,
+			SEOTitle:           "برترین گیاهان دارویی و سوپرفودهای جهان در کنار مورینگا (آشواگاندا، ماچا، جینسینگ)",
+			SEODescription:     "راهنمای جامع شناخت سوپرفودها و آداپتوژن‌های برتر دنیا؛ خواص درمانی مورینگا، آشواگاندا، ماچا، جینسینگ و ماکا.",
+			PublishedAt:        &[]time.Time{baseTime.Add(12 * 24 * time.Hour)}[0],
+			CreatedAt:          baseTime.Add(12 * 24 * time.Hour),
+			UpdatedAt:          baseTime.Add(12 * 24 * time.Hour),
+			Tags:               []string{"گیاهان_دارویی", "سوپرفودهای_جهان", "آشواگاندا", "مورینگا_و_جینسینگ", "چای_ماچا", "آداپتوژن"},
+			RelatedProductIDs:  []uuid.UUID{pPowder100, pLeaf50, pTeaLemon},
 		},
 	}
 

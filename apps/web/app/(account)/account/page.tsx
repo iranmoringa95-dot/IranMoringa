@@ -30,6 +30,7 @@ import {
   getCustomerOrders,
   saveCustomerProfile,
   customerLogout,
+  isCustomerLoggedIn,
   INITIAL_ORDERS,
   INITIAL_COUPONS,
   CustomerAddress,
@@ -70,6 +71,11 @@ export default function CustomerAccountDashboard() {
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isCustomerLoggedIn()) {
+      router.replace('/login?redirect=/account');
+      return;
+    }
+
     const prof = getCustomerProfile();
     setProfile(prof);
     setOrders(getCustomerOrders());
@@ -83,14 +89,27 @@ export default function CustomerAccountDashboard() {
       nationalCode: prof.nationalCode || '1289456721',
     });
 
+    const handleAuthUpdate = () => {
+      if (!isCustomerLoggedIn()) {
+        router.replace('/login');
+      } else {
+        const currentProf = getCustomerProfile();
+        setProfile(currentProf);
+        setIsAdmin(isUserSuperAdmin(currentProf.phone || '') || Boolean(getActiveAdminSession()));
+      }
+    };
+
     const handleOrdersUpdate = () => {
       setOrders(getCustomerOrders());
     };
+
     window.addEventListener('moringa_orders_updated', handleOrdersUpdate);
+    window.addEventListener('moringa_auth_changed', handleAuthUpdate);
     return () => {
       window.removeEventListener('moringa_orders_updated', handleOrdersUpdate);
+      window.removeEventListener('moringa_auth_changed', handleAuthUpdate);
     };
-  }, []);
+  }, [router]);
 
   const handleLogout = () => {
     customerLogout();

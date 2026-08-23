@@ -30,10 +30,10 @@ export default function AdminSettingsPage() {
   const [zarinpalMerchantId, setZarinpalMerchantId] = useState('6d3e8912-789a-4e2a-a1b2-c3d4e5f6a7b8');
   const [zarinpalSandbox, setZarinpalSandbox] = useState(true);
   const [cardToCardActive, setCardToCardActive] = useState(true);
-  const [cardNumber, setCardNumber] = useState('6037-9975-1234-5678');
-  const [shabaNumber, setShabaNumber] = useState('IR12-0170-0000-0012-3456-7890');
-  const [cardHolderName, setCardHolderName] = useState('احسان پویا (ایران مورینگا)');
-  const [bankName, setBankName] = useState('بانک ملی ایران');
+  const [cardNumber, setCardNumber] = useState('6063-7370-0504-0322');
+  const [shabaNumber, setShabaNumber] = useState('IR640600240501112024686001');
+  const [cardHolderName, setCardHolderName] = useState('ایران مورینگا');
+  const [bankName, setBankName] = useState('بانک مهر ایران');
   const [codActive, setCodActive] = useState(false);
 
   // SMS states

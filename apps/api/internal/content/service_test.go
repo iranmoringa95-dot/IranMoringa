@@ -9,7 +9,6 @@ import (
 	"moringalab/api/db/seeds"
 )
 
-
 func setupTestContentService(t *testing.T) *Service {
 	t.Helper()
 	return NewService()
@@ -73,7 +72,7 @@ func TestPublicationGateRequiresMedicalReviewerAndSources(t *testing.T) {
 
 	// Move to InReview -> Approve (without Reviewer ID or Sources set)
 	_, _ = svc.SubmitForReview(art.ID)
-	
+
 	// Approve manually without reviewer ID or sources
 	svc.mu.Lock()
 	art.Status = StatusApproved
@@ -328,4 +327,3 @@ func TestSeedDemoArticlesIdempotencyAndProductionGuard(t *testing.T) {
 		t.Fatalf("expected exactly 10 published demo articles on 2nd run, got %d", len(pubAfter2ndRun))
 	}
 }
-

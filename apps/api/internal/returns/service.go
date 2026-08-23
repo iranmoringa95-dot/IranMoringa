@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrReturnNotEligible = errors.New("مهلت مرجوعی کالا (۷ روز پس از تحویل) به پایان رسیده است")
+	ErrReturnNotEligible   = errors.New("مهلت مرجوعی کالا (۷ روز پس از تحویل) به پایان رسیده است")
 	ErrReturnAlreadyExists = errors.New("درخواست مرجوعی برای این سفارش قبلاً ثبت شده است")
 )
 

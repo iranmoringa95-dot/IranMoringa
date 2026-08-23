@@ -85,28 +85,28 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8f5] dark:bg-[#06120e] dir-rtl text-slate-800 dark:text-slate-100 font-sans selection:bg-[#d0de41] selection:text-[#026251] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#fafbf8] dark:bg-[#072714] dir-rtl text-[#17251c] dark:text-[#f2f9f4] font-sans selection:bg-[#c3e5cd] selection:text-[#176b39] transition-colors duration-200">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-stone-500">
-          <Link href="/" className="hover:text-emerald-700 transition-colors font-medium">
+          <Link href="/" className="hover:text-[#176b39] transition-colors font-medium">
             صفحه اصلی
           </Link>
           <ChevronLeft className="w-3.5 h-3.5 text-stone-400" />
-          <Link href="/shop" className="hover:text-emerald-700 transition-colors font-medium">
+          <Link href="/shop" className="hover:text-[#176b39] transition-colors font-medium">
             فروشگاه
           </Link>
           <ChevronLeft className="w-3.5 h-3.5 text-stone-400" />
-          <span className="text-slate-900 font-bold">سبد خرید شما</span>
+          <span className="text-slate-900 dark:text-white font-bold">سبد خرید شما</span>
         </nav>
 
         {/* Title & Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e5e8de] dark:border-stone-800 pb-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">سبد خرید شما</h1>
-            <p className="mt-1 text-xs sm:text-sm text-stone-600">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#17251c] dark:text-white">سبد خرید شما</h1>
+            <p className="mt-1 text-xs sm:text-sm text-stone-500 dark:text-stone-400">
               بررسی اقلام انتخابی و محاسبه قیمت نهایی سفارش
             </p>
           </div>
@@ -122,23 +122,23 @@ export default function CartPage() {
         </div>
 
         {loading ? (
-          <div className="bg-white p-12 text-center rounded-3xl border border-stone-200 text-stone-400">
+          <div className="bg-white dark:bg-stone-900 p-12 text-center rounded-3xl border border-[#e5e8de] dark:border-stone-800 text-stone-400">
             در حال بارگذاری سبد خرید...
           </div>
         ) : items.length === 0 ? (
-          <div className="bg-white p-12 text-center rounded-3xl border border-stone-200 space-y-4 max-w-md mx-auto shadow-xs">
+          <div className="bg-white dark:bg-stone-900 p-12 text-center rounded-3xl border border-[#e5e8de] dark:border-stone-800 space-y-4 max-w-md mx-auto shadow-xs">
             <div className="text-5xl">🛒</div>
-            <h2 className="text-lg font-black text-slate-900">سبد خرید شما در حال حاضر خالی است</h2>
-            <p className="text-xs text-stone-500 leading-relaxed">
+            <h2 className="text-lg font-black text-[#17251c] dark:text-white">سبد خرید شما در حال حاضر خالی است</h2>
+            <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
               محصولات ارگانیک و درمانی مورینگا را مشاهده و به سبد خود اضافه کنید.
             </p>
             <div className="pt-2">
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#026251] hover:bg-[#024a3d] text-white text-xs font-bold rounded-full transition-all shadow-md"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#176b39] hover:bg-[#14552f] text-white text-xs font-bold rounded-xl transition-all shadow-xs"
               >
-                <ShoppingBag className="w-4 h-4 text-[#d0de41]" />
-                <span>مشاهده کاتالوگ سوپرفودها</span>
+                <ShoppingBag className="w-4 h-4" />
+                <span>مشاهده محصولات فروشگاه</span>
               </Link>
             </div>
           </div>
@@ -147,19 +147,19 @@ export default function CartPage() {
             {/* Left: Items List (8 cols) */}
             <div className="lg:col-span-8 space-y-4">
               {/* Free Shipping Meter */}
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-950">
+              <div className="p-4 bg-[#f2f9f4] dark:bg-[#0a331b] border border-[#c3e5cd] dark:border-[#14552f] rounded-2xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-[#17251c] dark:text-white">
                   <span className="flex items-center gap-1.5">
-                    <Truck className="w-4 h-4 text-emerald-700" />
+                    <Truck className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
                     {remainingForFreeShipping > 0
                       ? `با خرید ${remainingForFreeShipping.toLocaleString('fa-IR')} تومان دیگر، ارسال شما رایگان می‌شود!`
-                      : 'تبریک! سفارش شما شامل ارسال کاملاً رایگان پستی شد! 🎉'}
+                      : 'سفارش شما شامل ارسال کاملاً رایگان پستی شد! 🎉'}
                   </span>
                   <span>{Math.round(freeShippingProgress)}٪</span>
                 </div>
-                <div className="w-full h-2 bg-emerald-200/60 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-[#c3e5cd] dark:bg-[#14552f] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                    className="h-full bg-[#176b39] dark:bg-[#2ea355] rounded-full transition-all duration-500"
                     style={{ width: `${freeShippingProgress}%` }}
                   />
                 </div>
@@ -177,11 +177,11 @@ export default function CartPage() {
                   return (
                     <div
                       key={`${item.productId}-${item.variantId || 'default'}`}
-                      className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                      className="bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-[#e5e8de] dark:border-stone-800 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                     >
                       {/* Image & Title */}
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="w-20 h-20 bg-[#faf8f5] rounded-2xl border border-stone-100 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                        <div className="w-20 h-20 bg-[#fafbf8] dark:bg-stone-800 rounded-xl border border-stone-100 dark:border-stone-700 p-1 flex items-center justify-center shrink-0 overflow-hidden">
                           <img
                             src={item.imageUrl}
                             alt={item.title_fa}
@@ -190,37 +190,37 @@ export default function CartPage() {
                         </div>
 
                         <div className="space-y-1">
-                          <h3 className="text-sm font-bold text-slate-900 hover:text-emerald-700 transition-colors">
+                          <h3 className="text-sm font-bold text-[#17251c] dark:text-white hover:text-[#176b39] transition-colors">
                             <Link href={`/product/${item.slug}`}>{item.title_fa}</Link>
                           </h3>
                           {item.subtitle_fa && (
-                            <p className="text-[11px] text-stone-500 line-clamp-1">{item.subtitle_fa}</p>
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400 line-clamp-1">{item.subtitle_fa}</p>
                           )}
-                          <div className="text-[11px] text-stone-400 font-mono">SKU: {item.sku}</div>
+                          <div className="text-[11px] text-stone-400 font-mono">کد: {item.sku}</div>
                         </div>
                       </div>
 
                       {/* Price & Quantity Controls */}
-                      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-stone-800">
                         {/* Quantity Buttons */}
-                        <div className="flex items-center gap-2 bg-stone-100 rounded-xl p-1 border border-stone-200">
+                        <div className="flex items-center gap-2 bg-stone-100 dark:bg-stone-800 rounded-xl p-1 border border-stone-200 dark:border-stone-700">
                           <button
                             onClick={() =>
                               updateCartQuantity(item.productId, item.quantity - 1, item.variantId)
                             }
-                            className="w-7 h-7 bg-white hover:bg-stone-200 text-slate-700 rounded-lg flex items-center justify-center transition-colors shadow-xs"
+                            className="w-7 h-7 bg-white dark:bg-stone-900 hover:bg-stone-200 text-slate-700 dark:text-stone-300 rounded-lg flex items-center justify-center transition-colors shadow-xs"
                             aria-label="کاهش تعداد"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="w-8 text-center text-xs font-black text-slate-900">
+                          <span className="w-8 text-center text-xs font-bold text-slate-900 dark:text-white">
                             {item.quantity.toLocaleString('fa-IR')}
                           </span>
                           <button
                             onClick={() =>
                               updateCartQuantity(item.productId, item.quantity + 1, item.variantId)
                             }
-                            className="w-7 h-7 bg-white hover:bg-stone-200 text-slate-700 rounded-lg flex items-center justify-center transition-colors shadow-xs"
+                            className="w-7 h-7 bg-white dark:bg-stone-900 hover:bg-stone-200 text-slate-700 dark:text-stone-300 rounded-lg flex items-center justify-center transition-colors shadow-xs"
                             aria-label="افزایش تعداد"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -234,7 +234,7 @@ export default function CartPage() {
                               {(compareToman * item.quantity).toLocaleString('fa-IR')}
                             </div>
                           )}
-                          <div className="text-sm font-black text-slate-900">
+                          <div className="text-sm font-black text-[#176b39] dark:text-[#2ea355]">
                             {itemLineTotalToman.toLocaleString('fa-IR')}
                             <span className="text-[10px] text-stone-500 font-normal mr-1">تومان</span>
                           </div>
@@ -243,7 +243,7 @@ export default function CartPage() {
                         {/* Remove Button */}
                         <button
                           onClick={() => removeFromCart(item.productId, item.variantId)}
-                          className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                          className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors"
                           title="حذف از سبد خرید"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -257,7 +257,7 @@ export default function CartPage() {
               <div className="pt-2">
                 <Link
                   href="/shop"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#176b39] dark:text-[#2ea355] hover:underline"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>افزودن محصولات بیشتر به سبد خرید</span>
@@ -267,25 +267,25 @@ export default function CartPage() {
 
             {/* Right: Checkout Summary (4 cols) */}
             <div className="lg:col-span-4 space-y-4">
-              <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm space-y-5 sticky top-28">
-                <h2 className="text-base font-black text-slate-900 border-b border-stone-100 pb-3">
+              <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-[#e5e8de] dark:border-stone-800 shadow-xs space-y-5 sticky top-28">
+                <h2 className="text-base font-black text-[#17251c] dark:text-white border-b border-stone-100 dark:border-stone-800 pb-3">
                   خلاصه فاکتور سفارش
                 </h2>
 
                 {/* Coupon Box */}
                 <form onSubmit={handleApplyCoupon} className="space-y-2">
-                  <label className="text-xs font-bold text-stone-700 block">کد تخفیف دارید؟</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block">کد تخفیف دارید؟</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
                       placeholder="مثلاً: MORINGA15"
-                      className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 focus:border-emerald-600 rounded-xl text-xs font-mono uppercase focus:outline-none"
+                      className="flex-1 px-3 py-2 bg-[#fafbf8] dark:bg-stone-800 border border-[#e5e8de] dark:border-stone-700 focus:border-[#176b39] rounded-xl text-xs font-mono uppercase focus:outline-none min-h-[42px]"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#026251] hover:bg-[#024a3d] text-white text-xs font-bold rounded-xl transition-colors"
+                      className="px-4 py-2 bg-[#176b39] hover:bg-[#14552f] text-white text-xs font-bold rounded-xl transition-colors min-h-[42px]"
                     >
                       اعمال
                     </button>
@@ -296,7 +296,7 @@ export default function CartPage() {
                       className={`text-[11px] p-2 rounded-xl flex items-center justify-between ${
                         couponMessage.isError
                           ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                          : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-[#f2f9f4] text-[#176b39] border border-[#c3e5cd]'
                       }`}
                     >
                       <span>{couponMessage.text}</span>
@@ -314,32 +314,32 @@ export default function CartPage() {
                 </form>
 
                 {/* Price Lines */}
-                <div className="space-y-3 text-xs pt-2 border-t border-stone-100">
-                  <div className="flex justify-between text-stone-600">
+                <div className="space-y-3 text-xs pt-2 border-t border-stone-100 dark:border-stone-800">
+                  <div className="flex justify-between text-stone-600 dark:text-stone-300">
                     <span>جمع اقلام:</span>
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-slate-900 dark:text-white">
                       {subtotalToman.toLocaleString('fa-IR')} تومان
                     </span>
                   </div>
 
                   {discountToman > 0 && (
-                    <div className="flex justify-between text-emerald-800 font-bold">
+                    <div className="flex justify-between text-[#176b39] dark:text-[#2ea355] font-bold">
                       <span>تخفیف کوپن ({summary.couponDiscountPercent}٪):</span>
                       <span>- {discountToman.toLocaleString('fa-IR')} تومان</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-stone-600">
+                  <div className="flex justify-between text-stone-600 dark:text-stone-300">
                     <span>هزینه ارسال پستی:</span>
-                    <span className={shippingToman === 0 ? 'text-emerald-700 font-bold' : 'font-bold text-slate-900'}>
+                    <span className={shippingToman === 0 ? 'text-[#176b39] dark:text-[#2ea355] font-bold' : 'font-bold text-slate-900 dark:text-white'}>
                       {shippingToman === 0 ? 'رایگان 🎁' : `${shippingToman.toLocaleString('fa-IR')} تومان`}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-baseline pt-3 border-t border-stone-200 text-slate-900">
+                  <div className="flex justify-between items-baseline pt-3 border-t border-[#e5e8de] dark:border-stone-800 text-[#17251c] dark:text-white">
                     <span className="text-sm font-bold">مبلغ نهایی قابل پرداخت:</span>
                     <div className="text-left">
-                      <span className="text-xl font-black text-emerald-800">
+                      <span className="text-xl font-black text-[#176b39] dark:text-[#2ea355]">
                         {grandTotalToman.toLocaleString('fa-IR')}
                       </span>
                       <span className="text-xs text-stone-500 mr-1 font-medium">تومان</span>
@@ -350,7 +350,7 @@ export default function CartPage() {
                 {/* Checkout CTA */}
                 <Link
                   href="/checkout"
-                  className="w-full py-4 bg-[#d0de41] hover:bg-[#b8c634] text-[#026251] text-sm font-black rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-center"
+                  className="w-full py-3.5 bg-[#176b39] hover:bg-[#14552f] text-white text-sm font-bold rounded-xl shadow-xs hover:shadow-card transition-all flex items-center justify-center gap-2 text-center"
                 >
                   <span>ادامه فرآیند ثبت و پرداخت</span>
                   <ChevronLeft className="w-4 h-4" />
@@ -359,11 +359,11 @@ export default function CartPage() {
                 {/* Trust Badges */}
                 <div className="space-y-2 pt-2 text-[11px] text-stone-500">
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                    <ShieldCheck className="w-4 h-4 text-[#176b39]" />
                     <span>تضمین سلامت فیزیکی و اصالت کالا</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-emerald-700" />
+                    <Truck className="w-4 h-4 text-[#176b39]" />
                     <span>ارسال سریع پیشتاز با بسته‌بندی ایمن</span>
                   </div>
                 </div>
@@ -378,3 +378,4 @@ export default function CartPage() {
     </div>
   );
 }
+

@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"moringalab/api/internal/notifications"
 )
 
 // ─── Errors ──────────────────────────────────────────────────────────────────
@@ -51,6 +53,10 @@ type ListResult struct {
 
 // ─── Service ─────────────────────────────────────────────────────────────────
 
+type OrderStatusNotifier interface {
+	NotifyOrderStatusChanged(orderNumber string, oldStatus, newStatus string, trackingCode string, recipientPhone string, recipientName string) (*notifications.NotificationDelivery, error)
+}
+
 type Service struct {
 	mu          sync.RWMutex
 	orders      map[uuid.UUID]*Order
@@ -58,6 +64,36 @@ type Service struct {
 	idempotency map[string]*Order
 	timeline    map[uuid.UUID][]OrderTimelineEvent
 	counter     uint64
+	notifier    OrderStatusNotifier
+	subscribers map[chan *OrderNotificationPayload]struct{}
+}
+
+type OrderNotificationPayload struct {
+	Event       string `json:"event"` // "order_created", "status_changed"
+	OrderID     string `json:"order_id"`
+	OrderNumber string `json:"order_number"`
+	Status      string `json:"status"`
+	Customer    string `json:"customer"`
+	Phone       string `json:"phone"`
+	City        string `json:"city"`
+	TotalIRR    int64  `json:"total_irr"`
+	TotalToman  int64  `json:"total_toman"`
+	CreatedAt   string `json:"created_at"`
+}
+
+type OrderStatsSummary struct {
+	TotalOrders      int   `json:"total_orders"`
+	PendingPayment   int   `json:"pending_payment"`
+	Processing       int   `json:"processing"`
+	Packed           int   `json:"packed"`
+	Shipped          int   `json:"shipped"`
+	Delivered        int   `json:"delivered"`
+	Cancelled        int   `json:"cancelled"`
+	TodayOrdersCount int   `json:"today_orders_count"`
+	TodaySalesIRR    int64 `json:"today_sales_irr"`
+	TodaySalesToman  int64 `json:"today_sales_toman"`
+	TotalSalesIRR    int64 `json:"total_sales_irr"`
+	TotalSalesToman  int64 `json:"total_sales_toman"`
 }
 
 func NewService() *Service {
@@ -66,7 +102,37 @@ func NewService() *Service {
 		byNum:       make(map[string]*Order),
 		idempotency: make(map[string]*Order),
 		timeline:    make(map[uuid.UUID][]OrderTimelineEvent),
+		subscribers: make(map[chan *OrderNotificationPayload]struct{}),
 	}
+}
+
+func (s *Service) Subscribe() (chan *OrderNotificationPayload, func()) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	ch := make(chan *OrderNotificationPayload, 32)
+	s.subscribers[ch] = struct{}{}
+	return ch, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		delete(s.subscribers, ch)
+		close(ch)
+	}
+}
+
+func (s *Service) broadcastNotification(payload *OrderNotificationPayload) {
+	for ch := range s.subscribers {
+		select {
+		case ch <- payload:
+		default:
+			// channel full, skip to prevent blocking
+		}
+	}
+}
+
+func (s *Service) SetNotifier(n OrderStatusNotifier) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.notifier = n
 }
 
 // ─── Order Number Generation ─────────────────────────────────────────────────
@@ -151,6 +217,19 @@ func (s *Service) CreateOrder(req *Order) (*Order, error) {
 		ActorType: ActorSystem,
 		Note:      "سفارش ایجاد شد",
 		CreatedAt: now,
+	})
+
+	s.broadcastNotification(&OrderNotificationPayload{
+		Event:       "order_created",
+		OrderID:     req.ID.String(),
+		OrderNumber: req.OrderNumber,
+		Status:      string(req.Status),
+		Customer:    req.Address.RecipientName,
+		Phone:       req.Address.RecipientPhone,
+		City:        req.Address.City,
+		TotalIRR:    req.TotalIRR,
+		TotalToman:  req.TotalIRR / 10,
+		CreatedAt:   now.Format(time.RFC3339),
 	})
 
 	return req, nil
@@ -325,6 +404,40 @@ func (s *Service) TransitionStatus(req TransitionRequest) error {
 		CreatedAt: now,
 	})
 
+	if s.notifier != nil {
+		phone := ""
+		name := ""
+		if ord.GuestPhone != nil {
+			phone = *ord.GuestPhone
+		}
+		if ord.Address.RecipientPhone != "" {
+			phone = ord.Address.RecipientPhone
+		}
+		if ord.Address.RecipientName != "" {
+			name = ord.Address.RecipientName
+		}
+		orderNum := ord.OrderNumber
+		oldSt := string(oldStatus)
+		newSt := string(req.NewStatus)
+		trkCode := ord.TrackingCode
+		go func() {
+			_, _ = s.notifier.NotifyOrderStatusChanged(orderNum, oldSt, newSt, trkCode, phone, name)
+		}()
+	}
+
+	s.broadcastNotification(&OrderNotificationPayload{
+		Event:       "status_changed",
+		OrderID:     ord.ID.String(),
+		OrderNumber: ord.OrderNumber,
+		Status:      string(ord.Status),
+		Customer:    ord.Address.RecipientName,
+		Phone:       ord.Address.RecipientPhone,
+		City:        ord.Address.City,
+		TotalIRR:    ord.TotalIRR,
+		TotalToman:  ord.TotalIRR / 10,
+		CreatedAt:   ord.CreatedAt.Format(time.RFC3339),
+	})
+
 	return nil
 }
 
@@ -471,4 +584,65 @@ func (s *Service) ListOrdersForAdmin(status, searchQuery string) []Order {
 		res = append(res, *ord)
 	}
 	return res
+}
+
+// GetNewOrdersSince returns all orders updated or created after a given timestamp, or after a given order ID.
+func (s *Service) GetNewOrdersSince(since time.Time, afterID *uuid.UUID) []*Order {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var matched []*Order
+	for _, ord := range s.orders {
+		if afterID != nil && ord.ID == *afterID {
+			continue
+		}
+		if !since.IsZero() && !ord.UpdatedAt.After(since) && !ord.CreatedAt.After(since) {
+			continue
+		}
+		matched = append(matched, ord)
+	}
+	return matched
+}
+
+// GetOrderStatsSummary calculates quick real-time counters and sales metrics.
+func (s *Service) GetOrderStatsSummary() *OrderStatsSummary {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	now := time.Now()
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	summary := &OrderStatsSummary{
+		TotalOrders: len(s.orders),
+	}
+
+	for _, ord := range s.orders {
+		switch ord.Status {
+		case StatusPendingPayment:
+			summary.PendingPayment++
+		case StatusProcessing, StatusPaid:
+			summary.Processing++
+		case StatusPacked:
+			summary.Packed++
+		case StatusShipped:
+			summary.Shipped++
+		case StatusDelivered:
+			summary.Delivered++
+		case StatusCancelled, StatusRefunded:
+			summary.Cancelled++
+		}
+
+		if ord.Status != StatusCancelled && ord.Status != StatusRefunded {
+			summary.TotalSalesIRR += ord.TotalIRR
+			if ord.CreatedAt.After(startOfToday) {
+				summary.TodayOrdersCount++
+				summary.TodaySalesIRR += ord.TotalIRR
+			}
+		}
+	}
+
+	summary.TodaySalesToman = summary.TodaySalesIRR / 10
+	summary.TotalSalesToman = summary.TotalSalesIRR / 10
+
+	return summary
 }

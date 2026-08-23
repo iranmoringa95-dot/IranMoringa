@@ -18,6 +18,8 @@ var (
 	ErrOTPExpired      = errors.New("کد تایید انقضا یافته است")
 	ErrOTPMaxAttempts  = errors.New("تعداد تلاش‌های مجاز کد تایید به پایان رسیده است")
 	ErrOTPInvalid      = errors.New("کد تایید واردشده نادرست است")
+	ErrOTPGeneration   = errors.New("تولید کد تایید ناموفق بود")
+	ErrOTPDelivery     = errors.New("ارسال کد تایید ناموفق بود")
 	ErrAccountLocked   = errors.New("حساب کاربری به دلیل تلاش‌های ناموفق متوالی موقتاً مسدود شده است")
 	ErrInvalidPassword = errors.New("ایمیل یا رمز عبور واردشده نادرست است")
 	ErrUnauthorized    = errors.New("دسترسی احراز نشده است")
@@ -60,11 +62,16 @@ func NewMemoryStore() *MemoryStore {
 }
 
 type Service struct {
-	store *MemoryStore
+	store      *MemoryStore
+	deliverOTP func(phone, code string) error
 }
 
-func NewService(store *MemoryStore) *Service {
-	return &Service{store: store}
+func NewService(store *MemoryStore, delivery ...func(phone, code string) error) *Service {
+	service := &Service{store: store}
+	if len(delivery) > 0 {
+		service.deliverOTP = delivery[0]
+	}
+	return service
 }
 
 func HashSHA256(input string) string {
@@ -99,7 +106,13 @@ func (s *Service) RequestOTP(phone string) (string, error) {
 
 	otpCode, err := GenerateOTPCode()
 	if err != nil {
-		otpCode = "123456" // Fallback mock OTP in development
+		return "", fmt.Errorf("%w: %v", ErrOTPGeneration, err)
+	}
+
+	if s.deliverOTP != nil {
+		if err := s.deliverOTP(normPhone, otpCode); err != nil {
+			return "", fmt.Errorf("%w: %v", ErrOTPDelivery, err)
+		}
 	}
 
 	otpHash := HashSHA256(otpCode)

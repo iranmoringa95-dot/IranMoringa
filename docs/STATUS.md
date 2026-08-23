@@ -4,6 +4,7 @@
 - **Current Status**: **PROJECT COMPLETED (RELEASE CANDIDATE v1.0.0)**
 - **All Milestones (0 through 10)**: **100% COMPLETED & VERIFIED**
 - **Repository State**: Full Go Modular Monolith backend, Next.js 15 App Router RTL storefront & admin panel, 19 static/dynamic production routes compiled with 0 errors, full domain invariant compliance, and clean Git history.
+- **OTP Production Routing**: Cloudflare Worker proxies `/api/*` to the Go origin; WebOneSMS delivery failures return structured JSON and OTP values are hidden in production.
 
 ---
 

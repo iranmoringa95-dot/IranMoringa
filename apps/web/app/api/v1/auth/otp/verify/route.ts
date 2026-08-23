@@ -14,22 +14,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const verification = verifyOTP(phone, code);
-    if (!verification.valid) {
+    const verification = await verifyOTP(phone, code);
+    if (!verification.valid || !verification.user) {
       return NextResponse.json(
         { detail: verification.error || 'کد تایید واردشده نامعتبر است.' },
         { status: 400 }
       );
     }
 
-    const userName = phone.includes('09132391843') ? 'احسان پویا' : 'کاربر گرامی';
+    const user = verification.user;
 
     const response = NextResponse.json({
       success: true,
       token: `moringa_token_${Date.now()}`,
       user: {
-        phone,
-        name: userName,
+        phone: user.phone,
+        name: user.name,
+        isNew: user.isNew,
         role: 'customer',
       },
     });
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
       path: '/',
     });
 
-    response.cookies.set('moringa_user_phone', phone, {
+    response.cookies.set('moringa_user_phone', user.phone, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
       path: '/',
     });
 
-    response.cookies.set('moringa_user_name', encodeURIComponent(userName), {
+    response.cookies.set('moringa_user_name', encodeURIComponent(user.name), {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

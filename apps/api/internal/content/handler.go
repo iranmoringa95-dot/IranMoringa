@@ -308,4 +308,3 @@ func writeError(w http.ResponseWriter, status int, code, detail string) {
 		"detail": detail,
 	})
 }
-

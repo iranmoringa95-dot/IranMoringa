@@ -92,7 +92,7 @@ export function BottomNav({ onOpenSearch }: BottomNavProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/85 dark:bg-[#071d17]/85 backdrop-blur-xl border-t border-slate-200/80 dark:border-emerald-900/60 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] transition-colors duration-200"
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 dark:bg-[#072714]/95 backdrop-blur-xl border-t border-[#e5e8de] dark:border-[#14552f] shadow-float transition-colors duration-200"
       aria-label="منوی دسترسی سریع موبایل"
     >
       <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-around">
@@ -102,7 +102,7 @@ export function BottomNav({ onOpenSearch }: BottomNavProps) {
             <div className="relative flex flex-col items-center justify-center gap-1 py-1 w-14 transition-transform active:scale-95">
               {/* Active Indicator Glow */}
               {item.isActive && (
-                <span className="absolute -top-2 w-7 h-1 bg-[#026251] dark:bg-[#d0de41] rounded-full shadow-[0_0_8px_rgba(208,222,65,0.6)] animate-in fade-in zoom-in duration-200" />
+                <span className="absolute -top-2 w-7 h-1 bg-[#176b39] dark:bg-[#2ea355] rounded-full animate-in fade-in zoom-in duration-200" />
               )}
 
               {/* Icon / Avatar Wrapper */}
@@ -111,8 +111,8 @@ export function BottomNav({ onOpenSearch }: BottomNavProps) {
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
                       item.isActive
-                        ? 'bg-[#026251] text-[#d0de41] ring-2 ring-[#d0de41]'
-                        : 'bg-slate-100 dark:bg-emerald-900/40 text-slate-700 dark:text-emerald-300'
+                        ? 'bg-[#176b39] text-white ring-2 ring-[#176b39]/30'
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
                     }`}
                   >
                     {userName ? userName.slice(0, 1) : 'اح'}
@@ -121,22 +121,22 @@ export function BottomNav({ onOpenSearch }: BottomNavProps) {
                   <Icon
                     className={`w-5 h-5 transition-colors ${
                       item.isActive
-                        ? 'text-[#026251] dark:text-[#d0de41] stroke-[2.5]'
-                        : 'text-slate-500 dark:text-slate-400 stroke-[1.75]'
+                        ? 'text-[#176b39] dark:text-[#2ea355] stroke-[2.5]'
+                        : 'text-stone-500 dark:text-stone-400 stroke-[1.75]'
                     }`}
                   />
                 )}
 
                 {/* Live Cart Counter Badge */}
                 {item.count !== undefined && item.count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 bg-[#d0de41] text-[#026251] text-[9px] font-black rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
+                  <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 bg-[#f47a24] text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs animate-in zoom-in">
                     {item.count.toLocaleString('fa-IR')}
                   </span>
                 )}
 
                 {/* Special Shop Badge */}
                 {item.badge && !item.isActive && (
-                  <span className="absolute -top-1 -right-2 w-2 h-2 bg-[#d0de41] rounded-full animate-pulse" />
+                  <span className="absolute -top-1 -right-1.5 w-2 h-2 bg-[#f47a24] rounded-full animate-pulse" />
                 )}
               </div>
 
@@ -144,8 +144,8 @@ export function BottomNav({ onOpenSearch }: BottomNavProps) {
               <span
                 className={`text-[10px] font-bold tracking-tight transition-colors ${
                   item.isActive
-                    ? 'text-[#026251] dark:text-[#d0de41] font-black'
-                    : 'text-slate-500 dark:text-slate-400'
+                    ? 'text-[#176b39] dark:text-[#2ea355] font-black'
+                    : 'text-stone-500 dark:text-stone-400'
                 }`}
               >
                 {item.label}
@@ -177,3 +177,6 @@ export function BottomNav({ onOpenSearch }: BottomNavProps) {
     </nav>
   );
 }
+
+export default BottomNav;
+

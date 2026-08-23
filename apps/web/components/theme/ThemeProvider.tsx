@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
@@ -14,17 +14,27 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Read saved theme from localStorage on initial load
-    const savedTheme = (localStorage.getItem('iran_moringa_theme') as Theme) || 'light';
+    // Read saved theme from localStorage (defaults to 'system')
+    let savedTheme: Theme = 'system';
+    try {
+      const stored = localStorage.getItem('iran_moringa_theme');
+      if (stored === 'light' || stored === 'dark' || stored === 'system') {
+        savedTheme = stored;
+      }
+    } catch (e) {}
+
     setThemeState(savedTheme);
 
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialResolved = savedTheme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : savedTheme;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const systemPrefersDark = mediaQuery.matches;
+    const initialResolved: 'light' | 'dark' =
+      savedTheme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : savedTheme;
+
     setResolvedTheme(initialResolved);
 
     if (initialResolved === 'dark') {
@@ -34,11 +44,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     setMounted(true);
+
+    // Listen to live system changes on mobile/browser OS
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      const currentSaved = (localStorage.getItem('iran_moringa_theme') as Theme) || 'system';
+      if (currentSaved === 'system') {
+        const newActual = e.matches ? 'dark' : 'light';
+        setResolvedTheme(newActual);
+        if (newActual === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+      return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleSystemThemeChange);
+      return () => mediaQuery.removeListener(handleSystemThemeChange);
+    }
   }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('iran_moringa_theme', newTheme);
+    try {
+      localStorage.setItem('iran_moringa_theme', newTheme);
+    } catch (e) {}
 
     let actual: 'light' | 'dark';
     if (newTheme === 'system') {
@@ -74,3 +108,4 @@ export function useTheme() {
   }
   return context;
 }
+

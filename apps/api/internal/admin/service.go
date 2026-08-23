@@ -37,18 +37,18 @@ func NewService(
 }
 
 type CustomerSummary struct {
-	ID              string   `json:"id"`
-	FullName        string   `json:"full_name"`
-	Phone           string   `json:"phone"`
-	City            string   `json:"city"`
-	Province        string   `json:"province"`
-	PostalAddress   string   `json:"postal_address"`
-	PostalCode      string   `json:"postal_code"`
-	TotalOrders     int      `json:"total_orders"`
-	TotalSpentIRR   int64    `json:"total_spent_irr"`
-	TotalSpentToman int64    `json:"total_spent_toman"`
-	Tier            string   `json:"tier"` // gold, silver, bronze
-	LastOrderDate   string   `json:"last_order_date,omitempty"`
+	ID              string `json:"id"`
+	FullName        string `json:"full_name"`
+	Phone           string `json:"phone"`
+	City            string `json:"city"`
+	Province        string `json:"province"`
+	PostalAddress   string `json:"postal_address"`
+	PostalCode      string `json:"postal_code"`
+	TotalOrders     int    `json:"total_orders"`
+	TotalSpentIRR   int64  `json:"total_spent_irr"`
+	TotalSpentToman int64  `json:"total_spent_toman"`
+	Tier            string `json:"tier"` // gold, silver, bronze
+	LastOrderDate   string `json:"last_order_date,omitempty"`
 }
 
 func (s *Service) GetDashboardStats() DashboardStats {

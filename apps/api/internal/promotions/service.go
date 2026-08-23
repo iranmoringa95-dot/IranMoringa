@@ -27,7 +27,7 @@ var (
 
 type Service struct {
 	mu          sync.RWMutex
-	coupons     map[string]*Coupon            // key: CodeNormalized
+	coupons     map[string]*Coupon // key: CodeNormalized
 	redemptions map[uuid.UUID]*CouponRedemption
 }
 
@@ -60,7 +60,7 @@ func NewService() *Service {
 		ID:                uuid.New(),
 		Code:              "MORINGA50K",
 		DiscountType:      TypeFixedAmount,
-		ValueIRR:          500000, // 50,000 Toman
+		ValueIRR:          500000,  // 50,000 Toman
 		MinOrderAmount:    1000000, // 100,000 Toman
 		TotalUsageLimit:   50,
 		UsageLimitPerUser: 2,

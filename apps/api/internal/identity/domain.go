@@ -18,23 +18,23 @@ type User struct {
 }
 
 type UserCredentials struct {
-	UserID               uuid.UUID  `json:"user_id"`
-	PasswordHash         *string    `json:"-"`
-	TOTPSecret           *string    `json:"-"`
-	TOTPEnabled          bool       `json:"totp_enabled"`
+	UserID              uuid.UUID  `json:"user_id"`
+	PasswordHash        *string    `json:"-"`
+	TOTPSecret          *string    `json:"-"`
+	TOTPEnabled         bool       `json:"totp_enabled"`
 	FailedLoginAttempts int        `json:"failed_login_attempts"`
-	LockedUntil          *time.Time `json:"locked_until,omitempty"`
+	LockedUntil         *time.Time `json:"locked_until,omitempty"`
 }
 
 type OTPChallenge struct {
-	ID         uuid.UUID  `json:"id"`
-	Phone      string     `json:"phone"`
-	OTPHash    string     `json:"-"`
-	Attempts   int        `json:"attempts"`
-	MaxAttempts int       `json:"max_attempts"`
-	ExpiresAt  time.Time  `json:"expires_at"`
-	ConsumedAt *time.Time `json:"consumed_at,omitempty"`
-	CreatedAt  time.Time  `json:"created_at"`
+	ID          uuid.UUID  `json:"id"`
+	Phone       string     `json:"phone"`
+	OTPHash     string     `json:"-"`
+	Attempts    int        `json:"attempts"`
+	MaxAttempts int        `json:"max_attempts"`
+	ExpiresAt   time.Time  `json:"expires_at"`
+	ConsumedAt  *time.Time `json:"consumed_at,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 type Session struct {

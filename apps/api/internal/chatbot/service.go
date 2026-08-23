@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	ErrConversationNotFound = errors.New("گفتگوی چت‌بات یافت نشد")
+	ErrConversationNotFound  = errors.New("گفتگوی چت‌بات یافت نشد")
 	MedicalRefusalDisclaimer = "فروشگاه سبزینه ارائه‌دهنده فرآورده‌های طبیعی است و مجاز به ارائه توصیه پزشکی، تجویز دوز دارویی یا ادعای درمان بیماری‌ها نیست. لطفاً در خصوص موارد درمانی با پزشک متخصص مشورت فرمایید."
 )
 

@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	ErrInvalidMIME   = errors.New("فرمت فایل مورد نظر پشتیبانی نمی‌شود (فرمت‌های مجاز: JPEG, PNG, WebP, AVIF)")
+	ErrInvalidMIME    = errors.New("فرمت فایل مورد نظر پشتیبانی نمی‌شود (فرمت‌های مجاز: JPEG, PNG, WebP, AVIF)")
 	ErrMissingAltText = errors.New("متن جایگزین (Alt Text) به زبان فارسی الزامی است")
-	ErrAssetInUse    = errors.New("این تصویر در کاتالوگ یا مقالات استفاده شده است و ابتدا باید متصل‌بودن آن برطرف گردد")
-	ErrAssetNotFound = errors.New("تصویر مورد نظر یافت نشد")
+	ErrAssetInUse     = errors.New("این تصویر در کاتالوگ یا مقالات استفاده شده است و ابتدا باید متصل‌بودن آن برطرف گردد")
+	ErrAssetNotFound  = errors.New("تصویر مورد نظر یافت نشد")
 )
 
 // Magic bytes signature detector

@@ -28,7 +28,6 @@ export function Header() {
   const router = useRouter();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
 
   // User Auth State
@@ -116,21 +115,25 @@ export function Header() {
 
   return (
     <>
-      {/* Top Notification Banner */}
-      <div className="bg-[#01382e] dark:bg-[#021f19] text-[#d0de41] text-[10px] sm:text-xs py-1.5 px-4 text-center font-bold tracking-tight transition-colors duration-200 border-b border-emerald-900/40">
-        <span className="inline-block animate-pulse ml-1.5">🌿</span>
-        <span>تضمین ۱۰۰٪ خلوص و اصالت ارگانیک برگ‌های سایه‌خشک مورینگا اولیفرا</span>
-        <span className="hidden md:inline text-white/70 mr-2">• ارسال سریع به سراسر ایران</span>
+      {/* ── Top Notification Banner (32px - 36px) ── */}
+      <div className="bg-[#f2f9f4] dark:bg-[#072714] text-[#176b39] dark:text-[#97d2a7] text-[11px] sm:text-xs h-8 sm:h-9 px-4 flex items-center justify-center font-bold border-b border-[#e1f2e6] dark:border-[#14552f] transition-colors">
+        <div className="flex items-center gap-2 max-w-7xl mx-auto truncate">
+          <span>🌿</span>
+          <span className="truncate">تضمین ۱۰۰٪ خلوص و اصالت ارگانیک مورینگا</span>
+          <span className="hidden md:inline text-stone-400 dark:text-stone-600">•</span>
+          <span className="hidden md:inline">ارسال سریع به سراسر ایران</span>
+        </div>
       </div>
 
-      <header className="sticky top-0 z-40 bg-[#026251] dark:bg-[#031d17] text-white border-b border-emerald-800/80 dark:border-emerald-950/80 shadow-md backdrop-blur-md transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
-          {/* Right: Hamburger Menu (Mobile) + Brand Logo + Desktop Nav */}
-          <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+      {/* ── Main Sticky Header (Desktop: ~70px, Mobile: ~58px) ── */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#072714]/95 text-slate-800 dark:text-slate-100 border-b border-[#e5e8de] dark:border-[#14552f] shadow-xs backdrop-blur-md transition-all duration-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-[70px] flex items-center justify-between gap-3">
+          {/* Right Section: Mobile Menu Trigger + Brand Logo + Desktop Nav */}
+          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
             <button
               onClick={() => setIsNavOpen(true)}
-              className="lg:hidden w-9 h-9 flex items-center justify-center text-white/90 hover:text-[#d0de41] rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all active:scale-95"
-              aria-label="باز کردن منو"
+              className="lg:hidden w-11 h-11 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-[#176b39] dark:hover:text-[#2ea355] rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-all active:scale-95"
+              aria-label="باز کردن منوی ناوبری"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -141,92 +144,106 @@ export function Header() {
               theme="light"
               size="md"
               showSubtext={true}
-              subtextLang="en"
+              subtextLang="fa"
               href="/"
             />
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-5 text-xs sm:text-sm font-bold text-emerald-100 mr-3">
-              <Link href="/shop" className="hover:text-[#d0de41] transition-colors flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-6 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 mr-2">
+              <Link
+                href="/shop"
+                className="hover:text-[#176b39] dark:hover:text-[#2ea355] transition-colors flex items-center gap-1.5 py-1"
+              >
                 <span>محصولات سوپرفود</span>
-                <span className="bg-[#d0de41] text-[#026251] text-[10px] px-1.5 py-0.2 rounded-full font-black">
-                  ویژه
+                <span className="bg-[#fff8f1] dark:bg-[#7a3013]/40 text-[#f47a24] text-[10px] px-1.5 py-0.2 rounded-md font-black border border-[#feeddc] dark:border-[#943813]/60">
+                  تخفیف‌دار
                 </span>
               </Link>
-              <Link href="/articles" className="hover:text-[#d0de41] transition-colors">
+              <Link
+                href="/articles"
+                className="hover:text-[#176b39] dark:hover:text-[#2ea355] transition-colors py-1"
+              >
                 دانشنامه و مقالات
               </Link>
-              <Link href="/#why-moringa" className="hover:text-[#d0de41] transition-colors">
+              <Link
+                href="/#why-moringa"
+                className="hover:text-[#176b39] dark:hover:text-[#2ea355] transition-colors py-1"
+              >
                 چرا مورینگا؟
               </Link>
-              <Link href="/#smoothies" className="hover:text-[#d0de41] transition-colors">
-                دستورهای اسموتی
+              <Link
+                href="/#smoothies"
+                className="hover:text-[#176b39] dark:hover:text-[#2ea355] transition-colors py-1"
+              >
+                دستور مصرف و اسموتی
               </Link>
             </nav>
           </div>
 
-          {/* Left Actions: Pure, Balanced & Meta/Apple Clean */}
+          {/* Left Section: Search, Cart, Account, Admin */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Theme Toggle (Day / Night) */}
-            <ThemeToggle />
-
             {/* Search Trigger Button */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="w-9 h-9 sm:w-auto sm:px-3 sm:py-2 text-white/90 hover:text-[#d0de41] bg-white/10 hover:bg-white/20 rounded-2xl sm:rounded-full transition-all flex items-center justify-center gap-1.5 border border-white/15 cursor-pointer text-xs font-bold active:scale-95"
-              aria-label="جستجو در سایت"
+              className="h-10 px-3 sm:px-3.5 text-slate-700 dark:text-slate-200 hover:text-[#176b39] dark:hover:text-[#97d2a7] bg-stone-100 dark:bg-white/5 hover:bg-[#f2f9f4] dark:hover:bg-[#113820] rounded-xl transition-all flex items-center justify-center gap-2 border border-stone-200/80 dark:border-white/10 cursor-pointer text-xs font-bold active:scale-95"
+              aria-label="جستجو در محصولات و مقالات"
             >
-              <Search className="w-4 h-4 text-[#d0de41]" />
-              <span className="hidden md:inline">جستجو</span>
+              <Search className="w-4 h-4 text-[#176b39] dark:text-[#2ea355] shrink-0" />
+              <span className="hidden sm:inline text-stone-600 dark:text-stone-300">جستجو در سایت...</span>
+              <span className="hidden md:inline-flex text-[10px] bg-white dark:bg-black/40 border border-stone-200 dark:border-white/15 rounded-md px-1.5 py-0.5 text-stone-400 dark:text-stone-400 font-mono">
+                Ctrl + K
+              </span>
             </button>
 
-            {/* Desktop-only Cart Button (Mobile is in Bottom Nav) */}
+            {/* Cart Button with Live Badge */}
             <Link
               href="/cart"
-              className="hidden sm:flex px-3.5 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white text-xs sm:text-sm font-bold transition-all items-center justify-center gap-1.5 border border-white/15 relative"
+              className="relative h-10 px-3 sm:px-3.5 bg-stone-100 dark:bg-white/5 hover:bg-[#f2f9f4] dark:hover:bg-[#113820] text-slate-800 dark:text-slate-100 hover:text-[#176b39] dark:hover:text-[#97d2a7] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-stone-200/80 dark:border-white/10 active:scale-95 shrink-0"
               aria-label="سبد خرید"
             >
-              <ShoppingBag className="w-4 h-4 text-[#d0de41]" />
+              <ShoppingBag className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
               <span className="hidden md:inline text-xs">سبد خرید</span>
-              <span className="bg-[#d0de41] text-[#026251] text-[10px] font-black px-1.5 py-0.2 rounded-full leading-none">
-                {cartCount.toLocaleString('fa-IR')}
-              </span>
+              {cartCount > 0 && (
+                <span className="bg-[#f47a24] text-white text-[10px] font-black px-1.5 py-0.2 rounded-full min-w-4 h-4 flex items-center justify-center leading-none shadow-xs">
+                  {cartCount.toLocaleString('fa-IR')}
+                </span>
+              )}
             </Link>
 
-            {/* Admin Direct Access Button */}
+            {/* Admin Access Button */}
             {isAdmin && (
               <Link
                 href="/admin"
-                className="hidden lg:flex px-3.5 py-2 bg-[#d0de41] text-[#026251] hover:bg-[#b8c634] rounded-full text-xs font-black items-center justify-center gap-1.5 shadow-md hover:scale-105 transition-all"
+                className="hidden lg:flex h-10 px-3.5 bg-[#f2f9f4] dark:bg-[#113820] text-[#176b39] dark:text-[#97d2a7] border border-[#c3e5cd] dark:border-[#1e8240] hover:bg-[#e1f2e6] rounded-xl text-xs font-bold items-center justify-center gap-1.5 transition-all shrink-0"
                 title="ورود مستقیم به پنل مدیریت"
               >
-                <ShieldCheck className="w-4 h-4" />
-                <span>پنل مدیریت 🛡️</span>
+                <ShieldCheck className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
+                <span>مدیریت</span>
               </Link>
             )}
 
-            {/* Desktop-only User Button (Mobile is in Bottom Nav) */}
+            {/* User Account Button & Dropdown */}
             <div className="hidden sm:block">
               {isLoggedIn ? (
                 <div className="relative" ref={menuRef}>
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white hover:text-[#d0de41] rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0 relative"
+                    className="h-10 px-3.5 bg-stone-100 dark:bg-white/5 hover:bg-stone-200/70 dark:hover:bg-white/10 border border-stone-200/80 dark:border-white/10 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
                     aria-label="حساب کاربری"
                   >
-                    <User className="w-4 h-4 text-[#d0de41]" />
-                    <span className="max-w-[85px] truncate font-bold">{userName}</span>
-                    <ChevronDown className="w-3 h-3 text-[#d0de41]" />
+                    <User className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
+                    <span className="max-w-[90px] truncate">{userName}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
                   </button>
 
                   {/* Dropdown Menu */}
                   {isUserMenuOpen && (
-                    <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-[#071d17] text-slate-800 dark:text-slate-100 rounded-2xl shadow-xl border border-slate-200 dark:border-emerald-900/60 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
-                      <div className="p-3 border-b border-slate-100 dark:border-emerald-900/40 space-y-0.5">
+                    <div className="absolute left-0 mt-2 w-60 bg-white dark:bg-[#0a331b] text-slate-800 dark:text-slate-100 rounded-2xl shadow-float border border-[#e5e8de] dark:border-[#14552f] p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
+                      <div className="p-3 border-b border-stone-100 dark:border-stone-800 space-y-0.5">
                         <p className="font-bold text-slate-900 dark:text-white truncate">{userName}</p>
-                        <p className="text-[11px] text-slate-500 dark:text-emerald-300/70 font-mono">{userPhone}</p>
+                        <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono">{userPhone}</p>
                       </div>
 
                       <div className="py-1 space-y-0.5 font-bold">
@@ -234,51 +251,51 @@ export function Header() {
                           <Link
                             href="/admin"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 font-black hover:bg-amber-100 transition-colors mb-1"
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#fff8f1] dark:bg-[#7a3013]/30 text-[#ba470e] dark:text-[#fbbf89] border border-[#feeddc] dark:border-[#943813]/40 font-black hover:bg-[#feeddc] transition-colors mb-1"
                           >
-                            <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                            <span>ورود به پنل مدیریت 🛡️</span>
+                            <ShieldCheck className="w-4 h-4 text-[#f47a24]" />
+                            <span>پنل مدیریت 🛡️</span>
                           </Link>
                         )}
 
                         <Link
                           href="/account"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/30 transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
                         >
-                          <User className="w-4 h-4 text-emerald-600 dark:text-[#d0de41]" />
+                          <User className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
                           <span>پیشخوان حساب کاربری</span>
                         </Link>
 
                         <Link
                           href="/account/orders"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/30 transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
                         >
-                          <Package className="w-4 h-4 text-emerald-600 dark:text-[#d0de41]" />
+                          <Package className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
                           <span>سفارش‌ها و سوابق خرید</span>
                         </Link>
 
                         <Link
                           href="/account/addresses"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/30 transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
                         >
-                          <MapPin className="w-4 h-4 text-emerald-600 dark:text-[#d0de41]" />
+                          <MapPin className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
                           <span>آدرس‌های من</span>
                         </Link>
 
                         <Link
                           href="/account/wishlist"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/30 transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
                         >
-                          <Heart className="w-4 h-4 text-emerald-600 dark:text-[#d0de41]" />
+                          <Heart className="w-4 h-4 text-[#176b39] dark:text-[#2ea355]" />
                           <span>علاقه‌مندی‌ها</span>
                         </Link>
                       </div>
 
-                      <div className="pt-1 border-t border-slate-100 dark:border-emerald-900/40">
+                      <div className="pt-1 border-t border-stone-100 dark:border-stone-800">
                         <button
                           type="button"
                           onClick={handleLogout}
@@ -294,14 +311,17 @@ export function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white hover:text-[#d0de41] rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
+                  className="px-4 py-2 bg-[#176b39] hover:bg-[#14552f] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
                   aria-label="ورود به حساب"
                 >
-                  <User className="w-4 h-4 text-[#d0de41]" />
-                  <span>ورود / حساب</span>
+                  <User className="w-3.5 h-3.5" />
+                  <span>ورود / عضویت</span>
                 </Link>
               )}
             </div>
+
+            {/* Theme Toggle Button (Light/Dark/System) */}
+            <ThemeToggle variant="button" />
           </div>
         </div>
       </header>
@@ -310,7 +330,6 @@ export function Header() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        initialQuery={searchQuery}
       />
 
       {/* Mobile Navigation Drawer */}
@@ -323,8 +342,11 @@ export function Header() {
         }}
       />
 
-      {/* Meta/Apple-style Floating Bottom Navigation Tab Bar (Mobile only) */}
+      {/* Mobile-only Bottom Navigation */}
       <BottomNav onOpenSearch={() => setIsSearchOpen(true)} />
     </>
   );
 }
+
+export default Header;
+

@@ -159,7 +159,7 @@ export default function AdminSEOPage() {
           </div>
           <div>
             <div className="text-[10px] text-slate-400 font-medium">دامنه اصلی Canonical</div>
-            <div className="text-xs font-bold text-slate-900 font-mono dir-ltr">https://moringalab.ir</div>
+            <div className="text-xs font-bold text-slate-900 font-mono dir-ltr">https://iranmoringa.ir</div>
           </div>
         </div>
 
@@ -170,7 +170,7 @@ export default function AdminSEOPage() {
           <div>
             <div className="text-[10px] text-slate-400 font-medium">نقشه سایت XML</div>
             <a
-              href="http://localhost:8080/sitemap.xml"
+              href="/sitemap.xml"
               target="_blank"
               rel="noreferrer"
               className="text-xs font-bold text-blue-600 hover:underline font-mono dir-ltr"

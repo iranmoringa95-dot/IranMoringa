@@ -40,7 +40,7 @@ export const ALL_ADMIN_SECTIONS = [
   { id: 'audit-logs', name: 'سوابق امنیتی (Audit)', path: '/admin/audit-logs' },
   { id: 'articles', name: 'دانشنامه و مقالات', path: '/admin/articles' },
   { id: 'seo', name: 'سئو و ریدایرکت‌ها', path: '/admin/seo' },
-  { id: 'support', name: 'پشتیبانی تیکت‌ها', path: '/admin/support' },
+  { id: 'support', name: 'مشاور و پشتیبانی آنلاین', path: '/admin/support' },
   { id: 'chatbot', name: 'چت‌بات هوشمند', path: '/admin/chatbot' },
   { id: 'reports', name: 'گزارش‌ها و تحلیل مالی', path: '/admin/reports' },
   { id: 'access', name: 'سطوح دسترسی و مدیران', path: '/admin/access' },
@@ -172,12 +172,36 @@ export function findAdminByIdentifier(identifier: string): AdminUser | null {
 export function getActiveAdminSession(): AdminUser | null {
   if (typeof window === 'undefined') return null;
   try {
+    // Both user session AND admin session must be present
+    const hasUserSession = localStorage.getItem('moringa_user_session') === 'active';
+    const hasCookie = document.cookie.includes('moringa_auth_session=authenticated');
+    if (!hasUserSession && !hasCookie) {
+      return null;
+    }
+
     const raw = localStorage.getItem(STORAGE_ADMIN_SESSION_KEY);
-    if (!raw) return null;
+    if (!raw) {
+      // Check if logged in user is admin by phone
+      const phone = localStorage.getItem('moringa_user_phone');
+      if (phone) {
+        const found = findAdminByIdentifier(phone);
+        if (found && found.isActive) {
+          localStorage.setItem(STORAGE_ADMIN_SESSION_KEY, JSON.stringify(found));
+          return found;
+        }
+      }
+      return null;
+    }
+
     const session = JSON.parse(raw);
+    if (!session || !session.identifier) return null;
+
     // Refresh user data from current storage
     const current = findAdminByIdentifier(session.identifier);
-    return current || session;
+    if (!current || !current.isActive) {
+      return null;
+    }
+    return current;
   } catch {
     return null;
   }
@@ -185,14 +209,37 @@ export function getActiveAdminSession(): AdminUser | null {
 
 export function setAdminSession(user: AdminUser) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_ADMIN_SESSION_KEY, JSON.stringify(user));
-  window.dispatchEvent(new Event('moringa_admin_session_updated'));
+  try {
+    localStorage.setItem(STORAGE_ADMIN_SESSION_KEY, JSON.stringify(user));
+    localStorage.setItem('moringa_user_session', 'active');
+    if (user.phone) localStorage.setItem('moringa_user_phone', user.phone);
+    if (user.fullName) localStorage.setItem('moringa_user_name', user.fullName);
+    
+    document.cookie = `moringa_auth_session=authenticated; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    document.cookie = `moringa_admin_session=authenticated; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    
+    window.dispatchEvent(new Event('moringa_admin_session_updated'));
+    window.dispatchEvent(new Event('moringa_auth_changed'));
+  } catch (e) {}
 }
 
 export function clearAdminSession() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(STORAGE_ADMIN_SESSION_KEY);
-  window.dispatchEvent(new Event('moringa_admin_session_updated'));
+  try {
+    localStorage.removeItem(STORAGE_ADMIN_SESSION_KEY);
+    localStorage.removeItem('moringa_user_session');
+    localStorage.removeItem('moringa_user_phone');
+    localStorage.removeItem('moringa_user_name');
+
+    // Clear all auth cookies
+    document.cookie = 'moringa_auth_session=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'moringa_user_phone=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'moringa_user_name=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'moringa_admin_session=; path=/; max-age=0; SameSite=Lax';
+
+    window.dispatchEvent(new Event('moringa_admin_session_updated'));
+    window.dispatchEvent(new Event('moringa_auth_changed'));
+  } catch (e) {}
 }
 
 export async function changeAdminPassword(adminId: string, newPass: string): Promise<boolean> {
@@ -226,6 +273,13 @@ export async function changeAdminPassword(adminId: string, newPass: string): Pro
 }
 
 export function isUserSuperAdmin(identifierOrPhone: string): boolean {
+  if (typeof window !== 'undefined') {
+    const hasUserSession = localStorage.getItem('moringa_user_session') === 'active';
+    const hasCookie = document.cookie.includes('moringa_auth_session=authenticated');
+    if (!hasUserSession && !hasCookie) {
+      return false;
+    }
+  }
   const admin = findAdminByIdentifier(identifierOrPhone);
   return Boolean(admin && admin.isActive && admin.isSuperAdmin);
 }

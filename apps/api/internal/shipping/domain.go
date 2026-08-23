@@ -11,9 +11,9 @@ import (
 type ProvinceZone string
 
 const (
-	ZoneIntraProvince   ProvinceZone = "intra_province"  // اصفهان
-	ZoneNeighboring     ProvinceZone = "neighboring"     // چهارمحال، یزد، مرکزی، فارس، قم، لرستان، سمنان
-	ZoneNonNeighboring  ProvinceZone = "non_neighboring" // سایر استان‌ها
+	ZoneIntraProvince  ProvinceZone = "intra_province"  // اصفهان
+	ZoneNeighboring    ProvinceZone = "neighboring"     // چهارمحال، یزد، مرکزی، فارس، قم، لرستان، سمنان
+	ZoneNonNeighboring ProvinceZone = "non_neighboring" // سایر استان‌ها
 )
 
 type ShippingParcelItem struct {
@@ -25,19 +25,19 @@ type ShippingParcelItem struct {
 }
 
 type ShippingQuoteOption struct {
-	Code                string `json:"code"`
-	NameFA              string `json:"name_fa"`
-	Carrier             string `json:"carrier"`
-	FeeIRR              int64  `json:"fee_irr"`
-	ETAMinDays          int    `json:"eta_min_days"`
-	ETAMaxDays          int    `json:"eta_max_days"`
-	IsFree              bool   `json:"is_free"`
-	Description         string `json:"description"`
-	EstimatedHoursMin   *int   `json:"estimated_hours_min,omitempty"`
-	EstimatedHoursMax   *int   `json:"estimated_hours_max,omitempty"`
-	ChargedWeightGrams  int    `json:"charged_weight_grams"`
-	VolumetricWeightG   int    `json:"volumetric_weight_grams"`
-	ActualWeightGrams   int    `json:"actual_weight_grams"`
+	Code               string `json:"code"`
+	NameFA             string `json:"name_fa"`
+	Carrier            string `json:"carrier"`
+	FeeIRR             int64  `json:"fee_irr"`
+	ETAMinDays         int    `json:"eta_min_days"`
+	ETAMaxDays         int    `json:"eta_max_days"`
+	IsFree             bool   `json:"is_free"`
+	Description        string `json:"description"`
+	EstimatedHoursMin  *int   `json:"estimated_hours_min,omitempty"`
+	EstimatedHoursMax  *int   `json:"estimated_hours_max,omitempty"`
+	ChargedWeightGrams int    `json:"charged_weight_grams"`
+	VolumetricWeightG  int    `json:"volumetric_weight_grams"`
+	ActualWeightGrams  int    `json:"actual_weight_grams"`
 }
 
 type CalculateQuotesRequest struct {
@@ -48,22 +48,22 @@ type CalculateQuotesRequest struct {
 }
 
 type TariffSettings struct {
-	Carrier                    string    `json:"carrier"`
-	ServiceCode                string    `json:"service_code"`
-	TitleFA                    string    `json:"title_fa"`
-	IsActive                   bool      `json:"is_active"`
-	BaseFeeIRR                 int64     `json:"base_fee_irr"`
-	PerExtraKgFeeIRR           int64     `json:"per_extra_kg_fee_irr"`
-	FreeShippingThresholdIRR   int64     `json:"free_shipping_threshold_irr"`
-	CourierIsfahanFeeIRR       int64     `json:"courier_isfahan_fee_irr"`
-	PackagingFeeTier1IRR       int64     `json:"packaging_fee_tier1_irr"`
-	PackagingFeeTier2IRR       int64     `json:"packaging_fee_tier2_irr"`
-	PackagingFeeTier3IRR       int64     `json:"packaging_fee_tier3_irr"`
-	InsuranceFeeIRR            int64     `json:"insurance_fee_irr"`
-	VATPercent                 int       `json:"vat_percent"`
-	APIEndpoint                string    `json:"api_endpoint,omitempty"`
-	APIKey                     string    `json:"api_key,omitempty"`
-	LastSyncedAt               *time.Time `json:"last_synced_at,omitempty"`
+	Carrier                  string     `json:"carrier"`
+	ServiceCode              string     `json:"service_code"`
+	TitleFA                  string     `json:"title_fa"`
+	IsActive                 bool       `json:"is_active"`
+	BaseFeeIRR               int64      `json:"base_fee_irr"`
+	PerExtraKgFeeIRR         int64      `json:"per_extra_kg_fee_irr"`
+	FreeShippingThresholdIRR int64      `json:"free_shipping_threshold_irr"`
+	CourierIsfahanFeeIRR     int64      `json:"courier_isfahan_fee_irr"`
+	PackagingFeeTier1IRR     int64      `json:"packaging_fee_tier1_irr"`
+	PackagingFeeTier2IRR     int64      `json:"packaging_fee_tier2_irr"`
+	PackagingFeeTier3IRR     int64      `json:"packaging_fee_tier3_irr"`
+	InsuranceFeeIRR          int64      `json:"insurance_fee_irr"`
+	VATPercent               int        `json:"vat_percent"`
+	APIEndpoint              string     `json:"api_endpoint,omitempty"`
+	APIKey                   string     `json:"api_key,omitempty"`
+	LastSyncedAt             *time.Time `json:"last_synced_at,omitempty"`
 }
 
 type TrackingResult struct {

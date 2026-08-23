@@ -17,15 +17,15 @@ const (
 )
 
 type StockAlertSubscription struct {
-	ID          uuid.UUID        `json:"id"`
-	UserID      *uuid.UUID       `json:"user_id,omitempty"`
-	Phone       string           `json:"phone,omitempty"`
-	Email       string           `json:"email,omitempty"`
-	VariantID   uuid.UUID        `json:"variant_id"`
-	Status      StockAlertStatus `json:"status"`
-	VerifiedAt  time.Time        `json:"verified_at"`
-	NotifiedAt  *time.Time       `json:"notified_at,omitempty"`
-	CreatedAt   time.Time        `json:"created_at"`
+	ID         uuid.UUID        `json:"id"`
+	UserID     *uuid.UUID       `json:"user_id,omitempty"`
+	Phone      string           `json:"phone,omitempty"`
+	Email      string           `json:"email,omitempty"`
+	VariantID  uuid.UUID        `json:"variant_id"`
+	Status     StockAlertStatus `json:"status"`
+	VerifiedAt time.Time        `json:"verified_at"`
+	NotifiedAt *time.Time       `json:"notified_at,omitempty"`
+	CreatedAt  time.Time        `json:"created_at"`
 }
 
 type StockAlertsStore struct {

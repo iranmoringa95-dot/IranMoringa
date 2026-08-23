@@ -128,7 +128,7 @@ export function NutrientWheelSection() {
             <span>چرا مورینگا معجزه طبیعت نامیده می‌شود؟</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-snug sm:leading-normal">
             چرخ مقایسه ارزش غذایی <span className="bg-gradient-to-r from-[#22c55e] to-[#15803d] bg-clip-text text-transparent">مورینگا اولیفرا</span>
           </h2>
 

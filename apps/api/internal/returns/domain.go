@@ -9,9 +9,9 @@ import (
 type ReturnReason string
 
 const (
-	ReasonDefective    ReturnReason = "defective"
-	ReasonWrongItem    ReturnReason = "wrong_item"
-	ReasonChangeMind   ReturnReason = "change_of_mind"
+	ReasonDefective  ReturnReason = "defective"
+	ReasonWrongItem  ReturnReason = "wrong_item"
+	ReasonChangeMind ReturnReason = "change_of_mind"
 )
 
 type ReturnStatus string

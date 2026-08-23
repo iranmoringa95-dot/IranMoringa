@@ -31,3 +31,19 @@ make seed
 # 4. Verify monorepo static checks
 make check
 ```
+## Cloudflare storefront and Go API routing
+
+The storefront deployment in `apps/web` is a static-assets Worker. Dynamic `/api/*` requests must be handled by `worker.mjs` and proxied to the separately deployed Go API; Next.js route handlers are not included in `cf-dist`.
+
+Before deploying the Worker, configure `API_ORIGIN` in the Cloudflare Worker settings (or with `npx wrangler secret put API_ORIGIN`). Its value must be the HTTPS origin only, for example `https://api.example.com`, without `/api/v1`. Then deploy from `apps/web` after running the web build.
+
+The Go API production environment must also set:
+
+- `APP_ENV=production`
+- `SMS_PROVIDER=webonesms`
+- `WEBONESMS_API_KEY`
+- `WEBONESMS_SENDER`
+- `WEBONESMS_BASE_URL`
+- optionally `WEBONESMS_OTP_TEMPLATE_ID`
+
+Do not put WebOneSMS credentials in Wrangler variables or browser-visible `NEXT_PUBLIC_*` variables. They belong only on the Go API server.

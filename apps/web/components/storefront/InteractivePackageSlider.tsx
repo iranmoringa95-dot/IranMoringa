@@ -143,7 +143,7 @@ export function InteractivePackageSlider() {
             <span>انتخاب‌گر هوشمند و دوره‌ای سوپرفود</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-snug sm:leading-normal">
             بسته سلامت متناسب با <span className="bg-gradient-to-r from-[#026251] via-[#22c55e] to-[#d0de41] bg-clip-text text-transparent">نیاز و بودجه خود</span> را انتخاب کنید
           </h2>
 

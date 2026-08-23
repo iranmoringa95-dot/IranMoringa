@@ -15,13 +15,13 @@ import (
 )
 
 type Service struct {
-	mu           sync.RWMutex
-	invoices     map[uuid.UUID]*Invoice
-	byNumber     map[string]*Invoice
-	byOrderNum   map[string]*Invoice
-	exportJobs   map[uuid.UUID]*ExportJob
-	ordersSvc    *orders.Service
-	seqCounter   uint64
+	mu            sync.RWMutex
+	invoices      map[uuid.UUID]*Invoice
+	byNumber      map[string]*Invoice
+	byOrderNum    map[string]*Invoice
+	exportJobs    map[uuid.UUID]*ExportJob
+	ordersSvc     *orders.Service
+	seqCounter    uint64
 	defaultSeller SellerSnapshot
 }
 

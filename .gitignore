@@ -6,6 +6,7 @@
 /apps/web/cf-dist/
 /apps/web/build/
 /apps/web/node_modules/
+/apps/web/.wrangler/
 node_modules/
 *.exe
 *.exe~

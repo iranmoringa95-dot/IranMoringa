@@ -1,290 +1,446 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Headset, Ticket, CheckCircle2, Clock, ShieldCheck, UserCheck, RefreshCw, MessageSquare, Phone, AlertTriangle } from 'lucide-react';
+import {
+  Headset,
+  CheckCircle2,
+  Clock,
+  ShieldCheck,
+  UserCheck,
+  RefreshCw,
+  Phone,
+  Settings,
+  Sparkles,
+  Save,
+  User,
+  Eye,
+  Smartphone,
+  ExternalLink,
+  MessageCircle,
+} from 'lucide-react';
+import { SupportWidgetConfig } from '@/lib/support-config-store';
 
-interface SupportInquiry {
-  id: string;
-  ticket_number: string;
-  customer_name: string;
-  contact_info: string;
-  subject: string;
-  body: string;
-  order_number?: string;
-  order_owner_verified: boolean;
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'normal' | 'high' | 'urgent';
-  assigned_to?: string;
-  admin_notes?: string;
-  created_at: string;
-}
-
-const API_BASE = 'http://localhost:8080/api/v1';
-
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  open: { label: 'باز (در انتظار بررسی)', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  in_progress: { label: 'در حال پیگیری', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  resolved: { label: 'پاسخ داده‌شده و حل‌شده', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  closed: { label: 'بسته شده', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-};
+const EMOJI_OPTIONS = ['👨‍💼', '👩‍💼', '🧑‍⚕️', '🌿', '🎧', '📞', '✨', '🌱'];
 
 export default function AdminSupportPage() {
-  const [inquiries, setInquiries] = useState<SupportInquiry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [config, setConfig] = useState<SupportWidgetConfig>({
+    consultantName: 'آقای کامیاب',
+    consultantTitle: 'مشاور تخصصی و پاسخگوی سفارشات',
+    consultantRoleDesc: 'کارشناس گیاهان دارویی و سوپرفود مورینگا',
+    avatarEmoji: '👨‍💼',
+    avatarUrl: '',
+    phone: '09175929345',
+    phoneDisplay: '۰۹۱۷۵۹۲۹۳۴۵',
+    telegramHandle: '@Iranmoringa95',
+    telegramUrl: 'https://t.me/Iranmoringa95',
+    baleUrl: 'https://ble.ir/iranmoringa',
+    whatsappUrl: 'https://wa.me/989175929345',
+    whatsappNumber: '09175929345',
+    workingHours: 'همه‌روزه ۸:۰۰ الی ۲۲:۰۰',
+    responseTime: 'کمتر از ۵ دقیقه',
+    enableWidget: true,
+    enableGreetingBubble: true,
+    greetingMessage: 'مشاوره تخصصی و ثبت سفارش آنلاین',
+  });
 
-  // Selected Inquiry Modal
-  const [selectedInquiry, setSelectedInquiry] = useState<SupportInquiry | null>(null);
-  const [newStatus, setNewStatus] = useState<'open' | 'in_progress' | 'resolved' | 'closed'>('open');
-  const [assignedTo, setAssignedTo] = useState('');
-  const [adminNotes, setAdminNotes] = useState('');
-  const [updating, setUpdating] = useState(false);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configSavedToast, setConfigSavedToast] = useState(false);
 
-  const fetchInquiries = useCallback(async () => {
-    setLoading(true);
+  // Fetch Consultant Config
+  const fetchConfig = useCallback(async () => {
+    setLoadingConfig(true);
     try {
-      const url = statusFilter
-        ? `${API_BASE}/admin/support/inquiries?status=${statusFilter}`
-        : `${API_BASE}/admin/support/inquiries`;
-      const res = await fetch(url);
+      const res = await fetch('/api/v1/support/config');
       if (res.ok) {
         const data = await res.json();
-        setInquiries(data.inquiries || []);
+        setConfig(data);
       }
     } catch {
-      // Silently handle error
+      // Silently handle
     } finally {
-      setLoading(false);
+      setLoadingConfig(false);
     }
-  }, [statusFilter]);
+  }, []);
 
   useEffect(() => {
-    fetchInquiries();
-  }, [fetchInquiries]);
+    fetchConfig();
+  }, [fetchConfig]);
 
-  const handleOpenUpdateModal = (inq: SupportInquiry) => {
-    setSelectedInquiry(inq);
-    setNewStatus(inq.status);
-    setAssignedTo(inq.assigned_to || '');
-    setAdminNotes(inq.admin_notes || '');
-  };
-
-  const handleUpdateInquiry = async (e: React.FormEvent) => {
+  const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedInquiry) return;
+    setSavingConfig(true);
+    setConfigSavedToast(false);
 
-    setUpdating(true);
     try {
-      const res = await fetch(`${API_BASE}/admin/support/inquiries/${selectedInquiry.id}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/v1/support/config', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          assigned_to: assignedTo,
-          admin_notes: adminNotes,
-        }),
+        body: JSON.stringify(config),
       });
 
       if (res.ok) {
-        alert('تیکت پشتیبانی با موفقیت به‌روزرسانی شد.');
-        setSelectedInquiry(null);
-        fetchInquiries();
+        setConfigSavedToast(true);
+        setTimeout(() => setConfigSavedToast(false), 4000);
       } else {
-        const data = await res.json();
-        alert(`خطا: ${data.detail}`);
+        alert('خطا در ذخیره تنظیمات پشتیبان.');
       }
     } catch {
-      alert('خطا در به‌روزرسانی تیکت.');
+      alert('مشکل در ارتباط با سرور.');
     } finally {
-      setUpdating(false);
+      setSavingConfig(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 dir-rtl font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 dark:border-stone-800 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">صندوق ورودی تیکت‌ها و مرکز پشتیبانی</h1>
-          <p className="text-xs text-slate-500">مدیریت پیام‌های کاربران، پیگیری سفارشات و ارجاع تیکت‌ها به کارشناسان</p>
+          <h1 className="text-xl font-bold text-stone-900 dark:text-white flex items-center gap-2">
+            <Headset className="w-6 h-6 text-[#176b39] dark:text-[#2ea355]" />
+            <span>مدیریت مشاور و پشتیبانی آنلاین</span>
+          </h1>
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+            تنظیم مشخصات مشاور، تصویر پروفایل، شماره تماس، و کانال‌های ارتباطی ویجت آنلاین فروشگاه
+          </p>
         </div>
-        <button
-          onClick={() => fetchInquiries()}
-          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-2 self-start"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>به‌روزرسانی تیکت‌ها</span>
-        </button>
-      </div>
 
-      {/* Status Filter Badges */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { value: '', label: 'همه تیکت‌ها' },
-          { value: 'open', label: 'باز (در انتظار بررسی)' },
-          { value: 'in_progress', label: 'در حال پیگیری' },
-          { value: 'resolved', label: 'پاسخ داده‌شده' },
-          { value: 'closed', label: 'بسته شده' },
-        ].map((f) => (
+        <div className="flex items-center gap-2">
+          {configSavedToast && (
+            <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 text-emerald-800 dark:text-emerald-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>تغییرات با موفقیت ذخیره شد!</span>
+            </div>
+          )}
+
           <button
-            key={f.value}
-            onClick={() => setStatusFilter(f.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-              statusFilter === f.value
-                ? 'bg-slate-900 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            type="button"
+            onClick={() => fetchConfig()}
+            className="px-3.5 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 text-stone-700 dark:text-stone-200 text-xs font-bold rounded-xl transition-colors flex items-center gap-2"
           >
-            {f.label}
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>بازخوانی</span>
           </button>
-        ))}
+        </div>
       </div>
 
-      {/* Inquiries List */}
-      <div className="space-y-3">
-        {loading ? (
-          <div className="bg-white p-12 rounded-2xl text-center text-slate-400 text-sm">
-            <Clock className="w-6 h-6 mx-auto mb-2 animate-pulse" />
-            در حال بارگذاری تیکت‌های پشتیبانی...
+      {/* Main Settings Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Settings Form (8 Cols) */}
+        <div className="lg:col-span-8 bg-white dark:bg-stone-900 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-card space-y-6">
+          <div className="border-b border-stone-100 dark:border-stone-800 pb-3">
+            <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-[#176b39] dark:text-[#2ea355]" />
+              <span>مشخصات فردی و کانال‌های ارتباطی مشاور</span>
+            </h2>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+              این اطلاعات بلافاصله در دکمه و پنجره مشاوره زنده سایت برای کاربران سراسر کشور فعال می‌گردد.
+            </p>
           </div>
-        ) : inquiries.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl text-center text-slate-400 text-sm">
-            <Headset className="w-8 h-8 mx-auto mb-2" />
-            هیچ تیکت پشتیبانی در این بخش یافت نشد
-          </div>
-        ) : (
-          inquiries.map((inq) => {
-            const statusInfo = STATUS_MAP[inq.status] || { label: inq.status, color: 'bg-slate-100 text-slate-700 border-slate-200' };
-            return (
-              <div key={inq.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-slate-900 text-white text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full">
-                      {inq.ticket_number}
-                    </span>
-                    <span className="font-bold text-slate-900 text-sm">{inq.customer_name}</span>
-                    <span className="text-xs text-slate-500 dir-ltr font-mono">({inq.contact_info})</span>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    {inq.priority === 'urgent' && (
-                      <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">فوری</span>
-                    )}
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusInfo.color}`}>
-                      {statusInfo.label}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {new Date(inq.created_at).toLocaleDateString('fa-IR')}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-slate-900 text-xs">{inq.subject}</h4>
-                    {inq.order_number && (
-                      <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-mono">
-                        سفارش: {inq.order_number}
-                        {inq.order_owner_verified ? (
-                          <span className="text-emerald-600 font-bold" title="مالکیت سفارش تایید شده است">✓ مالک معتبر</span>
-                        ) : (
-                          <span className="text-amber-600 font-bold" title="مالکیت سفارش ناشناخته">⚠️ غیرمرتبط</span>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-700 leading-relaxed bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                    {inq.body}
-                  </p>
-                </div>
-
-                {inq.admin_notes && (
-                  <div className="bg-amber-50 text-amber-900 text-xs p-2.5 rounded-xl border border-amber-100">
-                    یادداشت کارشناس ({inq.assigned_to || 'سیستم'}): {inq.admin_notes}
-                  </div>
-                )}
-
-                <div className="pt-2 flex justify-between items-center">
-                  <div className="text-xs text-slate-500">
-                    {inq.assigned_to ? `ارجاع‌شده به: ${inq.assigned_to}` : 'بدون ارجاع کارشناس'}
-                  </div>
-                  <button
-                    onClick={() => handleOpenUpdateModal(inq)}
-                    className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors"
-                  >
-                    پاسخ و به‌روزرسانی تیکت
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Update Ticket Modal */}
-      {selectedInquiry && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-2xl max-w-md w-full space-y-4">
-            <h3 className="font-bold text-slate-900 text-base">
-              به‌روزرسانی تیکت «{selectedInquiry.ticket_number}»
-            </h3>
-            <form onSubmit={handleUpdateInquiry} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">وضعیت تیکت</label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as any)}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl"
-                >
-                  <option value="open">باز (در انتظار بررسی)</option>
-                  <option value="in_progress">در حال پیگیری</option>
-                  <option value="resolved">پاسخ داده‌شده و حل‌شده</option>
-                  <option value="closed">بسته شده</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">ارجاع به کارشناس پشتیبانی</label>
+          <form onSubmit={handleSaveConfig} className="space-y-5 text-xs">
+            {/* Row 1: Name & Title */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  نام و نام خانوادگی مشاور / پشتیبان
+                </label>
                 <input
                   type="text"
-                  placeholder="نام کارشناس مسئول..."
-                  value={assignedTo}
-                  onChange={(e) => setAssignedTo(e.target.value)}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl"
+                  required
+                  placeholder="مثال: آقای کامیاب"
+                  value={config.consultantName}
+                  onChange={(e) => setConfig({ ...config, consultantName: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white font-medium focus:border-[#176b39] focus:outline-none min-h-[44px]"
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">یادداشت کارشناس / متن پاسخ</label>
-                <textarea
-                  rows={4}
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="توضیحات یا نحوه پاسخگویی به مشتری..."
-                  className="w-full p-2.5 border border-slate-300 rounded-xl"
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  سمت و عنوان تخصصی
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: مشاور تخصصی و پاسخگوی سفارشات"
+                  value={config.consultantTitle}
+                  onChange={(e) => setConfig({ ...config, consultantTitle: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white font-medium focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
+              </div>
+            </div>
+
+            {/* Row 2: Avatar Emoji & Photo URL */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  انتخاب چهره / آیکون سریع
+                </label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {EMOJI_OPTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setConfig({ ...config, avatarEmoji: emoji })}
+                      className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center border transition-all ${
+                        config.avatarEmoji === emoji
+                          ? 'bg-[#176b39] text-white border-[#176b39] scale-110 shadow-xs'
+                          : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 hover:bg-stone-100'
+                      }`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  آدرس تصویر اختصاصی مشاور (اختیاری)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/avatar.jpg"
+                  value={config.avatarUrl}
+                  onChange={(e) => setConfig({ ...config, avatarUrl: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-left dir-ltr font-mono focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
+                <span className="text-[10px] text-stone-400">
+                  در صورت وارد کردن عکس، تصویر جایگزین آیکون خواهد شد.
+                </span>
+              </div>
+            </div>
+
+            {/* Row 3: Contact Channels */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  شماره تماس مستقیم پشتیبان
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="09175929345"
+                  value={config.phone}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      phone: e.target.value,
+                      phoneDisplay: e.target.value,
+                    })
+                  }
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white font-mono text-left dir-ltr font-bold focus:border-[#176b39] focus:outline-none min-h-[44px]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setSelectedInquiry(null)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-semibold"
-                >
-                  انصراف
-                </button>
-                <button
-                  type="submit"
-                  disabled={updating}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700"
-                >
-                  ذخیره تغییرات تیکت
-                </button>
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  آیدی یا لینک کانال تلگرام
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="@Iranmoringa95 یا https://t.me/Iranmoringa95"
+                  value={config.telegramUrl}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const cleanHandle = val.includes('t.me/') ? '@' + val.split('t.me/')[1] : val;
+                    const cleanUrl = val.startsWith('http') ? val : `https://t.me/${val.replace('@', '')}`;
+                    setConfig({
+                      ...config,
+                      telegramUrl: cleanUrl,
+                      telegramHandle: cleanHandle,
+                    });
+                  }}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white font-mono text-left dir-ltr focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
               </div>
-            </form>
+            </div>
+
+            {/* Row 4: Bale & WhatsApp */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  لینک ارتباط در پیام‌رسان بله (Bale)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://ble.ir/iranmoringa"
+                  value={config.baleUrl}
+                  onChange={(e) => setConfig({ ...config, baleUrl: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white font-mono text-left dir-ltr focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  لینک یا شماره واتس‌اپ
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://wa.me/989175929345"
+                  value={config.whatsappUrl}
+                  onChange={(e) => setConfig({ ...config, whatsappUrl: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white font-mono text-left dir-ltr focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
+              </div>
+            </div>
+
+            {/* Row 5: Working Hours & Bubble Message */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  ساعات کاری و پاسخگویی
+                </label>
+                <input
+                  type="text"
+                  placeholder="همه‌روزه ۸:۰۰ الی ۲۲:۰۰"
+                  value={config.workingHours}
+                  onChange={(e) => setConfig({ ...config, workingHours: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-700 dark:text-stone-200">
+                  متن حباب پیام اولیه (بالای دکمه)
+                </label>
+                <input
+                  type="text"
+                  placeholder="مشاوره تخصصی و ثبت سفارش آنلاین"
+                  value={config.greetingMessage}
+                  onChange={(e) => setConfig({ ...config, greetingMessage: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white focus:border-[#176b39] focus:outline-none min-h-[44px]"
+                />
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <label className="flex items-center gap-3 p-3.5 bg-stone-50 dark:bg-stone-800/60 rounded-2xl border border-stone-200 dark:border-stone-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={config.enableWidget}
+                  onChange={(e) => setConfig({ ...config, enableWidget: e.target.checked })}
+                  className="w-4 h-4 rounded text-[#176b39] focus:ring-[#176b39]"
+                />
+                <div>
+                  <span className="font-bold text-stone-900 dark:text-white block">فعال‌بودن دکمه شناور</span>
+                  <span className="text-[10px] text-stone-500">نمایش دکمه سبز مشاوره در گوشه سایت</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-3.5 bg-stone-50 dark:bg-stone-800/60 rounded-2xl border border-stone-200 dark:border-stone-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={config.enableGreetingBubble}
+                  onChange={(e) => setConfig({ ...config, enableGreetingBubble: e.target.checked })}
+                  className="w-4 h-4 rounded text-[#176b39] focus:ring-[#176b39]"
+                />
+                <div>
+                  <span className="font-bold text-stone-900 dark:text-white block">حباب پیام خودکار</span>
+                  <span className="text-[10px] text-stone-500">نمایش پیام خودکار با دکمه ضربدر پس از ۵ ثانیه</span>
+                </div>
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-3">
+              <button
+                type="submit"
+                disabled={savingConfig}
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#176b39] hover:bg-[#14552f] text-white rounded-2xl font-bold text-xs sm:text-sm transition-all shadow-card hover:shadow-float active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2 min-h-[48px] cursor-pointer"
+              >
+                {savingConfig ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>ذخیره تنظیمات مشاور و پشتیبان</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Live Preview Card (4 Cols) */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-stone-50 dark:bg-stone-800/60 p-4 rounded-3xl border border-stone-200 dark:border-stone-700 space-y-3 sticky top-6">
+            <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-300">
+              <span className="flex items-center gap-1.5">
+                <Eye className="w-4 h-4 text-[#176b39]" />
+                <span>پیش‌نمایش زنده در فروشگاه:</span>
+              </span>
+              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                Live Preview
+              </span>
+            </div>
+
+            {/* Bubble Mockup */}
+            <div className="p-3.5 bg-white dark:bg-[#18221b] rounded-2xl shadow-float border border-[#c3e5cd] dark:border-[#1e8240]/40 text-[#17251c] dark:text-[#f2f9f4] space-y-2 relative">
+              <span className="absolute top-2 left-2 w-5 h-5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-400 flex items-center justify-center text-[10px]">
+                ✕
+              </span>
+              <div className="flex items-center gap-2.5 pl-5">
+                <div className="w-9 h-9 rounded-xl bg-[#176b39] text-white flex items-center justify-center text-base shrink-0 overflow-hidden">
+                  {config.avatarUrl ? (
+                    <img src={config.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    config.avatarEmoji || '👨‍💼'
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-[#176b39] dark:text-[#97d2a7] truncate">
+                    {config.consultantName || 'آقای کامیاب'}
+                  </p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-300 truncate mt-0.5">
+                    {config.greetingMessage || 'مشاوره تخصصی و ثبت سفارش آنلاین'}
+                  </p>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[10px] font-bold text-[#176b39] dark:text-[#97d2a7]">
+                <span>گفتگو و مشاوره رایگان</span>
+                <span>شروع گفتگو ←</span>
+              </div>
+            </div>
+
+            {/* Trigger Button Mockup */}
+            <div className="flex items-center justify-end pt-2">
+              <div className="flex items-center gap-2.5 p-3 rounded-full bg-[#176b39] text-white shadow-float">
+                <div className="w-8 h-8 rounded-full bg-white/15 border border-white/30 flex items-center justify-center text-base overflow-hidden">
+                  {config.avatarUrl ? (
+                    <img src={config.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    config.avatarEmoji || '👨‍💼'
+                  )}
+                </div>
+                <div className="text-right leading-tight pr-0.5">
+                  <span className="text-xs font-black text-white block">مشاوره و پشتیبانی</span>
+                  <span className="text-[10px] text-emerald-100 font-medium">ارتباط با {config.consultantName}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Config Summary */}
+            <div className="pt-3 border-t border-stone-200 dark:border-stone-700 text-xs space-y-2 text-stone-600 dark:text-stone-400">
+              <div className="flex items-center justify-between">
+                <span>تلفن:</span>
+                <span className="font-mono font-bold text-stone-900 dark:text-white">{config.phone}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>تلگرام:</span>
+                <span className="font-mono font-bold text-sky-600">{config.telegramHandle || '@Iranmoringa95'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>ساعات پاسخگویی:</span>
+                <span className="font-medium text-stone-900 dark:text-white">{config.workingHours}</span>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

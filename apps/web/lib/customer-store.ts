@@ -273,7 +273,7 @@ export function isCustomerLoggedIn(): boolean {
 }
 
 /**
- * Set customer authenticated session
+ * Set customer authenticated session and sync admin role if applicable
  */
 export function setCustomerSession(phone: string, name?: string) {
   if (typeof window === 'undefined') return;
@@ -282,12 +282,21 @@ export function setCustomerSession(phone: string, name?: string) {
     localStorage.setItem('moringa_user_phone', phone);
     if (name) localStorage.setItem('moringa_user_name', name);
     document.cookie = `moringa_auth_session=authenticated; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    document.cookie = `moringa_user_phone=${encodeURIComponent(phone)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    if (name) {
+      document.cookie = `moringa_user_name=${encodeURIComponent(name)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    }
+
+    // Save to profile
+    saveCustomerProfile({ phone, fullName: name });
+
     window.dispatchEvent(new Event('moringa_auth_changed'));
+    window.dispatchEvent(new Event('moringa_admin_session_updated'));
   } catch (e) {}
 }
 
 /**
- * Customer Logout
+ * Customer Logout - Synchronously destroys both customer and admin sessions
  */
 export function customerLogout() {
   if (typeof window === 'undefined') return;
@@ -295,8 +304,17 @@ export function customerLogout() {
     localStorage.removeItem('moringa_user_session');
     localStorage.removeItem('moringa_user_phone');
     localStorage.removeItem('moringa_user_name');
+    localStorage.removeItem('moringa_admin_current_session');
+
+    // Clear all auth cookies
     document.cookie = 'moringa_auth_session=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'moringa_user_phone=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'moringa_user_name=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'moringa_admin_session=; path=/; max-age=0; SameSite=Lax';
+
     window.dispatchEvent(new Event('moringa_auth_changed'));
+    window.dispatchEvent(new Event('moringa_admin_session_updated'));
   } catch (e) {}
 }
+
 

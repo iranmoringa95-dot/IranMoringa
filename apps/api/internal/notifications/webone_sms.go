@@ -64,43 +64,97 @@ func NewWebOneSMSProvider(cfg WebOneSMSConfig) *WebOneSMSProvider {
 
 // SendSMSRequest is the standard payload sent to WebOneSMS REST endpoint.
 type webOneSendSMSPayload struct {
-	Recipient string `json:"recipient"`
-	Message   string `json:"message"`
-	Sender    string `json:"sender,omitempty"`
+	From     string `json:"From"`
+	ToNumber string `json:"ToNumber"`
+	Content  string `json:"Content"`
 }
 
 // webOneSendOTPPayload is the fast OTP pattern payload sent to WebOneSMS.
 type webOneSendOTPPayload struct {
-	Mobile     string            `json:"mobile"`
-	TemplateID string            `json:"templateId"`
-	Parameters map[string]string `json:"parameters"`
+	From                 string            `json:"From"`
+	ToNumber             string            `json:"ToNumber"`
+	PatternID            string            `json:"PatternId"`
+	PatternParameterData map[string]string `json:"PatternParameterData"`
 }
 
 // webOneAPIResponse models standard responses from WebOneSMS REST API.
 type webOneAPIResponse struct {
-	IsSuccess bool        `json:"isSuccess"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data"`
-	Status    int         `json:"status"`
+	IsSuccess  bool        `json:"isSuccess"`
+	Succeeded  bool        `json:"Succeeded"`
+	Message    string      `json:"message"`
+	Data       interface{} `json:"data"`
+	Status     int         `json:"status"`
+	ResultCode int         `json:"resultCode"`
+	RefID      interface{} `json:"refId"`
+}
+
+func normalizeWebOnePhone(phone string) string {
+	normalized := strings.TrimSpace(phone)
+	if strings.HasPrefix(normalized, "+98") {
+		return "0" + strings.TrimPrefix(normalized, "+98")
+	}
+	if strings.HasPrefix(normalized, "0098") {
+		return "0" + strings.TrimPrefix(normalized, "0098")
+	}
+	return normalized
+}
+
+func parseWebOneResponse(statusCode int, body []byte, idPrefix string) (*SendResult, error) {
+	retryable := statusCode >= http.StatusInternalServerError || statusCode == http.StatusTooManyRequests
+	var apiResponse webOneAPIResponse
+	if err := json.Unmarshal(body, &apiResponse); err != nil {
+		errMsg := fmt.Sprintf("پاسخ نامعتبر از درگاه وب وان (کد %d)", statusCode)
+		return &SendResult{
+			Status:       SendStatusFailed,
+			Retryable:    retryable,
+			ErrorMessage: errMsg,
+		}, errors.New(errMsg)
+	}
+
+	if statusCode < http.StatusOK || statusCode >= http.StatusMultipleChoices ||
+		(!apiResponse.IsSuccess && !apiResponse.Succeeded) {
+		errMsg := strings.TrimSpace(apiResponse.Message)
+		if errMsg == "" {
+			errMsg = fmt.Sprintf("خطای وب وان (کد HTTP %d، نتیجه %d)", statusCode, apiResponse.ResultCode)
+		}
+		return &SendResult{
+			Status:       SendStatusFailed,
+			Retryable:    retryable,
+			ErrorMessage: errMsg,
+		}, errors.New(errMsg)
+	}
+
+	messageID := ""
+	if apiResponse.RefID != nil {
+		messageID = fmt.Sprint(apiResponse.RefID)
+	}
+	if messageID == "" {
+		messageID = fmt.Sprintf("%s-%s", idPrefix, uuid.New().String()[:8])
+	}
+
+	return &SendResult{
+		ProviderMessageID: messageID,
+		Status:            SendStatusSent,
+		Retryable:         false,
+	}, nil
 }
 
 // SendSMS sends an SMS message via WebOneSMS REST endpoint.
 func (p *WebOneSMSProvider) SendSMS(to string, body string) (*SendResult, error) {
 	if strings.TrimSpace(p.apiKey) == "" {
-		// Mock mode if API key is not yet configured in development
-		msgID := fmt.Sprintf("WEBONE-DEV-%s", uuid.New().String()[:8])
+		err := errors.New("کلید API درگاه WebOneSMS پیکربندی نشده است")
 		return &SendResult{
-			ProviderMessageID: msgID,
-			Status:            SendStatusSent,
-			Retryable:         false,
-		}, nil
+			Status:       SendStatusFailed,
+			Retryable:    false,
+			ErrorMessage: err.Error(),
+		}, err
 	}
 
 	endpoint := fmt.Sprintf("%s/SMS/Send", p.baseURL)
 	payload := webOneSendSMSPayload{
-		Recipient: to,
-		Message:   body,
-		Sender:    p.sender,
+		From:     p.sender,
+		ToNumber: normalizeWebOnePhone(to),
+		Content:  body,
 	}
 
 	jsonBytes, err := json.Marshal(payload)
@@ -140,23 +194,7 @@ func (p *WebOneSMSProvider) SendSMS(to string, body string) (*SendResult, error)
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		errMsg := fmt.Sprintf("خطای وب وان (کد %d): %s", resp.StatusCode, string(respBody))
-		isRetryable := resp.StatusCode >= 500 || resp.StatusCode == 429
-		return &SendResult{
-			Status:       SendStatusFailed,
-			Retryable:    isRetryable,
-			ErrorMessage: errMsg,
-		}, errors.New(errMsg)
-	}
-
-	msgID := fmt.Sprintf("WEBONE-%s", uuid.New().String()[:8])
-	return &SendResult{
-		ProviderMessageID: msgID,
-		Status:            SendStatusSent,
-		Retryable:         false,
-	}, nil
+	return parseWebOneResponse(resp.StatusCode, respBody, "WEBONE")
 }
 
 // SendOTP sends an instant pattern-based verification code via WebOneSMS OTP route.
@@ -167,12 +205,13 @@ func (p *WebOneSMSProvider) SendOTP(to string, code string) (*SendResult, error)
 		return p.SendSMS(to, message)
 	}
 
-	endpoint := fmt.Sprintf("%s/SMS/SendOtp", p.baseURL)
+	endpoint := fmt.Sprintf("%s/SMS/Send", p.baseURL)
 	payload := webOneSendOTPPayload{
-		Mobile:     to,
-		TemplateID: p.otpTemplateID,
-		Parameters: map[string]string{
-			"Code": code,
+		From:      p.sender,
+		ToNumber:  normalizeWebOnePhone(to),
+		PatternID: p.otpTemplateID,
+		PatternParameterData: map[string]string{
+			"ParameterValue": code,
 		},
 	}
 
@@ -198,10 +237,6 @@ func (p *WebOneSMSProvider) SendOTP(to string, code string) (*SendResult, error)
 	}
 	defer resp.Body.Close()
 
-	msgID := fmt.Sprintf("WEBONE-OTP-%s", uuid.New().String()[:8])
-	return &SendResult{
-		ProviderMessageID: msgID,
-		Status:            SendStatusSent,
-		Retryable:         false,
-	}, nil
+	respBody, _ := io.ReadAll(resp.Body)
+	return parseWebOneResponse(resp.StatusCode, respBody, "WEBONE-OTP")
 }

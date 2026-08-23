@@ -115,6 +115,7 @@ func (h *Handler) AdminGetSMSSettings(w http.ResponseWriter, r *http.Request) {
 	balance, _ := activeDriver.GetBalance()
 
 	gatewaysList := []map[string]string{
+		{"id": "webone", "name": "وب‌وان اس‌ام‌اس (WebOneSMS REST)"},
 		{"id": "farazsms", "name": "فراز اس‌ام‌اس / آی‌پی‌پنل (FarazSMS / IPPanel)"},
 		{"id": "kavenegar", "name": "کاوه‌نگار (Kavenegar Verify / Lookup)"},
 		{"id": "melipayamak", "name": "ملی‌پیامک (Melipayamak BaseNumber)"},
@@ -123,14 +124,14 @@ func (h *Handler) AdminGetSMSSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"enable_sms":        mgr.EnableSMS,
-		"active_gateway":    mgr.ActiveGateway,
+		"enable_sms":          mgr.EnableSMS,
+		"active_gateway":      mgr.ActiveGateway,
 		"active_gateway_name": activeDriver.GetNameFA(),
-		"active_balance":    balance,
-		"admin_numbers":     mgr.AdminNumbers,
-		"tracking_keys":     mgr.TrackingKeys,
-		"gateways":          gatewaysList,
-		"status_templates":  mgr.StatusTemplates,
+		"active_balance":      balance,
+		"admin_numbers":       mgr.AdminNumbers,
+		"tracking_keys":       mgr.TrackingKeys,
+		"gateways":            gatewaysList,
+		"status_templates":    mgr.StatusTemplates,
 	})
 }
 
@@ -143,10 +144,12 @@ func (h *Handler) AdminUpdateSMSSettings(w http.ResponseWriter, r *http.Request)
 		TrackingKeys    []string                  `json:"tracking_keys,omitempty"`
 		StatusTemplates map[string]StatusTemplate `json:"status_templates,omitempty"`
 		Credentials     map[string]struct {
-			Username string `json:"username,omitempty"`
-			Password string `json:"password,omitempty"`
-			APIKey   string `json:"api_key,omitempty"`
-			Sender   string `json:"sender,omitempty"`
+			Username      string `json:"username,omitempty"`
+			Password      string `json:"password,omitempty"`
+			APIKey        string `json:"api_key,omitempty"`
+			Sender        string `json:"sender,omitempty"`
+			BaseURL       string `json:"base_url,omitempty"`
+			OTPTemplateID string `json:"otp_template_id,omitempty"`
 		} `json:"credentials,omitempty"`
 	}
 
@@ -176,6 +179,10 @@ func (h *Handler) AdminUpdateSMSSettings(w http.ResponseWriter, r *http.Request)
 	}
 	// Update credentials if provided
 	if payload.Credentials != nil {
+		if c, ok := payload.Credentials["webone"]; ok {
+			mgr.Gateways["webone"] = NewWebOneSMSGateway(c.Username, c.Password, c.APIKey, c.Sender, c.BaseURL, c.OTPTemplateID)
+			mgr.Gateways["webonesms"] = mgr.Gateways["webone"]
+		}
 		if c, ok := payload.Credentials["farazsms"]; ok {
 			mgr.Gateways["farazsms"] = NewFarazSMSGateway(c.Username, c.Password, c.Sender)
 		}
@@ -297,9 +304,9 @@ func (h *Handler) AdminSendOrderManualSMS(w http.ResponseWriter, r *http.Request
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"status":       "success",
-		"message":      fmt.Sprintf("پیامک به شماره %s برای سفارش %s با موفقیت ارسال شد", payload.Recipient, orderNumber),
-		"delivery_id":  del.ID,
+		"status":      "success",
+		"message":     fmt.Sprintf("پیامک به شماره %s برای سفارش %s با موفقیت ارسال شد", payload.Recipient, orderNumber),
+		"delivery_id": del.ID,
 	})
 }
 
@@ -367,7 +374,6 @@ func (h *Handler) CustomerSubscribeStockAlert(w http.ResponseWriter, r *http.Req
 	}
 	writeJSON(w, http.StatusCreated, sub)
 }
-
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

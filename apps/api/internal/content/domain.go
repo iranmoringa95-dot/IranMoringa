@@ -95,7 +95,7 @@ type Article struct {
 	UpdatedAt             time.Time          `json:"updated_at"`
 	Sources               []ScientificSource `json:"sources,omitempty"`
 	Tags                  []string           `json:"tags,omitempty"`
-	RelatedProductIDs    []uuid.UUID        `json:"related_product_ids,omitempty"`
+	RelatedProductIDs     []uuid.UUID        `json:"related_product_ids,omitempty"`
 }
 
 type FAQ struct {
@@ -107,4 +107,3 @@ type FAQ struct {
 	SortOrder   int        `json:"sort_order"`
 	IsActive    bool       `json:"is_active"`
 }
-

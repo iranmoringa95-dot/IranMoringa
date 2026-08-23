@@ -9,6 +9,7 @@ import (
 
 	"moringalab/api/internal/carts"
 	"moringalab/api/internal/inventory"
+	"moringalab/api/internal/notifications"
 	"moringalab/api/internal/orders"
 	"moringalab/api/internal/payments"
 	"moringalab/api/internal/shipping"
@@ -31,6 +32,10 @@ type SubmitCheckoutResponse struct {
 	Payment *payments.Payment `json:"payment"`
 }
 
+type OrderPlacedNotifier interface {
+	NotifyOrderPlaced(orderNumber string, totalIRR int64, recipientPhone string, recipientName string, orderStatus string) (*notifications.NotificationDelivery, error)
+}
+
 type Service struct {
 	mu               sync.RWMutex
 	cartService      *carts.Service
@@ -38,6 +43,7 @@ type Service struct {
 	orderService     *orders.Service
 	paymentService   *payments.Service
 	shippingService  *shipping.Service
+	notifier         OrderPlacedNotifier
 	seenOrders       map[string]*SubmitCheckoutResponse
 }
 
@@ -56,6 +62,12 @@ func NewService(
 		shippingService:  shipSvc,
 		seenOrders:       make(map[string]*SubmitCheckoutResponse),
 	}
+}
+
+func (s *Service) SetNotifier(n OrderPlacedNotifier) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.notifier = n
 }
 
 func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResponse, error) {
@@ -204,6 +216,18 @@ func (s *Service) SubmitCheckout(req SubmitCheckoutRequest) (*SubmitCheckoutResp
 	res := &SubmitCheckoutResponse{
 		Order:   ord,
 		Payment: payment,
+	}
+
+	// 9. Dispatch Order Placed notification (SMS to customer and admin)
+	if s.notifier != nil {
+		phone := req.RecipientPhone
+		name := req.RecipientName
+		orderNum := ord.OrderNumber
+		orderTotal := ord.TotalIRR
+		status := string(ord.Status)
+		go func() {
+			_, _ = s.notifier.NotifyOrderPlaced(orderNum, orderTotal, phone, name, status)
+		}()
 	}
 
 	s.mu.Lock()

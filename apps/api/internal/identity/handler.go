@@ -2,16 +2,18 @@ package identity
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 )
 
 type Handler struct {
-	service *Service
+	service    *Service
+	production bool
 }
 
-func NewHandler(service *Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service *Service, production bool) *Handler {
+	return &Handler{service: service, production: production}
 }
 
 type OTPRequestPayload struct {
@@ -32,22 +34,34 @@ func (h *Handler) RequestOTP(w http.ResponseWriter, r *http.Request) {
 
 	otpCode, err := h.service.RequestOTP(payload.Phone)
 	if err != nil {
+		status := http.StatusUnprocessableEntity
+		code := "INVALID_PHONE"
+		detail := err.Error()
+		if errors.Is(err, ErrOTPDelivery) {
+			status = http.StatusBadGateway
+			code = "OTP_DELIVERY_FAILED"
+			detail = "ارسال پیامک کد تایید ناموفق بود. لطفاً چند لحظه دیگر دوباره تلاش کنید."
+		} else if errors.Is(err, ErrOTPGeneration) {
+			status = http.StatusInternalServerError
+			code = "OTP_GENERATION_FAILED"
+			detail = "تولید کد تایید ناموفق بود."
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"code":   "INVALID_PHONE",
-			"detail": err.Error(),
-		})
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(map[string]interface{}{"code": code, "detail": detail})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	response := map[string]interface{}{
 		"status":  "success",
 		"message": "کد تایید ارسال شد",
-		"dev_otp": otpCode, // Mock code output for local dev
-	})
+	}
+	if !h.production {
+		response["dev_otp"] = otpCode
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +90,7 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(30 * 24 * time.Hour),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		Secure:   false, // set true in production TLS
+		Secure:   h.production,
 	})
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

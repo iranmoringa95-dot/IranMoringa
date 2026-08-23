@@ -82,9 +82,9 @@ type rateLimitEntry struct {
 }
 
 type RateLimiterStore struct {
-	mu       sync.Mutex
-	entries  map[string]*rateLimitEntry
-	maxReq   int
+	mu        sync.Mutex
+	entries   map[string]*rateLimitEntry
+	maxReq    int
 	windowSec int
 }
 

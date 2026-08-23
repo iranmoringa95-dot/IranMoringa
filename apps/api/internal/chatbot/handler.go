@@ -110,8 +110,8 @@ func (h *Handler) AdminGetStats(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdminSyncKnowledge(w http.ResponseWriter, r *http.Request) {
 	count := h.chatbotService.SyncKnowledgeIndex()
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"status":        "synced",
-		"indexed_docs":  count,
+		"status":       "synced",
+		"indexed_docs": count,
 	})
 }
 

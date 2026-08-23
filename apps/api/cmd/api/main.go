@@ -66,11 +66,59 @@ func main() {
 		defer db.Close()
 	}
 
+	// Initialize external providers before services that depend on them
+	var smsProvider notifications.SMSProvider
+	smsProviderEnv := os.Getenv("SMS_PROVIDER")
+	if smsProviderEnv == "fake" {
+		smsProvider = notifications.NewFakeSMSProvider()
+	} else {
+		apiKey := os.Getenv("WEBONESMS_API_KEY")
+		username := os.Getenv("WEBONESMS_USERNAME")
+		sender := os.Getenv("WEBONESMS_SENDER")
+		if sender == "" {
+			sender = "10002147"
+		}
+		baseURL := os.Getenv("WEBONESMS_BASE_URL")
+		if baseURL == "" {
+			baseURL = "https://api.payamakapi.ir/api/v1"
+		}
+		smsProvider = notifications.NewWebOneSMSProvider(notifications.WebOneSMSConfig{
+			Username:      username,
+			Password:      os.Getenv("WEBONESMS_PASSWORD"),
+			APIKey:        apiKey,
+			SenderNumber:  sender,
+			BaseURL:       baseURL,
+			OTPTemplateID: os.Getenv("WEBONESMS_OTP_TEMPLATE_ID"),
+		})
+	}
 
 	// Initialize modules
 	identityStore := identity.NewMemoryStore()
-	identityService := identity.NewService(identityStore)
-	identityHandler := identity.NewHandler(identityService)
+	otpDelivery := func(phone, code string) error {
+		if provider, ok := smsProvider.(interface {
+			SendOTP(string, string) (*notifications.SendResult, error)
+		}); ok {
+			result, err := provider.SendOTP(phone, code)
+			if err != nil {
+				return err
+			}
+			if result == nil || result.Status != notifications.SendStatusSent {
+				return fmt.Errorf("درگاه پیامک ارسال را تایید نکرد")
+			}
+			return nil
+		}
+
+		result, err := smsProvider.SendSMS(phone, fmt.Sprintf("کد ورود به ایران مورینگا: %s", code))
+		if err != nil {
+			return err
+		}
+		if result == nil || result.Status != notifications.SendStatusSent {
+			return fmt.Errorf("درگاه پیامک ارسال را تایید نکرد")
+		}
+		return nil
+	}
+	identityService := identity.NewService(identityStore, otpDelivery)
+	identityHandler := identity.NewHandler(identityService, cfg.AppEnv == "production")
 
 	accountService := account.NewService()
 	accountHandler := account.NewHandler(accountService)
@@ -87,14 +135,23 @@ func main() {
 	cartService := carts.NewService(catalogService, promotionsService)
 	cartHandler := carts.NewHandler(cartService)
 
+	fakeEmailProvider := notifications.NewFakeEmailProvider()
+	notificationsService := notifications.NewService(smsProvider, fakeEmailProvider)
+	notificationsHandler := notifications.NewHandler(notificationsService)
+
 	inventoryService := inventory.NewService()
 	ordersService := orders.NewService()
+	ordersService.SetNotifier(notificationsService)
+
 	paymentsService := payments.NewService(ordersService)
+	paymentsService.SetNotifier(notificationsService)
+
 	shippingService := shipping.NewService(ordersService, paymentsService)
 	returnsService := returns.NewService(ordersService)
 	shippingHandler := shipping.NewHandler(shippingService, returnsService)
 
 	checkoutService := checkout.NewService(cartService, inventoryService, ordersService, paymentsService, shippingService)
+	checkoutService.SetNotifier(notificationsService)
 	checkoutHandler := checkout.NewHandler(checkoutService, paymentsService)
 
 	promotionsHandler := promotions.NewHandler(promotionsService)
@@ -117,27 +174,10 @@ func main() {
 	mediaService := media.NewService(mediaStorage)
 	mediaHandler := media.NewHandler(mediaService)
 
-	var smsProvider notifications.SMSProvider
-	if os.Getenv("SMS_PROVIDER") == "webonesms" {
-		smsProvider = notifications.NewWebOneSMSProvider(notifications.WebOneSMSConfig{
-			Username:      os.Getenv("WEBONESMS_USERNAME"),
-			Password:      os.Getenv("WEBONESMS_PASSWORD"),
-			APIKey:        os.Getenv("WEBONESMS_API_KEY"),
-			SenderNumber:  os.Getenv("WEBONESMS_SENDER"),
-			BaseURL:       os.Getenv("WEBONESMS_BASE_URL"),
-			OTPTemplateID: os.Getenv("WEBONESMS_OTP_TEMPLATE_ID"),
-		})
-	} else {
-		smsProvider = notifications.NewFakeSMSProvider()
-	}
-	fakeEmailProvider := notifications.NewFakeEmailProvider()
-	notificationsService := notifications.NewService(smsProvider, fakeEmailProvider)
-	notificationsHandler := notifications.NewHandler(notificationsService)
-
 	outboxWorker := outbox.NewWorker(logger)
 	outboxWorker.EnqueueEvent("SYSTEM_BOOTSTRAP", `{"version":"1.0.0"}`)
 
-	seoService := seo.NewService("https://moringalab.ir", catalogService, contentService, reviewsService)
+	seoService := seo.NewService("https://moringano.ir", catalogService, contentService, reviewsService)
 	seoHandler := seo.NewHandler(seoService)
 
 	supportService := support.NewService(ordersService)
@@ -283,6 +323,9 @@ func main() {
 		// Admin Order Management (M10)
 		r.Get("/admin/orders", ordersHandler.AdminListOrders)
 		r.Post("/admin/orders", ordersHandler.AdminCreateOrder)
+		r.Get("/admin/orders/stats/summary", ordersHandler.AdminGetOrderSummaryStats)
+		r.Get("/admin/orders/notifications/poll", ordersHandler.AdminPollNewOrders)
+		r.Get("/admin/orders/notifications/stream", ordersHandler.AdminOrderNotificationStream)
 		r.Get("/admin/orders/{id}", ordersHandler.AdminGetOrder)
 		r.Patch("/admin/orders/{id}/status", ordersHandler.AdminTransitionStatus)
 		r.Get("/admin/orders/{id}/timeline", ordersHandler.AdminGetTimeline)
@@ -327,7 +370,6 @@ func main() {
 		r.Post("/admin/articles/{id}/revisions/{revId}/restore", contentHandler.AdminRestoreRevision)
 		r.Post("/admin/faqs", contentHandler.AdminCreateFAQ)
 
-
 		// Admin SEO & Redirects Management (M16)
 		r.Get("/admin/seo/redirects", seoHandler.AdminListRedirects)
 		r.Post("/admin/seo/redirects", seoHandler.AdminCreateRedirect)
@@ -364,7 +406,6 @@ func main() {
 		r.Post("/admin/sms/bulk", notificationsHandler.AdminSendBulkSMS)
 		r.Post("/admin/orders/{orderNumber}/sms", notificationsHandler.AdminSendOrderManualSMS)
 	})
-
 
 	serverAddr := fmt.Sprintf(":%d", cfg.AppPort)
 	server := &http.Server{

@@ -39,14 +39,14 @@ type ChatConversation struct {
 }
 
 type ChatMessage struct {
-	ID               uuid.UUID `json:"id"`
-	ConversationID   uuid.UUID `json:"conversation_id"`
-	Role             string    `json:"role"` // "user", "assistant", "system"
-	Content          string    `json:"content"`
+	ID               uuid.UUID  `json:"id"`
+	ConversationID   uuid.UUID  `json:"conversation_id"`
+	Role             string     `json:"role"` // "user", "assistant", "system"
+	Content          string     `json:"content"`
 	Citations        []Citation `json:"citations,omitempty"`
-	SafetyFlagged    bool      `json:"safety_flagged"`
-	HandoffSuggested bool      `json:"handoff_suggested"`
-	CreatedAt        time.Time `json:"created_at"`
+	SafetyFlagged    bool       `json:"safety_flagged"`
+	HandoffSuggested bool       `json:"handoff_suggested"`
+	CreatedAt        time.Time  `json:"created_at"`
 }
 
 type ChatFeedback struct {

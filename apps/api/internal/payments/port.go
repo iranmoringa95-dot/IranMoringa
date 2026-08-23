@@ -17,9 +17,9 @@ type InitiateResponse struct {
 }
 
 type VerifyResponse struct {
-	Success              bool   `json:"success"`
+	Success               bool   `json:"success"`
 	ProviderTransactionID string `json:"provider_transaction_id"`
-	FailureCode          string `json:"failure_code,omitempty"`
+	FailureCode           string `json:"failure_code,omitempty"`
 }
 
 type PaymentGateway interface {

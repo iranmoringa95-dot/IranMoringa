@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"moringalab/api/internal/notifications"
 	"moringalab/api/internal/orders"
 )
 
@@ -16,11 +17,16 @@ var (
 	ErrPaymentAlreadyCompleted = errors.New("این تراکنش قبلاً تعیین تکلیف شده است")
 )
 
+type PaymentPaidNotifier interface {
+	NotifyPaymentPaid(orderNumber string, totalIRR int64, recipientPhone string, recipientName string) (*notifications.NotificationDelivery, error)
+}
+
 type Service struct {
 	mu           sync.RWMutex
 	payments     map[uuid.UUID]*Payment
 	orderService *orders.Service
 	gateway      PaymentGateway
+	notifier     PaymentPaidNotifier
 }
 
 func NewService(orderSvc *orders.Service) *Service {
@@ -29,6 +35,12 @@ func NewService(orderSvc *orders.Service) *Service {
 		orderService: orderSvc,
 		gateway:      NewFakeGateway(),
 	}
+}
+
+func (s *Service) SetNotifier(n PaymentPaidNotifier) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.notifier = n
 }
 
 func (s *Service) CreatePaymentSession(orderID uuid.UUID, orderNum string, amountIRR int64) (*Payment, error) {
@@ -87,6 +99,26 @@ func (s *Service) VerifyPayment(paymentID uuid.UUID, simulateSuccess bool) (*Pay
 
 		// Transition order status to paid
 		_ = s.orderService.UpdateStatus(p.OrderID, orders.StatusPaid)
+
+		if s.notifier != nil {
+			ord, err := s.orderService.GetOrderByID(p.OrderID)
+			if err == nil && ord != nil {
+				phone := ""
+				name := ""
+				if ord.GuestPhone != nil {
+					phone = *ord.GuestPhone
+				}
+				if ord.Address.RecipientPhone != "" {
+					phone = ord.Address.RecipientPhone
+				}
+				if ord.Address.RecipientName != "" {
+					name = ord.Address.RecipientName
+				}
+				go func() {
+					_, _ = s.notifier.NotifyPaymentPaid(ord.OrderNumber, ord.TotalIRR, phone, name)
+				}()
+			}
+		}
 	} else {
 		p.Status = PaymentStatusFailed
 		p.UpdatedAt = now
@@ -124,6 +156,26 @@ func (s *Service) VerifyPaymentWithAmount(paymentID uuid.UUID, expectedAmountIRR
 		p.UpdatedAt = now
 
 		_ = s.orderService.UpdateStatus(p.OrderID, orders.StatusPaid)
+
+		if s.notifier != nil {
+			ord, err := s.orderService.GetOrderByID(p.OrderID)
+			if err == nil && ord != nil {
+				phone := ""
+				name := ""
+				if ord.GuestPhone != nil {
+					phone = *ord.GuestPhone
+				}
+				if ord.Address.RecipientPhone != "" {
+					phone = ord.Address.RecipientPhone
+				}
+				if ord.Address.RecipientName != "" {
+					name = ord.Address.RecipientName
+				}
+				go func() {
+					_, _ = s.notifier.NotifyPaymentPaid(ord.OrderNumber, ord.TotalIRR, phone, name)
+				}()
+			}
+		}
 	} else {
 		p.Status = PaymentStatusFailed
 		p.UpdatedAt = now

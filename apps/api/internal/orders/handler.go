@@ -2,8 +2,10 @@ package orders
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -228,6 +230,87 @@ func (h *Handler) AdminAddNote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "success"})
+}
+
+// AdminPollNewOrders handles GET /api/v1/admin/orders/notifications/poll
+func (h *Handler) AdminPollNewOrders(w http.ResponseWriter, r *http.Request) {
+	var since time.Time
+	if s := r.URL.Query().Get("since"); s != "" {
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			since = t
+		}
+	}
+
+	var afterID *uuid.UUID
+	if aid := r.URL.Query().Get("after_id"); aid != "" {
+		if parsed, err := uuid.Parse(aid); err == nil {
+			afterID = &parsed
+		}
+	}
+
+	newOrders := h.service.GetNewOrdersSince(since, afterID)
+	if newOrders == nil {
+		newOrders = []*Order{}
+	}
+
+	stats := h.service.GetOrderStatsSummary()
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"orders":      newOrders,
+		"total_new":   len(newOrders),
+		"server_time": time.Now().Format(time.RFC3339),
+		"stats":       stats,
+	})
+}
+
+// AdminGetOrderSummaryStats handles GET /api/v1/admin/orders/stats/summary
+func (h *Handler) AdminGetOrderSummaryStats(w http.ResponseWriter, r *http.Request) {
+	stats := h.service.GetOrderStatsSummary()
+	writeJSON(w, http.StatusOK, stats)
+}
+
+// AdminOrderNotificationStream handles GET /api/v1/admin/orders/notifications/stream (Server-Sent Events)
+func (h *Handler) AdminOrderNotificationStream(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		writeError(w, http.StatusInternalServerError, "STREAMING_UNSUPPORTED", "استریم توسط سرور پشتیبانی نمی‌شود")
+		return
+	}
+
+	ch, unsubscribe := h.service.Subscribe()
+	defer unsubscribe()
+
+	// Send initial connected event
+	fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"connected\",\"server_time\":\"%s\"}\n\n", time.Now().Format(time.RFC3339))
+	flusher.Flush()
+
+	ticker := time.NewTicker(20 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case <-ticker.C:
+			// Send heartbeat comment
+			fmt.Fprintf(w, ": heartbeat\n\n")
+			flusher.Flush()
+		case event, open := <-ch:
+			if !open {
+				return
+			}
+			bytes, err := json.Marshal(event)
+			if err == nil {
+				fmt.Fprintf(w, "event: order_notification\ndata: %s\n\n", string(bytes))
+				flusher.Flush()
+			}
+		}
+	}
 }
 
 // ─── Customer Endpoints ──────────────────────────────────────────────────────

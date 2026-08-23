@@ -56,7 +56,6 @@ func NewService(sms SMSProvider, email EmailProvider) *Service {
 		gatewayManager:   NewSMSGatewayManager(),
 	}
 
-
 	// Register Seed Templates
 	for _, tmpl := range GetSeedTemplates() {
 		t := tmpl
@@ -143,10 +142,13 @@ func (s *Service) NotifyEvent(
 	var sendErr error
 
 	if channel == ChannelSMS {
-		if s.smsProvider == nil {
+		if s.smsProvider != nil {
+			result, sendErr = s.smsProvider.SendSMS(recipient, renderedBody)
+		} else if s.gatewayManager != nil && s.gatewayManager.EnableSMS {
+			result, sendErr = s.gatewayManager.Send(recipient, renderedBody, "", nil)
+		} else {
 			return nil, errors.New("ارائه‌دهنده پیامک تنظیم نشده است")
 		}
-		result, sendErr = s.smsProvider.SendSMS(recipient, renderedBody)
 	} else if channel == ChannelEmail {
 		if s.emailProvider == nil {
 			return nil, errors.New("ارائه‌دهنده ایمیل تنظیم نشده است")
@@ -490,3 +492,145 @@ func (s *Service) SetUserPreference(userID uuid.UUID, channel Channel, category 
 	s.prefStore.SetPreference(userID, channel, category, enabled)
 }
 
+// ─── Order Lifecycle Notifications ──────────────────────────────────────────
+
+// NotifyOrderPlaced sends order placement SMS to customer and administrative alerts to admins.
+func (s *Service) NotifyOrderPlaced(orderNumber string, totalIRR int64, recipientPhone string, recipientName string, orderStatus string) (*NotificationDelivery, error) {
+	totalToman := totalIRR / 10
+	totalTomanFormatted := formatNumber(totalToman)
+
+	data := map[string]string{
+		"first_name":    recipientName,
+		"last_name":     "",
+		"order_id":      orderNumber,
+		"OrderNumber":   orderNumber,
+		"order_total":   totalTomanFormatted,
+		"TotalToman":    totalTomanFormatted,
+		"order_status":  orderStatus,
+		"tracking_code": "—",
+		"tracking_url":  fmt.Sprintf("https://moringano.ir/tracking/%s", orderNumber),
+	}
+
+	// 1. Send to Buyer
+	var delivery *NotificationDelivery
+	var buyerErr error
+
+	if recipientPhone != "" {
+		delivery, buyerErr = s.NotifyEvent("order_placed", recipientPhone, ChannelSMS, data, nil, nil)
+	}
+
+	// 2. Send to Admins if enabled in gateway manager
+	if s.gatewayManager != nil && s.gatewayManager.EnableSMS {
+		for _, adminPhone := range s.gatewayManager.AdminNumbers {
+			if adminPhone != "" && adminPhone != "09120000000" && adminPhone != recipientPhone {
+				_, _ = s.NotifyEvent("order_placed", adminPhone, ChannelSMS, data, nil, nil)
+			}
+		}
+	}
+
+	return delivery, buyerErr
+}
+
+// NotifyPaymentPaid sends payment confirmation SMS to customer and admins.
+func (s *Service) NotifyPaymentPaid(orderNumber string, totalIRR int64, recipientPhone string, recipientName string) (*NotificationDelivery, error) {
+	totalToman := totalIRR / 10
+	totalTomanFormatted := formatNumber(totalToman)
+
+	data := map[string]string{
+		"first_name":    recipientName,
+		"last_name":     "",
+		"order_id":      orderNumber,
+		"OrderNumber":   orderNumber,
+		"order_total":   totalTomanFormatted,
+		"TotalToman":    totalTomanFormatted,
+		"AmountToman":   totalTomanFormatted,
+		"order_status":  "پرداخت شده",
+		"tracking_code": "—",
+		"tracking_url":  fmt.Sprintf("https://moringano.ir/tracking/%s", orderNumber),
+	}
+
+	var delivery *NotificationDelivery
+	var buyerErr error
+
+	if recipientPhone != "" {
+		delivery, buyerErr = s.NotifyEvent("payment_paid", recipientPhone, ChannelSMS, data, nil, nil)
+	}
+
+	if s.gatewayManager != nil && s.gatewayManager.EnableSMS {
+		for _, adminPhone := range s.gatewayManager.AdminNumbers {
+			if adminPhone != "" && adminPhone != "09120000000" && adminPhone != recipientPhone {
+				_, _ = s.NotifyEvent("payment_paid", adminPhone, ChannelSMS, data, nil, nil)
+			}
+		}
+	}
+
+	return delivery, buyerErr
+}
+
+// NotifyOrderStatusChanged sends order status change SMS (such as shipping, cancellation, etc.).
+func (s *Service) NotifyOrderStatusChanged(orderNumber string, oldStatus, newStatus string, trackingCode string, recipientPhone string, recipientName string) (*NotificationDelivery, error) {
+	data := map[string]string{
+		"first_name":    recipientName,
+		"last_name":     "",
+		"order_id":      orderNumber,
+		"OrderNumber":   orderNumber,
+		"order_status":  newStatus,
+		"tracking_code": trackingCode,
+		"TrackingCode":  trackingCode,
+		"tracking_url":  fmt.Sprintf("https://moringano.ir/tracking/%s", orderNumber),
+	}
+
+	var delivery *NotificationDelivery
+	var buyerErr error
+
+	if recipientPhone != "" {
+		eventCode := "order_" + newStatus
+		if newStatus == "shipped" {
+			eventCode = "order_shipped"
+		} else if newStatus == "delivered" {
+			eventCode = "order_delivered"
+		} else if newStatus == "cancelled" {
+			eventCode = "order_cancelled"
+		}
+
+		if _, exists := s.templates[eventCode]; exists {
+			delivery, buyerErr = s.NotifyEvent(eventCode, recipientPhone, ChannelSMS, data, nil, nil)
+		}
+	}
+
+	return delivery, buyerErr
+}
+
+func (s *Service) recordDelivery(orderNum string, eventCode string, recipient string, channel Channel, res *SendResult, data map[string]string) *NotificationDelivery {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	deliveryID := uuid.New()
+	now := time.Now()
+
+	del := &NotificationDelivery{
+		ID:              deliveryID,
+		EventCode:       eventCode,
+		RecipientMasked: s.maskRecipient(recipient, channel),
+		RecipientRaw:    recipient,
+		Channel:         channel,
+		Provider:        s.providerName(channel),
+		Status:          SendStatusSent,
+		AttemptCount:    1,
+		MaxAttempts:     5,
+		CreatedAt:       now,
+		SentAt:          &now,
+	}
+
+	if res != nil {
+		del.ProviderMessageID = res.ProviderMessageID
+		if res.Status == SendStatusFailed {
+			del.Status = SendStatusFailed
+			del.LastError = res.ErrorMessage
+		}
+	}
+
+	s.deliveries[deliveryID] = del
+	s.deliveryOrder = append(s.deliveryOrder, deliveryID)
+	return del
+}

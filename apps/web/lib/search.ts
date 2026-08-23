@@ -84,12 +84,14 @@ export interface UnifiedSearchResults {
 
 export const POPULAR_SEARCH_TERMS = [
   { text: 'پودر برگ خالص مورینگا', url: '/shop?category=powders' },
+  { text: 'مقایسه مورینگا و اسپیرولینا', url: '/articles/moringa-vs-spirulina-comparison' },
+  { text: 'برترین گیاهان دارویی و سوپرفودها', url: '/articles/top-medicinal-plants-superfoods-guide' },
   { text: 'روغن پرس سرد مورینگا', url: '/shop?category=oils' },
-  { text: 'لاغری و چربی‌سوزی گیاهی', url: '/articles/weight-loss-metabolism' },
-  { text: 'کنترل قند خون و دیابت', url: '/articles/diabetes-blood-sugar' },
+  { text: 'لاغری و چربی‌سوزی گیاهی', url: '/articles/moringa-for-weight-loss' },
+  { text: 'کنترل قند خون و دیابت', url: '/articles/moringa-for-diabetes' },
   { text: 'کپسول و مکمل خوراکی', url: '/shop?category=supplements' },
   { text: 'بذر و نهال اصلاح‌شده', url: '/shop?category=seeds' },
-  { text: 'دستورهای اسموتی انرژی‌بخش', url: '/#smoothies' },
+  { text: 'دستورهای اسموتی انرژی‌بخش', url: '/articles/moringa-vs-spirulina-comparison' },
   { text: 'پکیج اقتصادی خرید فله', url: '/shop?category=bulk' },
 ];
 

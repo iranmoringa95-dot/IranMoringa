@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrTrackingNotFound      = errors.New("کد رهگیری یا شماره سفارش واردشده در سیستم یافت نشد")
+	ErrTrackingNotFound     = errors.New("کد رهگیری یا شماره سفارش واردشده در سیستم یافت نشد")
 	ErrCourierOnlyInIsfahan = errors.New("ارسال با پیک موتوری فقط برای آدرس‌های داخل شهر اصفهان امکان‌پذیر است")
 )
 

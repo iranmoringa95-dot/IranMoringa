@@ -123,9 +123,9 @@ func (h *Handler) AdminListRedemptions(w http.ResponseWriter, r *http.Request) {
 // AdminSimulatePromotion handles POST /api/v1/admin/promotions/simulate
 func (h *Handler) AdminSimulatePromotion(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		Code        string            `json:"code"`
-		SubtotalIRR int64             `json:"subtotal_irr"`
-		Items       []EvaluationItem  `json:"items"`
+		Code        string           `json:"code"`
+		SubtotalIRR int64            `json:"subtotal_irr"`
+		Items       []EvaluationItem `json:"items"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Code == "" {

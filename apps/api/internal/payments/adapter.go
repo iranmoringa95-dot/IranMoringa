@@ -22,7 +22,7 @@ func (g *FakeGateway) Initiate(ctx context.Context, p *Payment) (*InitiateRespon
 func (g *FakeGateway) Verify(ctx context.Context, providerRef string, expectedAmountIRR int64) (*VerifyResponse, error) {
 	// Simulated verification success
 	return &VerifyResponse{
-		Success:              true,
+		Success:               true,
 		ProviderTransactionID: fmt.Sprintf("TXN-%s", providerRef),
 	}, nil
 }

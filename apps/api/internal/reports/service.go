@@ -23,11 +23,11 @@ var (
 )
 
 type Service struct {
-	mu           sync.RWMutex
-	exportJobs   map[uuid.UUID]*ReportExportJob
-	exportBlobs  map[uuid.UUID][]byte
-	ordersSvc    *orders.Service
-	inventorySvc *inventory.Service
+	mu            sync.RWMutex
+	exportJobs    map[uuid.UUID]*ReportExportJob
+	exportBlobs   map[uuid.UUID][]byte
+	ordersSvc     *orders.Service
+	inventorySvc  *inventory.Service
 	promotionsSvc *promotions.Service
 }
 

@@ -63,7 +63,7 @@ export function CleanEnergySection() {
             </div>
 
             {/* Main Heading */}
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-snug sm:leading-normal tracking-tight">
               انرژی پاک <span className="bg-gradient-to-r from-[#f97316] to-[#ff9800] bg-clip-text text-transparent">بدون کافئین</span>، تغذیه کامل بدون افت انرژی
             </h2>
 

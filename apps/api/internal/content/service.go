@@ -12,13 +12,13 @@ import (
 )
 
 var (
-	ErrArticleNotFound     = errors.New("مقاله مورد نظر یافت نشد")
-	ErrRevisionNotFound    = errors.New("نسخه مورد نظر برای بازگردانی یافت نشد")
-	ErrUnapprovedPublish   = errors.New("مقاله قبل از انتشار باید توسط بازبین علمی تایید شده باشد")
-	ErrMissingReviewer     = errors.New("انتشار مقاله سلامت نیازمند تعیین و تایید بازبین علمی (پزشک/داروساز) است")
-	ErrMissingSources      = errors.New("انتشار مقاله سلامت نیازمند حداقل یک منبع علمی معتبر است")
-	ErrForbiddenClaim      = errors.New("محتوای مقاله شامل ادعای درمانی قطعی پرچم‌گذاری‌شده است و تا اصلاح متن قابل انتشار نیست")
-	ErrMissingDisclaimer   = errors.New("افزودن هشدار پزشکی برای مقالات سلامت الزامی است")
+	ErrArticleNotFound      = errors.New("مقاله مورد نظر یافت نشد")
+	ErrRevisionNotFound     = errors.New("نسخه مورد نظر برای بازگردانی یافت نشد")
+	ErrUnapprovedPublish    = errors.New("مقاله قبل از انتشار باید توسط بازبین علمی تایید شده باشد")
+	ErrMissingReviewer      = errors.New("انتشار مقاله سلامت نیازمند تعیین و تایید بازبین علمی (پزشک/داروساز) است")
+	ErrMissingSources       = errors.New("انتشار مقاله سلامت نیازمند حداقل یک منبع علمی معتبر است")
+	ErrForbiddenClaim       = errors.New("محتوای مقاله شامل ادعای درمانی قطعی پرچم‌گذاری‌شده است و تا اصلاح متن قابل انتشار نیست")
+	ErrMissingDisclaimer    = errors.New("افزودن هشدار پزشکی برای مقالات سلامت الزامی است")
 	DefaultHealthDisclaimer = "اطلاعات ارائه شده در این مقاله صرفاً جنبه آگاهی‌بخشی عمومی داشته و جایگزین توصیه، تشخیص یا درمان مستقیم پزشک متخصص نیست."
 )
 
@@ -460,4 +460,3 @@ func (s *Service) ListFAQs() []*FAQ {
 	})
 	return list
 }
-

@@ -287,3 +287,88 @@ func TestQueueStatusMetrics(t *testing.T) {
 		t.Errorf("expected 2 total messages, got %d", stats.TotalCount)
 	}
 }
+
+// ─── Test 12: Order Lifecycle Notifications (Placed, Paid, Shipped) ──────────
+
+func TestOrderLifecycleNotifications(t *testing.T) {
+	svc, sms, _ := setupTestService()
+	svc.gatewayManager.AdminNumbers = []string{"09132391843"}
+
+	// 1. NotifyOrderPlaced
+	del, err := svc.NotifyOrderPlaced("MOR-14030101-00001", 1500000, "09121234567", "سارا احمدی", "pending_payment")
+	if err != nil {
+		t.Fatalf("NotifyOrderPlaced failed: %v", err)
+	}
+	if del == nil || del.Status != SendStatusSent {
+		t.Fatalf("expected sent delivery for NotifyOrderPlaced")
+	}
+
+	msgs := sms.GetSentMessages()
+	if len(msgs) < 2 { // 1 buyer + 1 admin
+		t.Fatalf("expected at least 2 messages (buyer + admin), got %d", len(msgs))
+	}
+	if !strings.Contains(msgs[0].Body, "MOR-14030101-00001") {
+		t.Errorf("expected order number in SMS, got %s", msgs[0].Body)
+	}
+
+	// 2. NotifyPaymentPaid
+	sms.Clear()
+	delPaid, err := svc.NotifyPaymentPaid("MOR-14030101-00001", 1500000, "09121234567", "سارا احمدی")
+	if err != nil {
+		t.Fatalf("NotifyPaymentPaid failed: %v", err)
+	}
+	if delPaid == nil || delPaid.Status != SendStatusSent {
+		t.Fatalf("expected sent delivery for NotifyPaymentPaid")
+	}
+
+	msgs = sms.GetSentMessages()
+	if len(msgs) < 2 {
+		t.Fatalf("expected 2 messages for payment, got %d", len(msgs))
+	}
+
+	// 3. NotifyOrderStatusChanged (Shipped with tracking code)
+	sms.Clear()
+	delShipped, err := svc.NotifyOrderStatusChanged("MOR-14030101-00001", "packed", "shipped", "12345678901234567890", "09121234567", "سارا احمدی")
+	if err != nil {
+		t.Fatalf("NotifyOrderStatusChanged failed: %v", err)
+	}
+	if delShipped == nil || delShipped.Status != SendStatusSent {
+		t.Fatalf("expected sent delivery for NotifyOrderStatusChanged")
+	}
+	msgs = sms.GetSentMessages()
+	if len(msgs) < 1 {
+		t.Fatalf("expected at least 1 message for shipped, got %d", len(msgs))
+	}
+	if !strings.Contains(msgs[0].Body, "12345678901234567890") {
+		t.Errorf("expected tracking code in shipped SMS, got %s", msgs[0].Body)
+	}
+}
+
+// ─── Test 13: SMSGatewayManager Template Rendering & Active Driver ───────────
+
+func TestSMSGatewayManagerTemplateRendering(t *testing.T) {
+	mgr := NewSMSGatewayManager()
+	if mgr.ActiveGateway != "webone" {
+		t.Errorf("expected default active gateway to be 'webone', got %s", mgr.ActiveGateway)
+	}
+
+	driver := mgr.GetActiveDriver()
+	if driver == nil || driver.GetID() != "webone" {
+		t.Fatalf("expected webone driver, got %v", driver)
+	}
+
+	data := map[string]string{
+		"first_name":    "علی",
+		"last_name":     "رضایی",
+		"order_id":      "MOR-9999",
+		"order_total":   "450,000",
+		"order_status":  "تکمیل شده",
+		"tracking_code": "TRACK-12345",
+	}
+
+	rendered := mgr.RenderTemplateText("سلام {first_name} {last_name}، سفارش {order_id} به مبلغ {order_total} ({order_status}). کد: {tracking_code}", data)
+	expected := "سلام علی رضایی، سفارش MOR-9999 به مبلغ 450,000 (تکمیل شده). کد: TRACK-12345"
+	if rendered != expected {
+		t.Errorf("template render mismatch.\nGot:      %s\nExpected: %s", rendered, expected)
+	}
+}

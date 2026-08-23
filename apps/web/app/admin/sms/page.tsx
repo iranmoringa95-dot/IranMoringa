@@ -209,47 +209,130 @@ export default function PersianSMSAdminPage() {
     }
   }, [activeTab, fetchSMSLogs]);
 
+  // Fetch SMS Settings from API
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await fetch('/api/v1/admin/sms/settings');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.enable_sms !== undefined) setEnableSMS(data.enable_sms);
+      if (data.active_gateway) setActiveGateway(data.active_gateway);
+      if (data.active_balance) setActiveBalance(data.active_balance);
+      if (data.admin_numbers) setAdminNumbersStr(data.admin_numbers.join(', '));
+      if (data.tracking_keys) setTrackingKeysStr(data.tracking_keys.join(', '));
+      if (data.credentials) setCredentials((prev) => ({ ...prev, ...data.credentials }));
+      if (data.buyer_templates) setBuyerTemplates((prev) => ({ ...prev, ...data.buyer_templates }));
+      if (data.admin_templates) setAdminTemplates((prev) => ({ ...prev, ...data.admin_templates }));
+    } catch (err) {
+      console.warn('Failed to load settings:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
   const fetchBalance = async () => {
     setBalanceLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/v1/admin/sms/gateways/balance');
+      const data = await res.json();
+      if (data.balance) {
+        setActiveBalance(data.balance);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch balance:', err);
+    } finally {
       setBalanceLoading(false);
-      setActiveBalance('۴,۰۶۱,۲۴۴ ریال (۳۶,۹۲۰ پیامک)');
-    }, 600);
+    }
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    setFeedback(null);
+    try {
+      const adminNumbers = adminNumbersStr.split(',').map((s) => s.trim()).filter(Boolean);
+      const trackingKeys = trackingKeysStr.split(',').map((s) => s.trim()).filter(Boolean);
+
+      const payload = {
+        enable_sms: enableSMS,
+        active_gateway: activeGateway,
+        admin_numbers: adminNumbers,
+        tracking_keys: trackingKeys,
+        credentials,
+        buyer_templates: buyerTemplates,
+        admin_templates: adminTemplates,
+      };
+
+      const res = await fetch('/api/v1/admin/sms/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('خطا در ذخیره تنظیمات');
       setFeedback({ type: 'success', message: 'کلیه تنظیمات پیامک و وب‌سرویس‌ها با موفقیت ذخیره شدند.' });
-    }, 700);
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message || 'خطا در ارتباط با سرور' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSendTestSMS = () => {
+  const handleSendTestSMS = async () => {
     if (!testMobile) {
       alert('لطفاً شماره موبایل را وارد فرمایید.');
       return;
     }
     setTestSending(true);
     setTestResult(null);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/v1/admin/sms/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: testMobile }),
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setTestResult(`✔ ${data.message || 'پیامک تست با موفقیت ارسال شد.'}`);
+        fetchSMSLogs();
+      } else {
+        setTestResult(`✖ خطا در ارسال پیامک تست: ${data.error || data.detail || 'خطای درگاه'}`);
+      }
+    } catch (err: any) {
+      setTestResult(`✖ خطا: ${err.message || 'عدم دسترسی به سرور'}`);
+    } finally {
       setTestSending(false);
-      setTestResult('✔ پیامک تست با موفقیت به شماره ' + testMobile + ' ارسال شد.');
-    }, 800);
+    }
   };
 
-  const handleSendBulkSMS = () => {
+  const handleSendBulkSMS = async () => {
     if (!bulkMessage) {
       alert('لطفاً متن پیامک را وارد کنید.');
       return;
     }
     setBulkSending(true);
     setBulkResult(null);
-    setTimeout(() => {
+    try {
+      const mobiles = bulkNumbers.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
+      const res = await fetch('/api/v1/admin/sms/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobiles, message: bulkMessage }),
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setBulkResult(`✔ ${data.message}`);
+        fetchSMSLogs();
+      } else {
+        setBulkResult(`✖ خطا: ${data.error || 'ارسال ناموفق بود'}`);
+      }
+    } catch (err: any) {
+      setBulkResult(`✖ خطا: ${err.message || 'عدم دسترسی به سرور'}`);
+    } finally {
       setBulkSending(false);
-      setBulkResult('✔ کمپین ارسال پیامک گروهی به صف ارسال وب‌وان اضافه شد.');
-    }, 1000);
+    }
   };
 
   const handleCopyPhone = (phone: string, e: React.MouseEvent) => {

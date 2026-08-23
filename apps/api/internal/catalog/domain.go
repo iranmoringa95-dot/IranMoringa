@@ -155,54 +155,54 @@ type AdminProductFilter struct {
 }
 
 type CreateProductInput struct {
-	BrandID             *uuid.UUID `json:"brand_id,omitempty"`
-	Slug                string     `json:"slug"`
-	TitleFA             string     `json:"title_fa"`
-	ShortDescriptionFA  *string    `json:"short_description_fa,omitempty"`
-	FullDescriptionFA   *string    `json:"full_description_fa,omitempty"`
+	BrandID             *uuid.UUID  `json:"brand_id,omitempty"`
+	Slug                string      `json:"slug"`
+	TitleFA             string      `json:"title_fa"`
+	ShortDescriptionFA  *string     `json:"short_description_fa,omitempty"`
+	FullDescriptionFA   *string     `json:"full_description_fa,omitempty"`
 	ProductType         ProductType `json:"product_type"`
-	IsFeatured          bool       `json:"is_featured"`
-	UsageInstructionsFA *string    `json:"usage_instructions_fa,omitempty"`
-	IngredientsFA       *string    `json:"ingredients_fa,omitempty"`
-	WarningsFA          *string    `json:"warnings_fa,omitempty"`
-	StorageConditionsFA *string    `json:"storage_conditions_fa,omitempty"`
-	CountryOfOrigin     *string    `json:"country_of_origin,omitempty"`
-	LicenseNumber       *string    `json:"license_number,omitempty"`
-	SEOTitle            *string    `json:"seo_title,omitempty"`
-	SEODescription      *string    `json:"seo_description,omitempty"`
+	IsFeatured          bool        `json:"is_featured"`
+	UsageInstructionsFA *string     `json:"usage_instructions_fa,omitempty"`
+	IngredientsFA       *string     `json:"ingredients_fa,omitempty"`
+	WarningsFA          *string     `json:"warnings_fa,omitempty"`
+	StorageConditionsFA *string     `json:"storage_conditions_fa,omitempty"`
+	CountryOfOrigin     *string     `json:"country_of_origin,omitempty"`
+	LicenseNumber       *string     `json:"license_number,omitempty"`
+	SEOTitle            *string     `json:"seo_title,omitempty"`
+	SEODescription      *string     `json:"seo_description,omitempty"`
 	CategoryIDs         []uuid.UUID `json:"category_ids,omitempty"`
 
 	// Default Variant Inputs
-	SKU                 string  `json:"sku"`
-	Barcode             *string `json:"barcode,omitempty"`
-	PriceIRR            int64   `json:"price_irr"`
-	CompareAtPriceIRR   *int64  `json:"compare_at_price_irr,omitempty"`
-	NetWeightGrams      int     `json:"net_weight_grams"`
-	ShippingWeightGrams int     `json:"shipping_weight_grams"`
-	InitialStock        int     `json:"initial_stock"`
+	SKU                 string              `json:"sku"`
+	Barcode             *string             `json:"barcode,omitempty"`
+	PriceIRR            int64               `json:"price_irr"`
+	CompareAtPriceIRR   *int64              `json:"compare_at_price_irr,omitempty"`
+	NetWeightGrams      int                 `json:"net_weight_grams"`
+	ShippingWeightGrams int                 `json:"shipping_weight_grams"`
+	InitialStock        int                 `json:"initial_stock"`
 	Media               []ProductMediaInput `json:"media,omitempty"`
 }
 
 type UpdateProductInput struct {
-	Version             int        `json:"version"` // For optimistic concurrency
-	BrandID             *uuid.UUID `json:"brand_id,omitempty"`
-	TitleFA             *string    `json:"title_fa,omitempty"`
-	ShortDescriptionFA  *string    `json:"short_description_fa,omitempty"`
-	FullDescriptionFA   *string    `json:"full_description_fa,omitempty"`
-	IsFeatured          *bool      `json:"is_featured,omitempty"`
-	UsageInstructionsFA *string    `json:"usage_instructions_fa,omitempty"`
-	IngredientsFA       *string    `json:"ingredients_fa,omitempty"`
-	WarningsFA          *string    `json:"warnings_fa,omitempty"`
-	StorageConditionsFA *string    `json:"storage_conditions_fa,omitempty"`
-	SEOTitle            *string    `json:"seo_title,omitempty"`
-	SEODescription      *string    `json:"seo_description,omitempty"`
+	Version             int         `json:"version"` // For optimistic concurrency
+	BrandID             *uuid.UUID  `json:"brand_id,omitempty"`
+	TitleFA             *string     `json:"title_fa,omitempty"`
+	ShortDescriptionFA  *string     `json:"short_description_fa,omitempty"`
+	FullDescriptionFA   *string     `json:"full_description_fa,omitempty"`
+	IsFeatured          *bool       `json:"is_featured,omitempty"`
+	UsageInstructionsFA *string     `json:"usage_instructions_fa,omitempty"`
+	IngredientsFA       *string     `json:"ingredients_fa,omitempty"`
+	WarningsFA          *string     `json:"warnings_fa,omitempty"`
+	StorageConditionsFA *string     `json:"storage_conditions_fa,omitempty"`
+	SEOTitle            *string     `json:"seo_title,omitempty"`
+	SEODescription      *string     `json:"seo_description,omitempty"`
 	CategoryIDs         []uuid.UUID `json:"category_ids,omitempty"`
 
-	SKU                 *string `json:"sku,omitempty"`
-	PriceIRR            *int64  `json:"price_irr,omitempty"`
-	CompareAtPriceIRR   *int64  `json:"compare_at_price_irr,omitempty"`
-	NetWeightGrams      *int    `json:"net_weight_grams,omitempty"`
-	ShippingWeightGrams *int    `json:"shipping_weight_grams,omitempty"`
+	SKU                 *string             `json:"sku,omitempty"`
+	PriceIRR            *int64              `json:"price_irr,omitempty"`
+	CompareAtPriceIRR   *int64              `json:"compare_at_price_irr,omitempty"`
+	NetWeightGrams      *int                `json:"net_weight_grams,omitempty"`
+	ShippingWeightGrams *int                `json:"shipping_weight_grams,omitempty"`
 	Media               []ProductMediaInput `json:"media,omitempty"`
 }
 
@@ -220,4 +220,3 @@ type DemoSeedRecord struct {
 	EntityID    uuid.UUID `json:"entity_id"`
 	CreatedAt   time.Time `json:"created_at"`
 }
-

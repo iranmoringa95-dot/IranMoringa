@@ -77,26 +77,30 @@
 }
 
 :root {
-  --font-iransans: 'IRANSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --bg-page: #faf8f5;
+  --font-iransans: 'IRANSans', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg-page: #fafbf8;
   --bg-card: #ffffff;
-  --border-card: rgba(2, 98, 81, 0.12);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --brand-primary: #026251;
-  --brand-accent: #d0de41;
+  --bg-muted: #f3f5ef;
+  --border-card: #e5e8de;
+  --text-primary: #17251c;
+  --text-secondary: #3f4638;
+  --text-muted: #717b67;
+  --brand-primary: #176b39;
+  --brand-primary-light: #2ea355;
+  --brand-accent: #f47a24;
 }
 
 .dark {
-  --bg-page: #06120e;
-  --bg-card: #091f18;
-  --border-card: rgba(16, 185, 129, 0.2);
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --brand-primary: #026251;
-  --brand-accent: #d0de41;
+  --bg-page: #072714;
+  --bg-card: #0a331b;
+  --bg-muted: #0d3d21;
+  --border-card: rgba(46, 163, 85, 0.2);
+  --text-primary: #f2f9f4;
+  --text-secondary: #c3e5cd;
+  --text-muted: #97d2a7;
+  --brand-primary: #2ea355;
+  --brand-primary-light: #5eba7a;
+  --brand-accent: #f47a24;
 }
 
 html {
@@ -110,7 +114,7 @@ html.dark {
 }
 
 body {
-  font-family: 'IRANSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'IRANSans', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   direction: rtl;
   text-align: right;
   overflow-x: hidden;
@@ -121,7 +125,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.8;
   letter-spacing: -0.01em;
   background-color: var(--bg-page);
   color: var(--text-primary);
@@ -129,13 +133,13 @@ body {
 
 /* Ensure headings have crisp weights and generous leading */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'IRANSans', sans-serif;
-  font-weight: 700;
+  font-family: 'IRANSans', 'Vazirmatn', sans-serif;
+  font-weight: 800;
   line-height: 1.45;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
-/* Ensure mobile pages have space above BottomNav */
+/* Mobile viewport adjustments */
 @media (max-width: 1024px) {
   body {
     padding-bottom: env(safe-area-inset-bottom, 4.5rem);
@@ -143,31 +147,42 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Custom Scrollbar for Luxury Aesthetic */
+/* Form input touch optimization (min 16px to prevent iOS auto-zoom) */
+input, select, textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 640px) {
+  input, select, textarea {
+    font-size: 14px;
+  }
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f3f5ef;
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #06120e;
+  background: #072714;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #026251;
+  background: #176b39;
   border-radius: 9999px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #0d382e;
+  background: #2ea355;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d0de41;
+  background: #114627;
 }
 
 /* Global Form Input and Select Dark Mode Overrides */
@@ -178,52 +193,50 @@ h1, h2, h3, h4, h5, h6 {
 .dark input[type="search"],
 .dark select,
 .dark textarea {
-  background-color: #041410 !important;
-  color: #f8fafc !important;
-  border-color: rgba(16, 185, 129, 0.25) !important;
+  background-color: #072714 !important;
+  color: #f2f9f4 !important;
+  border-color: rgba(46, 163, 85, 0.25) !important;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #64748b !important;
+  color: #97d2a7 !important;
 }
 
 .dark select option {
-  background-color: #08201a !important;
-  color: #f8fafc !important;
+  background-color: #0a331b !important;
+  color: #f2f9f4 !important;
 }
 
 /* Custom UI Utility Classes */
 .moringa-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(23, 37, 28, 0.04);
   transition: all 0.2s ease-in-out;
 }
 
 .dark .moringa-card {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 .moringa-card:hover {
-  border-color: rgba(2, 98, 81, 0.3);
+  border-color: #c3e5cd;
+  box-shadow: 0 4px 12px -2px rgba(23, 37, 28, 0.08);
 }
 
 .dark .moringa-card:hover {
-  border-color: rgba(208, 222, 65, 0.4);
+  border-color: rgba(46, 163, 85, 0.4);
 }
 
-/* Organic Moringa Leaf breeze animation */
+/* Subtle Organic Leaf breeze animation */
 @keyframes moringaBreeze {
   0%, 100% {
     transform: rotate(0deg) scale(1);
   }
-  25% {
-    transform: rotate(-3deg) scale(1.03);
-  }
-  75% {
-    transform: rotate(3deg) scale(1.02);
+  50% {
+    transform: rotate(2deg) scale(1.02);
   }
 }
 

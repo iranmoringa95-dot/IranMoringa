@@ -12,32 +12,32 @@ import (
 )
 
 var (
-	ErrProductNotFound                   = errors.New("محصول مورد نظر یافت نشد")
-	ErrCategoryNotFound                  = errors.New("دسته‌بندی مورد نظر یافت نشد")
-	ErrCategoryCycle                     = errors.New("ایجاد رابطه چرخه‌ای (دور) در دسته‌بندی‌ها امکان‌پذیر نیست")
-	ErrNegativePrice                     = errors.New("قیمت محصول نمی‌تواند منفی باشد")
-	ErrInvalidCompareAtPrice             = errors.New("قیمت قبل از تخفیف باید از قیمت اصلی بیشتر باشد")
-	ErrNoVariant                         = errors.New("هر محصول قابل فروش باید حداقل یک متغیر فعال داشته باشد")
-	ErrShippingWeightTooSmall            = errors.New("وزن ارسال نمی‌تواند از وزن خالص محصول کمتر باشد")
-	ErrProductInUse                      = errors.New("محصول دارای سابقه سفارش یا موجودی فعال است و امکان حذف فیزیکی ندارد (از آرشیو استفاده کنید)")
-	ErrSlugExists                        = errors.New("شناسه آدرس (Slug) تکراری است")
-	ErrSKUExists                         = errors.New("کد کالا (SKU) تکراری است")
-	ErrOptimisticLock                    = errors.New("تغییرات هم‌زمان رخ داده است، لطفاً اطلاعات را مجدداً دریافت و ویرایش کنید")
-	ErrCannotPublishMissingVariant       = errors.New("محصول منتشرشده حداقل یک متغیر فعال لازم دارد")
-	ErrCannotPublishMissingPrice         = errors.New("قیمت محصول منتشرشده باید بزرگتر از صفر باشد")
-	ErrCannotPublishMissingSKU           = errors.New("کد کالا (SKU) برای انتشار الزامی است")
-	ErrCannotPublishMissingCategory      = errors.New("انتخاب حداقل یک دسته‌بندی برای انتشار الزامی است")
-	ErrCannotPublishMissingPrimaryMedia  = errors.New("انتخاب تصویر اصلی برای انتشار الزامی است")
+	ErrProductNotFound                  = errors.New("محصول مورد نظر یافت نشد")
+	ErrCategoryNotFound                 = errors.New("دسته‌بندی مورد نظر یافت نشد")
+	ErrCategoryCycle                    = errors.New("ایجاد رابطه چرخه‌ای (دور) در دسته‌بندی‌ها امکان‌پذیر نیست")
+	ErrNegativePrice                    = errors.New("قیمت محصول نمی‌تواند منفی باشد")
+	ErrInvalidCompareAtPrice            = errors.New("قیمت قبل از تخفیف باید از قیمت اصلی بیشتر باشد")
+	ErrNoVariant                        = errors.New("هر محصول قابل فروش باید حداقل یک متغیر فعال داشته باشد")
+	ErrShippingWeightTooSmall           = errors.New("وزن ارسال نمی‌تواند از وزن خالص محصول کمتر باشد")
+	ErrProductInUse                     = errors.New("محصول دارای سابقه سفارش یا موجودی فعال است و امکان حذف فیزیکی ندارد (از آرشیو استفاده کنید)")
+	ErrSlugExists                       = errors.New("شناسه آدرس (Slug) تکراری است")
+	ErrSKUExists                        = errors.New("کد کالا (SKU) تکراری است")
+	ErrOptimisticLock                   = errors.New("تغییرات هم‌زمان رخ داده است، لطفاً اطلاعات را مجدداً دریافت و ویرایش کنید")
+	ErrCannotPublishMissingVariant      = errors.New("محصول منتشرشده حداقل یک متغیر فعال لازم دارد")
+	ErrCannotPublishMissingPrice        = errors.New("قیمت محصول منتشرشده باید بزرگتر از صفر باشد")
+	ErrCannotPublishMissingSKU          = errors.New("کد کالا (SKU) برای انتشار الزامی است")
+	ErrCannotPublishMissingCategory     = errors.New("انتخاب حداقل یک دسته‌بندی برای انتشار الزامی است")
+	ErrCannotPublishMissingPrimaryMedia = errors.New("انتخاب تصویر اصلی برای انتشار الزامی است")
 )
 
 type Service struct {
-	mu               sync.RWMutex
-	categories       map[uuid.UUID]*Category
-	products         map[uuid.UUID]*Product
-	bySlug           map[string]*Product
-	brands           map[uuid.UUID]*Brand
-	attributes       map[uuid.UUID]*Attribute
-	seedRegistry     map[string]*DemoSeedRecord
+	mu           sync.RWMutex
+	categories   map[uuid.UUID]*Category
+	products     map[uuid.UUID]*Product
+	bySlug       map[string]*Product
+	brands       map[uuid.UUID]*Brand
+	attributes   map[uuid.UUID]*Attribute
+	seedRegistry map[string]*DemoSeedRecord
 }
 
 func NewService() *Service {

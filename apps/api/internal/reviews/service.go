@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	ErrInvalidRating   = errors.New("امتیاز باید بین ۱ تا ۵ ستاره باشد")
-	ErrReviewNotFound  = errors.New("دیدگاه پیدا نشد")
+	ErrInvalidRating    = errors.New("امتیاز باید بین ۱ تا ۵ ستاره باشد")
+	ErrReviewNotFound   = errors.New("دیدگاه پیدا نشد")
 	ErrQuestionNotFound = errors.New("پرسش پیدا نشد")
-	ErrDuplicateReview = errors.New("شما قبلاً برای این محصول دیدگاه ثبت کرده‌اید")
-	ErrAlreadyVoted    = errors.New("شما قبلاً به این دیدگاه رای داده‌اید")
+	ErrDuplicateReview  = errors.New("شما قبلاً برای این محصول دیدگاه ثبت کرده‌اید")
+	ErrAlreadyVoted     = errors.New("شما قبلاً به این دیدگاه رای داده‌اید")
 )
 
 type Service struct {

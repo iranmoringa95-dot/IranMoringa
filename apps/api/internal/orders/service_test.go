@@ -3,6 +3,7 @@ package orders
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -178,9 +179,9 @@ func TestAllValidTransitions(t *testing.T) {
 
 func TestAllInvalidTransitions(t *testing.T) {
 	invalidTransitions := []struct {
-		name    string
-		from    OrderStatus
-		to      OrderStatus
+		name string
+		from OrderStatus
+		to   OrderStatus
 	}{
 		{"pending → processing (must go through paid)", StatusPendingPayment, StatusProcessing},
 		{"pending → shipped", StatusPendingPayment, StatusShipped},
@@ -484,6 +485,99 @@ func TestTrackingCodeLookup(t *testing.T) {
 	_, err = svc.GetOrderByTrackingCode("TRK-DOES-NOT-EXIST")
 	if err != ErrOrderNotFound {
 		t.Errorf("expected ErrOrderNotFound, got %v", err)
+	}
+}
+
+// ─── Test 14: Order Notification Broadcasting & Subscription ──────────────────
+
+func TestOrderNotificationBroadcastingAndSubscription(t *testing.T) {
+	svc := NewService()
+	ch, unsubscribe := svc.Subscribe()
+	defer unsubscribe()
+
+	ord, err := svc.CreateOrder(&Order{
+		SubtotalIRR: 5000000,
+		TotalIRR:    5000000,
+		Address: OrderAddressSnapshot{
+			RecipientName:  "مهدی کریمی",
+			RecipientPhone: "09120001122",
+			City:           "تهران",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CreateOrder failed: %v", err)
+	}
+
+	select {
+	case event := <-ch:
+		if event.Event != "order_created" {
+			t.Errorf("expected event order_created, got %s", event.Event)
+		}
+		if event.OrderID != ord.ID.String() {
+			t.Errorf("expected order ID %s, got %s", ord.ID.String(), event.OrderID)
+		}
+		if event.Customer != "مهدی کریمی" {
+			t.Errorf("expected customer name مهدی کریمی, got %s", event.Customer)
+		}
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for order_created notification")
+	}
+
+	// Now transition status
+	advanceTo(t, svc, ord.ID, StatusPaid)
+
+	select {
+	case event := <-ch:
+		if event.Event != "status_changed" {
+			t.Errorf("expected event status_changed, got %s", event.Event)
+		}
+		if event.Status != string(StatusPaid) {
+			t.Errorf("expected status %s, got %s", StatusPaid, event.Status)
+		}
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for status_changed notification")
+	}
+}
+
+// ─── Test 15: Order Stats Summary & Polling ──────────────────────────────────
+
+func TestOrderStatsSummaryAndPolling(t *testing.T) {
+	svc := NewService()
+	past := time.Now().Add(-1 * time.Hour)
+
+	ord1, _ := svc.CreateOrder(&Order{
+		SubtotalIRR: 1000000,
+		TotalIRR:    1000000,
+	})
+	ord2, _ := svc.CreateOrder(&Order{
+		SubtotalIRR: 2000000,
+		TotalIRR:    2000000,
+	})
+
+	stats := svc.GetOrderStatsSummary()
+	if stats.TotalOrders != 2 {
+		t.Errorf("expected 2 total orders, got %d", stats.TotalOrders)
+	}
+	if stats.PendingPayment != 2 {
+		t.Errorf("expected 2 pending payment orders, got %d", stats.PendingPayment)
+	}
+	if stats.TotalSalesIRR != 3000000 {
+		t.Errorf("expected 3000000 IRR total sales, got %d", stats.TotalSalesIRR)
+	}
+	if stats.TotalSalesToman != 300000 {
+		t.Errorf("expected 300000 Toman total sales, got %d", stats.TotalSalesToman)
+	}
+
+	// Test polling since past
+	newOrders := svc.GetNewOrdersSince(past, nil)
+	if len(newOrders) != 2 {
+		t.Errorf("expected 2 orders since past, got %d", len(newOrders))
+	}
+
+	// Test polling after ord1 ID
+	afterOrd1 := svc.GetNewOrdersSince(past, &ord1.ID)
+	if len(afterOrd1) != 1 || afterOrd1[0].ID != ord2.ID {
+		t.Errorf("expected only ord2, got %v", afterOrd1)
 	}
 }
 

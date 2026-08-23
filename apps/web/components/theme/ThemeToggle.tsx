@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Sun, Moon } from 'lucide-react';
-import { useTheme } from './ThemeProvider';
+import { Sun, Moon, Laptop } from 'lucide-react';
+import { useTheme, Theme } from './ThemeProvider';
 
 interface ThemeToggleProps {
   className?: string;
-  variant?: 'button' | 'pill' | 'switch';
+  variant?: 'button' | 'pill' | 'segmented';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -15,7 +15,7 @@ export function ThemeToggle({
   variant = 'button',
   size = 'md',
 }: ThemeToggleProps) {
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -25,34 +25,82 @@ export function ThemeToggle({
   if (!mounted) {
     return (
       <div
-        className={`w-9 h-9 rounded-full bg-slate-200 dark:bg-emerald-950/60 border border-slate-300 dark:border-emerald-800/40 animate-pulse ${className}`}
+        className={`w-10 h-10 rounded-xl bg-stone-200/60 dark:bg-stone-800/60 animate-pulse ${className}`}
       />
     );
   }
 
   const isDark = resolvedTheme === 'dark';
 
+  if (variant === 'segmented') {
+    return (
+      <div className={`inline-flex items-center bg-stone-100 dark:bg-stone-800/80 p-1 rounded-xl border border-stone-200/80 dark:border-stone-700/60 text-xs ${className}`}>
+        <button
+          type="button"
+          onClick={() => setTheme('light')}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+            theme === 'light'
+              ? 'bg-white text-[#176b39] shadow-xs'
+              : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-white'
+          }`}
+          title="حالت روز (روشن)"
+        >
+          <Sun className="w-3.5 h-3.5" />
+          <span>روشن</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTheme('dark')}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+            theme === 'dark'
+              ? 'bg-[#18221b] text-[#97d2a7] shadow-xs border border-[#1e8240]/40'
+              : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-white'
+          }`}
+          title="حالت شب (تاریک)"
+        >
+          <Moon className="w-3.5 h-3.5" />
+          <span>تاریک</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTheme('system')}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+            theme === 'system'
+              ? 'bg-white dark:bg-stone-700 text-[#17251c] dark:text-white shadow-xs'
+              : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-white'
+          }`}
+          title="هماهنگ خودکار با تنظیمات سیستم/موبایل"
+        >
+          <Laptop className="w-3.5 h-3.5" />
+          <span>خودکار</span>
+        </button>
+      </div>
+    );
+  }
+
   if (variant === 'pill') {
     return (
       <button
         type="button"
         onClick={toggleTheme}
-        className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 border shadow-xs cursor-pointer select-none active:scale-95 ${
+        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border shadow-xs cursor-pointer select-none active:scale-95 ${
           isDark
-            ? 'bg-[#0b241d] text-[#d0de41] border-emerald-700/60 hover:bg-[#113329] hover:border-[#d0de41]/60'
-            : 'bg-white text-[#026251] border-emerald-900/25 hover:bg-emerald-50 hover:border-emerald-600'
+            ? 'bg-[#18221b] text-amber-300 border-stone-700/80 hover:bg-[#202d24]'
+            : 'bg-white text-[#176b39] border-stone-200/80 hover:bg-stone-50'
         } ${className}`}
         aria-label={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
         title={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
       >
         {isDark ? (
           <>
-            <Sun className="w-4 h-4 text-[#d0de41]" />
+            <Sun className="w-4 h-4 text-amber-300" />
             <span>حالت روز</span>
           </>
         ) : (
           <>
-            <Moon className="w-4 h-4 text-[#026251]" />
+            <Moon className="w-4 h-4 text-[#176b39]" />
             <span>حالت شب</span>
           </>
         )}
@@ -64,22 +112,22 @@ export function ThemeToggle({
     <button
       type="button"
       onClick={toggleTheme}
-      className={`p-2 rounded-full transition-all flex items-center justify-center border cursor-pointer group relative overflow-hidden select-none active:scale-95 ${
+      className={`h-10 w-10 rounded-xl transition-all flex items-center justify-center border cursor-pointer group relative overflow-hidden select-none active:scale-95 shrink-0 ${
         isDark
-          ? 'bg-[#0b241d] text-[#d0de41] border-emerald-700/60 hover:bg-[#113329] hover:border-[#d0de41]/60 hover:scale-105 shadow-sm'
-          : 'bg-white text-[#026251] hover:text-[#014639] border-emerald-900/25 hover:bg-emerald-50 hover:border-emerald-600 hover:scale-105 shadow-sm'
-      } ${size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-11 h-11' : 'w-9 h-9 sm:w-10 sm:h-10'} ${className}`}
+          ? 'bg-stone-800/80 text-amber-300 border-stone-700/80 hover:bg-stone-700/80'
+          : 'bg-stone-100 text-stone-700 hover:text-[#176b39] border-stone-200/80 hover:bg-stone-200/70'
+      } ${className}`}
       aria-label={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
       title={isDark ? 'تغییر به حالت روز (روشن)' : 'تغییر به حالت شب (دارک‌مود)'}
     >
       <div className="relative w-4 h-4 sm:w-5 sm:h-5">
         <Sun
-          className={`w-full h-full absolute inset-0 text-[#d0de41] transition-all duration-300 transform ${
+          className={`w-full h-full absolute inset-0 text-amber-400 transition-all duration-300 transform ${
             isDark ? 'rotate-0 scale-100 opacity-100' : 'rotate-90 scale-0 opacity-0'
           }`}
         />
         <Moon
-          className={`w-full h-full absolute inset-0 text-[#026251] transition-all duration-300 transform ${
+          className={`w-full h-full absolute inset-0 text-[#176b39] dark:text-stone-200 transition-all duration-300 transform ${
             isDark ? '-rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'
           }`}
         />

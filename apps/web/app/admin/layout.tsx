@@ -54,20 +54,41 @@ export default function AdminLayout({
   const [passError, setPassError] = useState('');
 
   useEffect(() => {
-    const admin = getActiveAdminSession();
-    setSession(admin);
-    setIsLoaded(true);
+    const checkAdmin = () => {
+      const admin = getActiveAdminSession();
+      if (!admin) {
+        setSession(null);
+        setIsLoaded(true);
+        router.replace(`/login?redirect=${encodeURIComponent(pathname || '/admin')}`);
+        return;
+      }
+      setSession(admin);
+      setIsLoaded(true);
+    };
+
+    checkAdmin();
 
     const handleSessionUpdate = () => {
-      setSession(getActiveAdminSession());
+      const currentAdmin = getActiveAdminSession();
+      if (!currentAdmin) {
+        setSession(null);
+        router.replace('/login');
+      } else {
+        setSession(currentAdmin);
+      }
     };
+
     window.addEventListener('moringa_admin_session_updated', handleSessionUpdate);
-    return () => window.removeEventListener('moringa_admin_session_updated', handleSessionUpdate);
-  }, []);
+    window.addEventListener('moringa_auth_changed', handleSessionUpdate);
+    return () => {
+      window.removeEventListener('moringa_admin_session_updated', handleSessionUpdate);
+      window.removeEventListener('moringa_auth_changed', handleSessionUpdate);
+    };
+  }, [pathname, router]);
 
   const handleLogout = () => {
     clearAdminSession();
-    router.push('/login');
+    router.replace('/login');
   };
 
   const handleForceChangePassword = (e: React.FormEvent) => {
@@ -150,7 +171,7 @@ export default function AdminLayout({
         { href: '/admin/articles', label: 'دانشنامه و مقالات', icon: FileText },
         { href: '/admin/seo', label: 'سئو و متاتگ‌های پیشرفته', icon: Globe2 },
         { href: '/admin/chatbot', label: 'چت‌بات هوش مصنوعی', icon: Bot },
-        { href: '/admin/support', label: 'مرکز تیکت و پشتیبانی', icon: Headphones },
+        { href: '/admin/support', label: 'مشاور و پشتیبانی آنلاین', icon: Headphones },
       ],
     },
     {
@@ -163,6 +184,18 @@ export default function AdminLayout({
       ],
     },
   ];
+  if (!isLoaded || !session) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 dir-rtl">
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-black">
+            🌿
+          </div>
+          <p className="text-xs font-bold text-slate-300">در حال بررسی سطح دسترسی مدیریت و انتقال به صفحه ورود...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-[#040f0c] flex flex-col md:flex-row dir-rtl transition-colors duration-200">

@@ -49,11 +49,11 @@ func (h *Handler) GetSEOMetadata(w http.ResponseWriter, r *http.Request) {
 
 	canonical := h.seoService.GetCanonicalBase() + normalizePath(path)
 	meta := SEOMetadata{
-		Title:        "فروشگاه سبزینه | فرآورده‌های طبیعی مورینگا",
-		Description:  "فروشگاه تخصصی روغن و مکمل‌های ارگانیک مورینگا اولیفرا با گواهی سلامت و اصالت کالا.",
-		CanonicalURL: canonical,
-		Robots:       "index, follow",
-		OGTitle:      "فروشگاه سبزینه | MoringaLab",
+		Title:         "فروشگاه سبزینه | فرآورده‌های طبیعی مورینگا",
+		Description:   "فروشگاه تخصصی روغن و مکمل‌های ارگانیک مورینگا اولیفرا با گواهی سلامت و اصالت کالا.",
+		CanonicalURL:  canonical,
+		Robots:        "index, follow",
+		OGTitle:       "فروشگاه سبزینه | MoringaLab",
 		OGDescription: "مکمل‌ها و فرآورده‌های طبیعی ارگانیک مورینگا",
 	}
 
