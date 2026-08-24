@@ -118,7 +118,9 @@ export function getAdminUsers(): AdminUser[] {
 
 export function saveAdminUsers(users: AdminUser[]) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_ADMIN_USERS_KEY, JSON.stringify(users));
+  try {
+    localStorage.setItem(STORAGE_ADMIN_USERS_KEY, JSON.stringify(users));
+  } catch (e) {}
 }
 
 export async function fetchAdminUsersFromApi(): Promise<AdminUser[]> {

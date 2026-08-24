@@ -27,6 +27,12 @@ function getAPIOrigin(value) {
 export async function handleRequest(request, env) {
   const incomingURL = new URL(request.url);
 
+  // Canonical Redirect: www.moringano.ir -> moringano.ir, http -> https
+  if (incomingURL.hostname === 'www.moringano.ir') {
+    const targetURL = new URL(incomingURL.pathname + incomingURL.search, 'https://moringano.ir');
+    return Response.redirect(targetURL.toString(), 301);
+  }
+
   if (!incomingURL.pathname.startsWith(API_PREFIX)) {
     return env.ASSETS.fetch(request);
   }
