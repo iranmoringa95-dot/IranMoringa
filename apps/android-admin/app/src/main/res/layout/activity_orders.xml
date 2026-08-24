@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:layoutDirection="rtl"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+        <Button android:id="@+id/buttonBackOrders" android:layout_width="48dp" android:layout_height="48dp" android:background="@android:color/transparent" android:text="→" android:textColor="@color/primary" android:textSize="22sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="مدیریت سفارش‌ها" android:textColor="@color/text_primary" android:textSize="22sp" android:textStyle="bold" />
+        <Button android:id="@+id/buttonNewOrder" android:layout_width="wrap_content" android:layout_height="48dp" android:background="@drawable/bg_primary_button" android:text="+ سفارش" android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/inputOrderSearch"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_card"
+        android:hint="شماره سفارش، نام یا موبایل…"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:paddingHorizontal="16dp"
+        android:singleLine="true" />
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:gravity="center_vertical" android:orientation="horizontal">
+        <Spinner android:id="@+id/spinnerOrderStatus" android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1" />
+        <Button android:id="@+id/buttonRefreshOrders" android:layout_width="wrap_content" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_outline_button" android:text="بروزرسانی" android:textColor="@color/primary" />
+    </LinearLayout>
+
+    <ProgressBar android:id="@+id/progressOrders" android:layout_width="match_parent" android:layout_height="3dp" android:layout_marginTop="6dp" android:visibility="gone" />
+    <TextView android:id="@+id/textOrdersError" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center" android:textColor="@color/danger" android:visibility="gone" />
+    <ListView android:id="@+id/listOrders" android:layout_width="match_parent" android:layout_height="0dp" android:layout_marginTop="8dp" android:layout_weight="1" android:divider="@android:color/transparent" android:dividerHeight="10dp" />
+    <TextView android:id="@+id/textOrdersEmpty" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:padding="28dp" android:text="سفارشی یافت نشد." android:textColor="@color/text_secondary" android:visibility="gone" />
+</LinearLayout>

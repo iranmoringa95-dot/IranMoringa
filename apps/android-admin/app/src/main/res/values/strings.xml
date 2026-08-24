@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">مدیر سفارش مورینگانو</string>
+    <string name="notification_channel_orders">سفارش‌های جدید</string>
+    <string name="notification_channel_service">اتصال زنده سفارش‌ها</string>
+    <string name="notification_service_title">مدیریت سفارش فعال است</string>
+    <string name="notification_service_text">در انتظار سفارش جدید از moringano.ir</string>
+</resources>

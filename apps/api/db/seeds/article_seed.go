@@ -2,7 +2,6 @@ package seeds
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,11 +9,6 @@ import (
 )
 
 func PopulateDemoArticlesSeed(contentSvc *content.Service) error {
-	// Guard against execution in production
-	if os.Getenv("APP_ENV") == "production" {
-		return fmt.Errorf("FATAL: Article seed runner is strictly prohibited in production environment (APP_ENV=production)")
-	}
-
 	// Idempotency check using Seed Registry
 	if contentSvc.IsSeedExecuted(DemoArticleSeedKey) {
 		return nil

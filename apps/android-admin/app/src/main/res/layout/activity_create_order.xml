@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:layoutDirection="rtl"
+    android:orientation="vertical">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:padding="12dp">
+        <Button android:id="@+id/buttonBackCreate" android:layout_width="48dp" android:layout_height="48dp" android:background="@android:color/transparent" android:text="→" android:textColor="@color/primary" android:textSize="22sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="ثبت سفارش دستی" android:textColor="@color/text_primary" android:textSize="21sp" android:textStyle="bold" />
+    </LinearLayout>
+    <ProgressBar android:id="@+id/progressCreateOrder" android:layout_width="match_parent" android:layout_height="3dp" android:visibility="gone" />
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp">
+            <TextView android:id="@+id/textCreateError" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:textColor="@color/danger" android:visibility="gone" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="۱. مشخصات تحویل‌گیرنده" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <EditText android:id="@+id/inputRecipientName" android:layout_width="match_parent" android:layout_height="50dp" android:hint="نام و نام خانوادگی *" android:inputType="textPersonName" />
+                <EditText android:id="@+id/inputRecipientPhone" android:layout_width="match_parent" android:layout_height="50dp" android:digits="0123456789۰۱۲۳۴۵۶۷۸۹+ -" android:hint="شماره موبایل *" android:inputType="phone" android:textDirection="ltr" />
+                <EditText android:id="@+id/inputProvince" android:layout_width="match_parent" android:layout_height="50dp" android:hint="استان *" />
+                <EditText android:id="@+id/inputCity" android:layout_width="match_parent" android:layout_height="50dp" android:hint="شهر *" />
+                <EditText android:id="@+id/inputPostalAddress" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top|end" android:hint="نشانی کامل *" android:inputType="textPostalAddress|textMultiLine" android:minLines="2" />
+                <EditText android:id="@+id/inputPostalCode" android:layout_width="match_parent" android:layout_height="50dp" android:hint="کد پستی ده‌رقمی" android:inputType="number" android:maxLength="10" android:textDirection="ltr" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="۲. سبد سفارش" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                    <Button android:id="@+id/buttonAddProduct" android:layout_width="wrap_content" android:layout_height="46dp" android:background="@drawable/bg_primary_button" android:text="+ محصول" android:textColor="@android:color/white" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/containerCart" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" />
+                <TextView android:id="@+id/textCartEmpty" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:padding="18dp" android:text="هنوز محصولی اضافه نشده است." android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="۳. ارسال و پرداخت" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <Spinner android:id="@+id/spinnerShippingMethod" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="5dp" />
+                <EditText android:id="@+id/inputShippingFee" android:layout_width="match_parent" android:layout_height="50dp" android:hint="هزینه ارسال (تومان)" android:inputType="number" android:textDirection="ltr" />
+                <EditText android:id="@+id/inputDiscount" android:layout_width="match_parent" android:layout_height="50dp" android:hint="تخفیف (تومان)" android:inputType="number" android:textDirection="ltr" />
+                <EditText android:id="@+id/inputOrderNote" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top|end" android:hint="یادداشت سفارش" android:inputType="textMultiLine" android:minLines="2" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:layout_marginBottom="28dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:id="@+id/textOrderSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="جمع سفارش: ۰ تومان" android:textColor="@color/primary_dark" android:textSize="18sp" android:textStyle="bold" />
+                <Button android:id="@+id/buttonSubmitOrder" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="14dp" android:background="@drawable/bg_primary_button" android:text="ثبت نهایی سفارش" android:textColor="@android:color/white" android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

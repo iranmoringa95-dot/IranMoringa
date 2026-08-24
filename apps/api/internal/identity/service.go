@@ -58,6 +58,45 @@ func NewMemoryStore() *MemoryStore {
 	store.rolePerms["finance_manager"] = []string{"payment.read", "payment.refund"}
 	store.rolePerms["customer"] = []string{"me.read", "me.write", "order.create"}
 
+	// Seed super admins
+	strPtr := func(s string) *string { return &s }
+
+	admin1ID := uuid.MustParse("2992c005-a44b-409e-aa99-fe81aa8cea5c")
+	admin1 := &User{
+		ID:        admin1ID,
+		Phone:     "+989132391843",
+		Email:     strPtr("pqehsan@gmail.com"),
+		FirstName: strPtr("احسان"),
+		LastName:  strPtr("پویا"),
+		IsActive:  true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	store.users[admin1ID] = admin1
+	store.usersByPhone[admin1.Phone] = admin1
+	if admin1.Email != nil {
+		store.usersByEmail[*admin1.Email] = admin1
+	}
+	store.userRoles[admin1ID] = []string{"super_admin"}
+
+	admin2ID := uuid.MustParse("530f1703-afea-42d7-9c48-cf1087f272ae")
+	admin2 := &User{
+		ID:        admin2ID,
+		Phone:     "+989175929345",
+		Email:     strPtr("info@iran-moringa.ir"),
+		FirstName: strPtr("مدیریت"),
+		LastName:  strPtr("عملیات"),
+		IsActive:  true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	store.users[admin2ID] = admin2
+	store.usersByPhone[admin2.Phone] = admin2
+	if admin2.Email != nil {
+		store.usersByEmail[*admin2.Email] = admin2
+	}
+	store.userRoles[admin2ID] = []string{"super_admin"}
+
 	return store
 }
 
@@ -179,7 +218,13 @@ func (s *Service) VerifyOTP(phone, code string) (string, *User, error) {
 		}
 		s.store.users[user.ID] = user
 		s.store.usersByPhone[normPhone] = user
-		s.store.userRoles[user.ID] = []string{"customer"}
+		if normPhone == "+989132391843" || normPhone == "+989175929345" {
+			s.store.userRoles[user.ID] = []string{"super_admin"}
+		} else {
+			s.store.userRoles[user.ID] = []string{"customer"}
+		}
+	} else if normPhone == "+989132391843" || normPhone == "+989175929345" {
+		s.store.userRoles[user.ID] = []string{"super_admin"}
 	}
 
 	// Issue Session

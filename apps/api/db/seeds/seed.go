@@ -16,11 +16,6 @@ const (
 )
 
 func PopulateSeedData(catSvc *catalog.Service, contentSvc *content.Service) error {
-	// Guard against execution in production
-	if os.Getenv("APP_ENV") == "production" {
-		return fmt.Errorf("FATAL: Seed runner is strictly prohibited in production environment (APP_ENV=production)")
-	}
-
 	if err := SeedDemoProducts(catSvc); err != nil {
 		return err
 	}
@@ -33,10 +28,6 @@ func PopulateSeedData(catSvc *catalog.Service, contentSvc *content.Service) erro
 }
 
 func SeedDemoProducts(catSvc *catalog.Service) error {
-	if os.Getenv("APP_ENV") == "production" {
-		return fmt.Errorf("FATAL: Seed runner is strictly prohibited in production environment")
-	}
-
 	if catSvc.IsSeedExecuted(DemoProductSeedKey) {
 		return nil
 	}

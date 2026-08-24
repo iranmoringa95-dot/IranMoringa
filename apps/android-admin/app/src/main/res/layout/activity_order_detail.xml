@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:layoutDirection="rtl"
+    android:orientation="vertical">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:padding="12dp">
+        <Button android:id="@+id/buttonBackDetail" android:layout_width="48dp" android:layout_height="48dp" android:background="@android:color/transparent" android:text="→" android:textColor="@color/primary" android:textSize="22sp" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:id="@+id/textDetailOrderNumber" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="جزئیات سفارش" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+            <TextView android:id="@+id/textDetailStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:textColor="@color/primary" />
+        </LinearLayout>
+        <Button android:id="@+id/buttonRefreshDetail" android:layout_width="wrap_content" android:layout_height="48dp" android:background="@drawable/bg_outline_button" android:text="بروزرسانی" android:textColor="@color/primary" />
+    </LinearLayout>
+
+    <ProgressBar android:id="@+id/progressDetail" android:layout_width="match_parent" android:layout_height="3dp" android:visibility="gone" />
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp">
+            <TextView android:id="@+id/textDetailError" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:textColor="@color/danger" android:visibility="gone" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="مشتری و نشانی" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <TextView android:id="@+id/textDetailCustomer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:textColor="@color/text_primary" />
+                <TextView android:id="@+id/textDetailPhone" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:textColor="@color/primary" android:textDirection="ltr" />
+                <TextView android:id="@+id/textDetailAddress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/text_secondary" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                    <Button android:id="@+id/buttonCallCustomer" android:layout_width="0dp" android:layout_height="46dp" android:layout_marginEnd="5dp" android:layout_weight="1" android:background="@drawable/bg_outline_button" android:text="تماس" android:textColor="@color/primary" />
+                    <Button android:id="@+id/buttonSmsCustomer" android:layout_width="0dp" android:layout_height="46dp" android:layout_marginStart="5dp" android:layout_weight="1" android:background="@drawable/bg_outline_button" android:text="پیامک" android:textColor="@color/primary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="اقلام و مبالغ" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <LinearLayout android:id="@+id/containerDetailItems" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" />
+                <TextView android:id="@+id/textDetailFinancials" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textColor="@color/primary_dark" android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="تغییر وضعیت سفارش" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <Spinner android:id="@+id/spinnerNewStatus" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="6dp" />
+                <EditText android:id="@+id/inputTrackingCode" android:layout_width="match_parent" android:layout_height="50dp" android:hint="کد رهگیری (برای ارسال‌شده الزامی)" android:inputType="text" android:singleLine="true" android:textDirection="ltr" />
+                <EditText android:id="@+id/inputStatusNote" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top|end" android:hint="یادداشت تغییر وضعیت" android:inputType="textMultiLine" android:minLines="2" />
+                <Button android:id="@+id/buttonUpdateStatus" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="10dp" android:background="@drawable/bg_primary_button" android:text="ثبت تغییر وضعیت" android:textColor="@android:color/white" android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="افزودن یادداشت داخلی" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <EditText android:id="@+id/inputAdminNote" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="top|end" android:hint="متن یادداشت…" android:inputType="textMultiLine" android:minLines="2" />
+                <Button android:id="@+id/buttonAddNote" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:background="@drawable/bg_outline_button" android:text="ذخیره یادداشت" android:textColor="@color/primary" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:layout_marginBottom="24dp" android:background="@drawable/bg_card" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="تاریخچه سفارش" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <LinearLayout android:id="@+id/containerTimeline" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

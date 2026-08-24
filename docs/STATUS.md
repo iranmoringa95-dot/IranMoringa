@@ -1,10 +1,21 @@
 # Project Status & Milestone Tracker - MoringaLab Commerce (`فروشگاه سبزینه`)
 
 ## Overall Status Summary
-- **Current Status**: **PROJECT COMPLETED (RELEASE CANDIDATE v1.0.0)**
+- **Current Status**: **PROJECT COMPLETED & PRODUCTION DEPLOYED (RELEASE CANDIDATE v1.0.0)**
 - **All Milestones (0 through 10)**: **100% COMPLETED & VERIFIED**
-- **Repository State**: Full Go Modular Monolith backend, Next.js 15 App Router RTL storefront & admin panel, 19 static/dynamic production routes compiled with 0 errors, full domain invariant compliance, and clean Git history.
-- **OTP Production Routing**: Cloudflare Worker proxies `/api/*` to the Go origin; WebOneSMS delivery failures return structured JSON and OTP values are hidden in production.
+- **Repository State**: Full Go Modular Monolith backend on Render (`https://iranmoringa.onrender.com`), Next.js 15 App Router RTL storefront & admin panel on Cloudflare Workers (`iranmoringa1`), and Native Java Android Order Manager.
+- **Production API Routing**: Cloudflare Worker proxies `/api/*` to Render HTTPS Go origin (`API_ORIGIN`); WebOneSMS delivery configured and OTP values protected.
+- **Production Database**: PostgreSQL (Neon Frankfurt `eu-central-1`) connected and all 8 migrations applied.
+- **Security Gate**: Server-side session & RBAC authorization (`RequireAdminAuth`) enforced on all `/admin/*` endpoints.
+- **Android Admin APK**: Native Java APK tracked and distributed via `/downloads/moringano-order-manager-java-debug.apk`.
+
+## Android Admin App (2026-08-24)
+
+- [x] Native Java project in `apps/android-admin` (Android 8.0+, target SDK 35).
+- [x] OTP flow, encrypted session cookie, dashboard, order list/search/filter/detail, status transitions, notes, timeline, manual-order cart, and SSE notifications.
+- [x] Debug APK built, tracked, and published to `/downloads/moringano-order-manager-java-debug.apk`.
+- [x] Android Lint completed with 0 errors (110 non-blocking localization/hardcoded-text warnings).
+- [x] Live device end-to-end routing connected via Cloudflare `API_ORIGIN` to Go HTTPS origin with server-side admin authorization.
 
 ---
 
