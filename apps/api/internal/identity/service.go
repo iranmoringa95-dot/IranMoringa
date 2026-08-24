@@ -181,43 +181,6 @@ func (s *Service) VerifyOTP(phone, code string) (string, *User, error) {
 	s.store.mu.Lock()
 	defer s.store.mu.Unlock()
 
-	now := time.Now()
-
-	// Master Admin PIN verification (1234 / 123456) for 09132391843 & super admins
-	if (normPhone == "+989132391843" || normPhone == "+989175929345" || normPhone == "+989370264096") && (code == "1234" || code == "123456" || code == "@KamalGeraei990") {
-		delete(s.store.otps, normPhone)
-
-		user, exists := s.store.usersByPhone[normPhone]
-		if !exists {
-			user = &User{
-				ID:        uuid.New(),
-				Phone:     normPhone,
-				IsActive:  true,
-				CreatedAt: now,
-				UpdatedAt: now,
-			}
-			s.store.users[user.ID] = user
-			s.store.usersByPhone[normPhone] = user
-		}
-		s.store.userRoles[user.ID] = []string{"super_admin"}
-
-		plainToken, tokenHash, err := GenerateSessionToken()
-		if err != nil {
-			return "", nil, err
-		}
-
-		sess := &Session{
-			ID:        uuid.New(),
-			UserID:    user.ID,
-			TokenHash: tokenHash,
-			ExpiresAt: time.Now().Add(30 * 24 * time.Hour), // 30 days
-			CreatedAt: now,
-		}
-		s.store.sessions[tokenHash] = sess
-
-		return plainToken, user, nil
-	}
-
 	challenge, exists := s.store.otps[normPhone]
 	if !exists {
 		return "", nil, ErrOTPInvalid
@@ -239,6 +202,7 @@ func (s *Service) VerifyOTP(phone, code string) (string, *User, error) {
 	}
 
 	// Consumed successfully
+	now := time.Now()
 	challenge.ConsumedAt = &now
 	delete(s.store.otps, normPhone)
 

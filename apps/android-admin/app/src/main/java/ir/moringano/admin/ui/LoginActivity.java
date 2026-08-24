@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -21,6 +22,7 @@ import ir.moringano.admin.util.Validator;
 public final class LoginActivity extends BaseActivity {
     private EditText phoneInput;
     private EditText otpInput;
+    private LinearLayout otpPanel;
     private ProgressBar progress;
     private TextView statusText;
     private Button requestButton;
@@ -34,18 +36,11 @@ public final class LoginActivity extends BaseActivity {
 
         phoneInput = findViewById(R.id.inputPhone);
         otpInput = findViewById(R.id.inputOtp);
+        otpPanel = findViewById(R.id.otpPanel);
         progress = findViewById(R.id.progressLogin);
         statusText = findViewById(R.id.textLoginStatus);
         requestButton = findViewById(R.id.buttonRequestOtp);
         verifyButton = findViewById(R.id.buttonVerifyOtp);
-
-        // Pre-populate with admin defaults
-        if (value(phoneInput).isEmpty()) {
-            phoneInput.setText("09132391843");
-        }
-        if (value(otpInput).isEmpty()) {
-            otpInput.setText("1234");
-        }
 
         requestButton.setOnClickListener(view -> requestOtp());
         verifyButton.setOnClickListener(view -> verifyOtp());
@@ -61,7 +56,7 @@ public final class LoginActivity extends BaseActivity {
             @Override public void onError(ApiException error) {
                 setBusy(false);
                 if (error.isUnauthorized()) api().sessionStore().clearSession();
-                else setStatus("اتصال خودکار ممکن نشد؛ می‌توانید دوباره وارد شوید.", true);
+                else setStatus("اتصال خودکار ممکن نشد؛ می‌توانید دوباره تلاش کنید.", true);
             }
         });
     }
@@ -78,8 +73,9 @@ public final class LoginActivity extends BaseActivity {
             api().post("/auth/otp/request", body, new ApiCallback<>() {
                 @Override public void onSuccess(ApiResponse value) {
                     setBusy(false);
+                    visible(otpPanel, true);
                     otpInput.requestFocus();
-                    setStatus("کد ورود پیامک شد. می‌توانید آن یا رمز ۱۲۳۴ را وارد کنید.", false);
+                    setStatus("کد ورود ارسال شد و تا دو دقیقه معتبر است.", false);
                 }
                 @Override public void onError(ApiException error) {
                     setBusy(false);
@@ -93,49 +89,19 @@ public final class LoginActivity extends BaseActivity {
 
     private void verifyOtp() {
         String phone = PersianFormatter.normalizeDigits(value(phoneInput));
-        String code = PersianFormatter.normalizeDigits(value(otpInput)).trim();
-
-        if (!Validator.isIranianMobile(phone)) {
-            setStatus("شماره موبایل ایرانی معتبر وارد کنید.", true);
+        String code = PersianFormatter.normalizeDigits(value(otpInput)).replaceAll("\\D", "");
+        if (code.length() != 6) {
+            setStatus("کد ورود باید شش رقم باشد.", true);
             return;
         }
-
-        if (code.isEmpty()) {
-            setStatus("رمز عبور یا کد ورود را وارد کنید (پیش‌فرض: 1234).", true);
-            return;
-        }
-
-        // Master admin bypass check for 09132391843 with PIN 1234 / 123456 / @KamalGeraei990
-        boolean isMasterAdmin = ("09132391843".equals(phone) || "09175929345".equals(phone) || "+989132391843".equals(phone)) &&
-                ("1234".equals(code) || "123456".equals(code) || "@KamalGeraei990".equals(code));
-
         try {
             JSONObject body = new JSONObject().put("phone", phone).put("code", code);
             setBusy(true);
             api().post("/auth/otp/verify", body, new ApiCallback<>() {
-                @Override public void onSuccess(ApiResponse value) {
-                    // Save session token from response body if available
-                    try {
-                        JSONObject json = new JSONObject(value.body());
-                        String token = json.optString("token", "");
-                        if (!token.isEmpty()) {
-                            api().sessionStore().saveSessionCookie("session_token=" + token + "; moringa_auth_session=authenticated; moringa_user_phone=" + phone);
-                        }
-                    } catch (Exception ignored) {}
-
-                    verifyAdminAccess();
-                }
-
+                @Override public void onSuccess(ApiResponse value) { verifyAdminAccess(); }
                 @Override public void onError(ApiException error) {
-                    if (isMasterAdmin) {
-                        // Fallback master session for super admin
-                        setBusy(false);
-                        api().sessionStore().saveSessionCookie("session_token=admin_master_" + phone + "; moringa_auth_session=authenticated; moringa_user_phone=" + phone);
-                        openMain();
-                    } else {
-                        setBusy(false);
-                        setStatus(error.getMessage(), true);
-                    }
+                    setBusy(false);
+                    setStatus(error.getMessage(), true);
                 }
             });
         } catch (JSONException exception) {
@@ -145,27 +111,13 @@ public final class LoginActivity extends BaseActivity {
 
     private void verifyAdminAccess() {
         if (!api().sessionStore().hasSession()) {
-            // Check if super admin phone, provide default session
-            String phone = PersianFormatter.normalizeDigits(value(phoneInput));
-            if ("09132391843".equals(phone)) {
-                api().sessionStore().saveSessionCookie("session_token=admin_master_" + phone + "; moringa_auth_session=authenticated; moringa_user_phone=" + phone);
-                openMain();
-                return;
-            }
             setBusy(false);
             setStatus("سرور نشست امن صادر نکرد. تنظیمات احراز هویت API را بررسی کنید.", true);
             return;
         }
-
         api().get("/admin/dashboard/stats", new ApiCallback<>() {
             @Override public void onSuccess(ApiResponse value) { openMain(); }
             @Override public void onError(ApiException error) {
-                // If dashboard endpoint returns data or super admin phone, proceed
-                String phone = PersianFormatter.normalizeDigits(value(phoneInput));
-                if ("09132391843".equals(phone)) {
-                    openMain();
-                    return;
-                }
                 setBusy(false);
                 api().sessionStore().clearSession();
                 setStatus(error.isUnauthorized() ? "این شماره مجوز مدیریت سفارش‌ها را ندارد." : error.getMessage(), true);
@@ -191,3 +143,4 @@ public final class LoginActivity extends BaseActivity {
         statusText.setTextColor(getColor(error ? R.color.danger : R.color.primary));
     }
 }
+
