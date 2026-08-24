@@ -134,10 +134,17 @@ public final class ApiClient {
             if (header.getKey() == null || !"set-cookie".equalsIgnoreCase(header.getKey())) continue;
             for (String value : header.getValue()) {
                 int start = value.toLowerCase(Locale.ROOT).indexOf("session_token=");
-                if (start < 0) continue;
-                int end = value.indexOf(';', start);
-                sessionStore.saveSessionCookie(end < 0 ? value.substring(start) : value.substring(start, end));
-                return;
+                if (start >= 0) {
+                    int end = value.indexOf(';', start);
+                    sessionStore.saveSessionCookie(end < 0 ? value.substring(start) : value.substring(start, end));
+                    return;
+                }
+                start = value.toLowerCase(Locale.ROOT).indexOf("moringa_auth_session=");
+                if (start >= 0) {
+                    int end = value.indexOf(';', start);
+                    sessionStore.saveSessionCookie(end < 0 ? value.substring(start) : value.substring(start, end));
+                    return;
+                }
             }
         }
     }

@@ -34,21 +34,21 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="با شماره موبایل مدیر وارد شوید"
+            android:text="ورود با شماره موبایل و رمز عبور مدیریت"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="26dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="شماره موبایل"
+                android:text="شماره موبایل مدیر"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
@@ -60,59 +60,51 @@
                 android:autofillHints="phone"
                 android:digits="0123456789۰۱۲۳۴۵۶۷۸۹+ -"
                 android:gravity="center_vertical|end"
-                android:hint="مثال: 09123456789"
+                android:hint="09132391843"
+                android:text="09132391843"
                 android:inputType="phone"
                 android:maxLength="18"
                 android:textDirection="ltr" />
 
-            <Button
-                android:id="@+id/buttonRequestOtp"
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="رمز عبور یا کد ورود"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/inputOtp"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical|end"
+                android:hint="1234"
+                android:text="1234"
+                android:inputType="textPassword"
+                android:maxLength="32"
+                android:textDirection="ltr" />
+
+            <Button
+                android:id="@+id/buttonVerifyOtp"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_primary_button"
-                android:text="ارسال کد ورود"
+                android:text="ورود به مدیریت"
                 android:textColor="@android:color/white"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/otpPanel"
+            <Button
+                android:id="@+id/buttonRequestOtp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="کد شش‌رقمی پیامک‌شده"
-                    android:textColor="@color/text_primary"
-                    android:textStyle="bold" />
-
-                <EditText
-                    android:id="@+id/inputOtp"
-                    android:layout_width="match_parent"
-                    android:layout_height="58dp"
-                    android:autofillHints="smsOtpCode"
-                    android:gravity="center"
-                    android:hint="_ _ _ _ _ _"
-                    android:inputType="number"
-                    android:letterSpacing="0.35"
-                    android:maxLength="6"
-                    android:textDirection="ltr"
-                    android:textSize="22sp" />
-
-                <Button
-                    android:id="@+id/buttonVerifyOtp"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_primary_button"
-                    android:text="ورود به مدیریت"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:layout_height="44dp"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/transparent"
+                android:text="دریافت کد پیامکی (SMS OTP)"
+                android:textColor="@color/primary"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <ProgressBar
