@@ -30,12 +30,18 @@ export function ArticlesContent() {
     const allCount = ALL_MORINGA_ARTICLES.length;
     const aboutCount = ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'about-moringa').length;
     const healthCount = ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'health-benefits').length;
+    const superfoodCount = ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'spirulina-and-superfoods').length;
+    const dietCount = ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'diet-and-weight-loss').length;
+    const recipesCount = ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'recipes-and-lifestyle').length;
     const growingCount = ALL_MORINGA_ARTICLES.filter((a) => a.category_slug === 'growing-moringa').length;
 
     return [
       { slug: 'all', name: `همه مقالات (${allCount})`, count: allCount },
       { slug: 'about-moringa', name: 'آشنایی با مورینگا', count: aboutCount },
       { slug: 'health-benefits', name: 'خواص درمانی و سلامت', count: healthCount },
+      { slug: 'spirulina-and-superfoods', name: 'اسپیرولینا و سوپرفودها', count: superfoodCount },
+      { slug: 'diet-and-weight-loss', name: 'رژیم و لاغری', count: dietCount },
+      { slug: 'recipes-and-lifestyle', name: 'آشپزی و اسموتی', count: recipesCount },
       { slug: 'growing-moringa', name: 'کاشت و زراعت', count: growingCount },
     ];
   }, []);
