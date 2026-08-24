@@ -28,6 +28,7 @@ import {
   AlertCircle,
   CreditCard,
   ArrowUpDown,
+  Tag,
 } from 'lucide-react';
 import { ALL_MORINGA_PRODUCTS } from '@/lib/products-data';
 import { STORE_ORDERS } from '@/lib/orders-data';
@@ -37,6 +38,7 @@ import {
   updateAdminOrder,
   deleteAdminOrder,
 } from '@/lib/orders-store';
+import { ShippingLabelModal } from '@/components/admin/ShippingLabel';
 
 interface OrderItem {
   id?: string;
@@ -181,7 +183,7 @@ export default function AdminOrdersPage() {
 
   // Modals
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [modalMode, setModalMode] = useState<'details' | 'transition' | 'timeline' | 'note' | 'invoice' | 'create_order' | null>(null);
+  const [modalMode, setModalMode] = useState<'details' | 'transition' | 'timeline' | 'note' | 'invoice' | 'label' | 'bulk_labels' | 'create_order' | null>(null);
   
   // Status transition state
   const [newStatus, setNewStatus] = useState('processing');
@@ -967,7 +969,16 @@ export default function AdminOrdersPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-emerald-200">تغییر وضعیت به:</span>
+            <button
+              onClick={() => setModalMode('bulk_labels')}
+              className="px-3.5 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+              title="چاپ گروهی برچسب‌های پستی برای سفارش‌های انتخابی"
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>چاپ برچسب‌ها ({selectedOrderIds.length})</span>
+            </button>
+
+            <span className="text-xs text-emerald-200 mr-2">تغییر وضعیت به:</span>
             <select
               value={bulkStatus}
               onChange={(e) => setBulkStatus(e.target.value)}
@@ -1183,11 +1194,23 @@ export default function AdminOrdersPage() {
                               setSelectedOrder(ord);
                               setModalMode('invoice');
                             }}
-                            className="px-2 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/80 text-purple-700 dark:text-purple-300 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold"
+                            className="px-2 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/80 text-purple-700 dark:text-purple-300 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold cursor-pointer"
                             title="چاپ فاکتور رسمی"
                           >
                             <Printer className="w-3.5 h-3.5" />
                             <span>فاکتور</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setSelectedOrder(ord);
+                              setModalMode('label');
+                            }}
+                            className="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold cursor-pointer"
+                            title="چاپ برچسب پستی (لیبل پرینتر حرارتی ۸×۱۲)"
+                          >
+                            <Tag className="w-3.5 h-3.5" />
+                            <span>برچسب</span>
                           </button>
 
                           <button
@@ -1740,10 +1763,20 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => setModalMode('invoice')}
-                  className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 text-xs transition-all shadow-sm"
+                  className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 text-xs transition-all shadow-sm cursor-pointer"
+                  title="چاپ فاکتور رسمی"
                 >
                   <Printer className="w-4 h-4" />
                   <span>چاپ فاکتور</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalMode('label')}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-1.5 text-xs transition-all shadow-sm cursor-pointer"
+                  title="چاپ برچسب پستی (لیبل پرینتر حرارتی ۸×۱۲)"
+                >
+                  <Tag className="w-4 h-4" />
+                  <span>چاپ برچسب (۸×۱۲)</span>
                 </button>
                 <button
                   type="button"
@@ -2225,8 +2258,17 @@ export default function AdminOrdersPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  onClick={() => setModalMode('label')}
+                  className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  title="سوئیچ به چاپ برچسب مرسوله ۸×۱۲"
+                >
+                  <Tag className="w-4 h-4 text-emerald-700" />
+                  <span>چاپ برچسب پستی (۸×۱۲)</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#026251] hover:bg-[#014d3f] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#026251] hover:bg-[#014d3f] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   <span>چاپ فاکتور (Print)</span>
@@ -2360,6 +2402,23 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          MODAL 6: Shipping Label Print Modal (80mm x 120mm Rongta RPF413)
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {selectedOrder && modalMode === 'label' && (
+        <ShippingLabelModal
+          orders={[selectedOrder]}
+          onClose={() => setModalMode(null)}
+        />
+      )}
+
+      {modalMode === 'bulk_labels' && selectedOrderIds.length > 0 && (
+        <ShippingLabelModal
+          orders={orders.filter((o) => selectedOrderIds.includes(o.id))}
+          onClose={() => setModalMode(null)}
+        />
       )}
     </div>
   );
