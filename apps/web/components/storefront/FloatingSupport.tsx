@@ -185,20 +185,53 @@ export function FloatingSupport() {
     };
   }, [isOpen]);
 
-  // Gentle greeting badge on first visit after 5 seconds
+  // Gentle greeting badge on first visit only (once per session/user), after 5 seconds
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isOpen && config.enableGreetingBubble) {
-        setHasPrompted(true);
-      }
-    }, 5000);
+    try {
+      const isDismissed =
+        sessionStorage.getItem('moringa_support_bubble_dismissed') === 'true' ||
+        localStorage.getItem('moringa_support_bubble_dismissed') === 'true';
+      const hasAlreadyShown = sessionStorage.getItem('moringa_support_bubble_shown') === 'true';
 
-    return () => clearTimeout(timer);
+      if (isDismissed || hasAlreadyShown) {
+        setHasPrompted(false);
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        if (!isOpen && config.enableGreetingBubble) {
+          setHasPrompted(true);
+          try {
+            sessionStorage.setItem('moringa_support_bubble_shown', 'true');
+          } catch (e) {}
+        }
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    } catch (e) {
+      // Safe fallback if storage is restricted
+    }
   }, [isOpen, config.enableGreetingBubble]);
 
   if (isAdminRoute || !config.enableWidget) {
     return null;
   }
+
+  const handleDismissBubble = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHasPrompted(false);
+    setIsHovered(false);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    try {
+      sessionStorage.setItem('moringa_support_bubble_dismissed', 'true');
+      sessionStorage.setItem('moringa_support_bubble_shown', 'true');
+      localStorage.setItem('moringa_support_bubble_dismissed', 'true');
+    } catch (e) {}
+  };
 
   const handleCopyPhone = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -265,15 +298,7 @@ export function FloatingSupport() {
           {/* Close / Dismiss Button for the Bubble */}
           <button
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setHasPrompted(false);
-              setIsHovered(false);
-              if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-              }
-            }}
+            onClick={handleDismissBubble}
             className="absolute top-2.5 left-2.5 w-6 h-6 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer z-10"
             aria-label="بستن این پیام"
             title="بستن پیام"
