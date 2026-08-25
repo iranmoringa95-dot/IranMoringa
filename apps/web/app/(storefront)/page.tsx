@@ -32,6 +32,9 @@ export const metadata: Metadata = {
       'مرجع تخصصی خرید مستقیم پودر خالص برگ مورینگا، روغن پرس سرد و دمنوش‌های ارگانیک در ایران.',
     images: ['/images/og-cover.jpg'],
   },
+  other: {
+    enamad: '50295246',
+  },
 };
 
 export default function HomePage() {

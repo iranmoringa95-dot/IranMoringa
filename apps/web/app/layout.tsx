@@ -62,6 +62,9 @@ export const metadata: Metadata = {
     description: SITE_CONFIG.defaultDescription,
     images: ['/images/og-cover.jpg'],
   },
+  other: {
+    enamad: '50295246',
+  },
 };
 
 const organizationSchema = {
@@ -108,6 +111,7 @@ export default function RootLayout({
   return (
     <html lang="fa-IR" dir="rtl" suppressHydrationWarning>
       <head>
+        <meta name="enamad" content="50295246" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#064e3b" />
         <meta name="mobile-web-app-capable" content="yes" />
