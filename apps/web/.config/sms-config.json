@@ -22,14 +22,15 @@
   ],
   "credentials": {
     "webone": {
-      "username": "",
+      "username": "0913231843",
       "apiKey": "",
       "sender": "10002147",
-      "baseURL": "http://api.payamakapi.ir/api/v1"
+      "baseURL": "http://api.payamakapi.ir/api/v1",
+      "password": "0000"
     },
     "farazsms": {
-      "username": "iranmoringa",
-      "password": "••••••••",
+      "username": "",
+      "password": "",
       "sender": "+983000505"
     },
     "kavenegar": {
@@ -51,6 +52,36 @@
     }
   },
   "buyerTemplates": {
+    "pending": {
+      "enabled": false,
+      "pattern": "",
+      "text": "سلام {first_name} عزیز، سفارش شما به شماره {order_id} ثبت شد و در انتظار پرداخت است."
+    },
+    "processing": {
+      "enabled": true,
+      "pattern": "12345",
+      "text": "سلام {first_name} عزیز، سفارش {order_id} وارد مرحله بسته‌بندی و آماده‌سازی انبار شد."
+    },
+    "completed": {
+      "enabled": true,
+      "pattern": "54321",
+      "text": "سلام {first_name} گرامی، سفارش {order_id} ارسال شد. کد رهگیری پست: {tracking_code} | پیگیری: {tracking_url}"
+    },
+    "cancelled": {
+      "enabled": true,
+      "pattern": "",
+      "text": "سلام {first_name} عزیز، سفارش شما به شماره {order_id} لغو شد."
+    },
+    "refunded": {
+      "enabled": false,
+      "pattern": "",
+      "text": "سلام {first_name} عزیز، مبلغ سفارش {order_id} مسترد گردید."
+    },
+    "failed": {
+      "enabled": false,
+      "pattern": "",
+      "text": "سفارش {order_id} ناموفق بود. جهت تکمیل به سایت مراجعه فرمایید."
+    },
     "order_placed": {
       "enabled": true,
       "pattern": "",
@@ -71,11 +102,6 @@
       "pattern": "12345",
       "text": "سلام {first_name} عزیز، پرداخت سفارش {order_id} به مبلغ {order_total} تومان تایید شد و وارد مرحله پردازش گردید."
     },
-    "processing": {
-      "enabled": true,
-      "pattern": "12345",
-      "text": "سلام {first_name} عزیز، سفارش {order_id} وارد مرحله بسته‌بندی و آماده‌سازی انبار شد."
-    },
     "shipped": {
       "enabled": true,
       "pattern": "54321",
@@ -85,19 +111,24 @@
       "enabled": true,
       "pattern": "",
       "text": "سلام {first_name} عزیز، سفارش {order_id} تحویل داده شد. با سپاس از اعتماد به ایران مورینگا!"
+    }
+  },
+  "adminTemplates": {
+    "processing": {
+      "enabled": true,
+      "pattern": "",
+      "text": "مدیر گرامی، سفارش جدید شماره {order_id} به مبلغ {order_total} توسط {first_name} {last_name} ثبت شد."
+    },
+    "completed": {
+      "enabled": false,
+      "pattern": "",
+      "text": "سفارش شماره {order_id} با موفقیت تحویل و تکمیل شد."
     },
     "cancelled": {
       "enabled": true,
       "pattern": "",
-      "text": "سلام {first_name} عزیز، سفارش شما به شماره {order_id} لغو شد."
+      "text": "هشدار: سفارش شماره {order_id} توسط کاربر یا سیستم لغو شد."
     },
-    "refunded": {
-      "enabled": false,
-      "pattern": "",
-      "text": "سلام {first_name} عزیز، مبلغ سفارش {order_id} مسترد گردید."
-    }
-  },
-  "adminTemplates": {
     "order_placed": {
       "enabled": true,
       "pattern": "",
@@ -107,11 +138,6 @@
       "enabled": true,
       "pattern": "",
       "text": "مدیر گرامی، پرداخت سفارش {order_id} به مبلغ {order_total} تومان با موفقیت تایید شد."
-    },
-    "cancelled": {
-      "enabled": true,
-      "pattern": "",
-      "text": "هشدار: سفارش شماره {order_id} توسط کاربر یا سیستم لغو شد."
     }
   },
   "lastStatus": "connected",

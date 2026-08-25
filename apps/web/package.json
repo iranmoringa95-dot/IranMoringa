@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build && node prepare-cf-assets.js",
     "deploy": "next build && node prepare-cf-assets.js && npx wrangler deploy",
-    "test": "node --test worker.test.mjs",
+    "test": "node --test worker.test.mjs admin-nav.test.mjs",
     "start": "next start -p 3000",
     "lint": "next lint",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit"

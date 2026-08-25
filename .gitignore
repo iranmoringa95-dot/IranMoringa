@@ -18,6 +18,7 @@ node_modules/
 coverage/
 *.out
 *.test
+*.tsbuildinfo
 
 # Environment and secrets
 .env
