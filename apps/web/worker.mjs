@@ -33,6 +33,23 @@ export async function handleRequest(request, env) {
     return Response.redirect(targetURL.toString(), 301);
   }
 
+  // Enamad verification txt file handling
+  const decodedPath = decodeURIComponent(incomingURL.pathname);
+  if (
+    incomingURL.pathname === '/50295246.txt' ||
+    decodedPath === '/50295246.txt' ||
+    decodedPath === '/۵۰۲۹۵۲۴۶.txt' ||
+    incomingURL.pathname === '/%DB%B5%DB%B0%DB%B2%DB%B9%DB%B5%DB%B2%DB%B4%DB%B6.txt'
+  ) {
+    return new Response('', {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
+    });
+  }
+
   if (!incomingURL.pathname.startsWith(API_PREFIX)) {
     return env.ASSETS.fetch(request);
   }
