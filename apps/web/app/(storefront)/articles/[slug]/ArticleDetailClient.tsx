@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
-import { CommentsSection } from '@/components/storefront/CommentsSection';
+import { CommentsSection, CommentItem } from '@/components/storefront/CommentsSection';
 import { ArticleItem } from '@/lib/articles-data';
 import { ALL_MORINGA_PRODUCTS, ProductItem } from '@/lib/products-data';
 import { SITE_CONFIG } from '@/lib/site-config';
@@ -43,9 +43,10 @@ function renderFormattedText(text: string) {
 
 interface ArticleDetailClientProps {
   article: ArticleItem;
+  initialComments?: CommentItem[];
 }
 
-export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
+export function ArticleDetailClient({ article, initialComments = [] }: ArticleDetailClientProps) {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   // Look up related products
@@ -431,6 +432,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
           targetSlug={article.slug}
           targetTitle={article.title_fa}
           showRating={false}
+          initialComments={initialComments}
         />
 
         {/* Back Link */}

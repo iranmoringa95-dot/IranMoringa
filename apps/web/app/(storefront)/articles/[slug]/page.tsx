@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ALL_MORINGA_ARTICLES } from '@/lib/articles-data';
+import { getCommentsForArticle } from '@/lib/articles-comments-data';
 import { SITE_CONFIG } from '@/lib/site-config';
 import { ArticleDetailClient } from './ArticleDetailClient';
 
@@ -98,6 +99,8 @@ export default async function ArticleDetailPage({
     notFound();
   }
 
+  const initialComments = getCommentsForArticle(article.slug, article.title_fa);
+
   const articleUrl = `${SITE_CONFIG.siteUrl}/articles/${encodeURIComponent(article.slug)}`;
   const imageUrl = article.cover_image_url
     ? article.cover_image_url.startsWith('http')
@@ -190,7 +193,7 @@ export default async function ArticleDetailPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
-      <ArticleDetailClient article={article} />
+      <ArticleDetailClient article={article} initialComments={initialComments} />
     </>
   );
 }
