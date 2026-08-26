@@ -17,13 +17,22 @@ function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
   const stats = fs.statSync(src);
   if (stats.isDirectory()) {
+    if (fs.existsSync(dest) && !fs.statSync(dest).isDirectory()) {
+      fs.rmSync(dest, { force: true });
+    }
     if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
     for (const child of fs.readdirSync(src)) {
       copyRecursive(path.join(src, child), path.join(dest, child));
     }
   } else {
     const parent = path.dirname(dest);
+    if (fs.existsSync(parent) && !fs.statSync(parent).isDirectory()) {
+      fs.rmSync(parent, { force: true });
+    }
     if (!fs.existsSync(parent)) fs.mkdirSync(parent, { recursive: true });
+    if (fs.existsSync(dest) && fs.statSync(dest).isDirectory()) {
+      fs.rmSync(dest, { recursive: true, force: true });
+    }
     fs.copyFileSync(src, dest);
   }
 }
@@ -58,10 +67,20 @@ function processServerAppFiles(dir, rel = '') {
     if (entry.isDirectory()) {
       processServerAppFiles(fullPath, rawRelPath);
     } else {
+      // Ignore server runtime code and trace files
+      if (
+        entry.name.endsWith('.js') ||
+        entry.name.endsWith('.js.map') ||
+        entry.name.endsWith('.nft.json') ||
+        entry.name.endsWith('.nft.js')
+      ) {
+        continue;
+      }
+
       const cleanRel = normalizeRoutePath(rel);
       const cleanRelPath = normalizeRoutePath(rawRelPath);
 
-      // Copy .html, .rsc, .meta, .json, .txt
+      // Copy static assets (.html, .rsc, .meta, .json, .txt)
       if (
         entry.name.endsWith('.html') ||
         entry.name.endsWith('.rsc') ||
